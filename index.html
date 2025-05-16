@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Adicionar Produtos</title>
     
     <!-- Font Awesome para ícones -->
@@ -324,15 +324,20 @@
         }
 
         .camera-container {
-            width: 80%;
+            width: 100%;
             max-width: 800px;
             position: relative;
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #cameraVideo {
             width: 100%;
-            border: 3px solid white;
-            border-radius: 5px;
+            height: 100%;
+            object-fit: cover;
+            background: black;
         }
 
         #scannerCanvas {
@@ -344,6 +349,7 @@
             display: flex;
             gap: 15px;
             justify-content: center;
+            width: 100%;
         }
 
         .camera-feedback {
@@ -355,6 +361,7 @@
             color: #2ecc71;
             opacity: 0;
             transition: opacity 0.3s;
+            z-index: 1001;
         }
 
         .scanned-products {
@@ -381,7 +388,7 @@
             margin-top: 20px;
             width: 80%;
             max-width: 800px;
-            display: flex;
+            display: none;
             gap: 10px;
         }
 
@@ -390,6 +397,7 @@
             padding: 10px;
             border-radius: 5px;
             border: none;
+            font-size: 16px;
         }
 
         .manual-add-btn {
@@ -399,6 +407,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
         }
 
         .manual-add-btn:hover {
@@ -412,17 +421,7 @@
             color: white;
             text-decoration: underline;
             cursor: pointer;
-        }
-
-        .scanned-count {
-            color: white;
-            text-align: center;
-            margin-bottom: 10px;
             font-size: 16px;
-            font-weight: bold;
-            background-color: rgba(0,0,0,0.3);
-            padding: 5px;
-            border-radius: 5px;
         }
 
         @media (max-width: 1400px) {
@@ -479,7 +478,7 @@
             }
 
             .camera-container {
-                width: 95%;
+                height: 50vh;
             }
 
             .manual-input-container {
@@ -606,7 +605,7 @@
         </div>
         
         <!-- Container para entrada manual -->
-        <div class="manual-input-container" id="manualInputContainer" style="display: none;">
+        <div class="manual-input-container" id="manualInputContainer">
             <input type="text" id="manualBarcodeInput" class="manual-input" placeholder="Digite o código de barras">
             <button id="manualAddBtn" class="manual-add-btn">
                 <i class="fas fa-plus"></i> Adicionar
@@ -624,7 +623,6 @@
         
         <div class="scanned-products" id="scannedProducts">
             <h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>
-            <div class="scanned-count">Total: 0 itens</div>
             <!-- Produtos escaneados aparecerão aqui -->
         </div>
     </div>
@@ -648,888 +646,40 @@
                 {
                     "id": "2",
                     "type": "grande",
-                    "x": -18,
-                    "y": 528,
+                    "x": 100,
+                    "y": 629,
                     "rotation": 270,
                     "products": {}
                 },
                 {
                     "id": "3",
                     "type": "grande",
-                    "x": -19.265625,
-                    "y": 426.828125,
+                    "x": 219,
+                    "y": 629,
                     "rotation": 270,
                     "products": {}
                 },
                 {
                     "id": "4",
-                    "type": "grande",
-                    "x": -18,
-                    "y": 325,
+                    "type": "pequeno",
+                    "x": 338,
+                    "y": 629,
                     "rotation": 270,
                     "products": {}
                 },
                 {
                     "id": "5",
-                    "type": "grande",
-                    "x": -18,
-                    "y": 223,
+                    "type": "pequeno",
+                    "x": 378,
+                    "y": 629,
                     "rotation": 270,
                     "products": {}
                 },
                 {
                     "id": "6",
-                    "type": "grande",
-                    "x": -19,
-                    "y": 122,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "7",
-                    "type": "grande",
-                    "x": 102,
-                    "y": 626,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "8",
-                    "type": "grande",
-                    "x": 101,
-                    "y": 525,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "9",
-                    "type": "grande",
-                    "x": 101,
-                    "y": 424,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "10",
-                    "type": "grande",
-                    "x": 101,
-                    "y": 323,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "11",
-                    "type": "grande",
-                    "x": 101,
-                    "y": 221,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "12",
-                    "type": "grande",
-                    "x": 100,
-                    "y": 120,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "13",
-                    "type": "grande",
-                    "x": 163,
-                    "y": 626,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "14",
-                    "type": "grande",
-                    "x": 162,
-                    "y": 525,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "15",
-                    "type": "grande",
-                    "x": 162,
-                    "y": 423,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "16",
-                    "type": "grande",
-                    "x": 163,
-                    "y": 322,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "17",
-                    "type": "grande",
-                    "x": 163,
-                    "y": 220,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "18",
-                    "type": "grande",
-                    "x": 161,
-                    "y": 119,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "19",
-                    "type": "grande",
-                    "x": 282,
-                    "y": 626,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "20",
-                    "type": "grande",
-                    "x": 282,
-                    "y": 525,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "21",
-                    "type": "grande",
-                    "x": 283,
-                    "y": 424,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "22",
-                    "type": "grande",
-                    "x": 283,
-                    "y": 323,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "23",
-                    "type": "grande",
-                    "x": 282,
-                    "y": 222,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "24",
-                    "type": "grande",
-                    "x": 282,
-                    "y": 121,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "25",
-                    "type": "grande",
-                    "x": 344,
-                    "y": 626,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "26",
-                    "type": "grande",
-                    "x": 343,
-                    "y": 525,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "27",
-                    "type": "grande",
-                    "x": 344,
-                    "y": 424,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "28",
-                    "type": "grande",
-                    "x": 344,
-                    "y": 323,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "29",
-                    "type": "grande",
-                    "x": 343,
-                    "y": 222,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "30",
-                    "type": "grande",
-                    "x": 343,
-                    "y": 120,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "31",
-                    "type": "grande",
-                    "x": 463,
-                    "y": 21,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "32",
-                    "type": "grande",
-                    "x": 463,
-                    "y": 123,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "33",
-                    "type": "grande",
-                    "x": 62,
-                    "y": 0,
-                    "rotation": 0,
-                    "products": {}
-                },
-                {
-                    "id": "34",
-                    "type": "grande",
-                    "x": 163,
-                    "y": 0,
-                    "rotation": 0,
-                    "products": {}
-                },
-                {
-                    "id": "35",
-                    "type": "grande",
-                    "x": 264,
-                    "y": 0,
-                    "rotation": 0,
-                    "products": {}
-                },
-                {
-                    "id": "36",
-                    "type": "grande",
-                    "x": 280,
-                    "y": 780,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "37",
-                    "type": "grande",
-                    "x": 280,
-                    "y": 881,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "38",
-                    "type": "grande",
-                    "x": 281,
-                    "y": 982,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "39",
-                    "type": "grande",
-                    "x": 282,
-                    "y": 1083,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "40",
-                    "type": "grande",
-                    "x": 343,
-                    "y": 1083,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "41",
-                    "type": "grande",
-                    "x": 342,
-                    "y": 982,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "42",
-                    "type": "grande",
-                    "x": 341,
-                    "y": 881,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "43",
-                    "type": "grande",
-                    "x": 341,
-                    "y": 780,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "44",
-                    "type": "grande",
-                    "x": 462,
-                    "y": 706,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "45",
-                    "type": "grande",
-                    "x": 463,
-                    "y": 808,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "46",
-                    "type": "grande",
-                    "x": 463,
-                    "y": 909,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "47",
-                    "type": "grande",
-                    "x": 463,
-                    "y": 1010,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "48",
-                    "type": "grande",
-                    "x": 464,
-                    "y": 1111,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "49",
-                    "type": "grande",
-                    "x": 342,
-                    "y": 1190,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "58",
                     "type": "pequeno",
-                    "x": 11,
-                    "y": 710,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "59",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 751,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "60",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 792,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "61",
-                    "type": "pequeno",
-                    "x": 10,
-                    "y": 833,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "62",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 874,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "63",
-                    "type": "pequeno",
-                    "x": 10,
-                    "y": 915,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "64",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 956,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "65",
-                    "type": "pequeno",
-                    "x": 10,
-                    "y": 997,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "66",
-                    "type": "pequeno",
-                    "x": 10,
-                    "y": 1038,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "67",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1079,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "68",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1120,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "69",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1161,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "70",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1202,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "71",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1243,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "72",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1284,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "73",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1325,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "74",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1366,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "75",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1408,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "76",
-                    "type": "pequeno",
-                    "x": 12,
-                    "y": 1450,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "77",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1491,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "78",
-                    "type": "pequeno",
-                    "x": 11,
-                    "y": 1532,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "79",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1557,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "80",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1515,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "81",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1473,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "82",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1431,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "83",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1390,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "84",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1349,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "85",
-                    "type": "pequeno",
-                    "x": 133,
-                    "y": 1308,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "86",
-                    "type": "pequeno",
-                    "x": 133,
-                    "y": 1267,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "87",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1226,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "88",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1184,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "89",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1143,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "90",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 1102,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "91",
-                    "type": "pequeno",
-                    "x": 133,
-                    "y": 1061,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "92",
-                    "type": "pequeno",
-                    "x": 131,
-                    "y": 1020,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "93",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 979,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "94",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 938,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "95",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 897,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "96",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 856,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "97",
-                    "type": "pequeno",
-                    "x": 131.984375,
-                    "y": 732.984375,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "98",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 774,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "99",
-                    "type": "pequeno",
-                    "x": 132,
-                    "y": 815,
-                    "rotation": 90,
-                    "products": {}
-                },
-                {
-                    "id": "100",
-                    "type": "pequeno",
-                    "x": 194,
-                    "y": 733,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "101",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 775,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "102",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 816,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "103",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 857,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "104",
-                    "type": "pequeno",
-                    "x": 194,
-                    "y": 898,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "105",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 939,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "106",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 980,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "107",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 1021,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "108",
-                    "type": "pequeno",
-                    "x": 194,
-                    "y": 1062,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "109",
-                    "type": "pequeno",
-                    "x": 194,
-                    "y": 1103,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "110",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 1144,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "111",
-                    "type": "pequeno",
-                    "x": 194,
-                    "y": 1185,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "112",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 1226,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "113",
-                    "type": "pequeno",
-                    "x": 194,
-                    "y": 1267,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "114",
-                    "type": "pequeno",
-                    "x": 195,
-                    "y": 1308,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "115",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 1349,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "116",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 1390,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "117",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 1431,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "118",
-                    "type": "pequeno",
-                    "x": 194,
-                    "y": 1472,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "119",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 1513,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "120",
-                    "type": "pequeno",
-                    "x": 193,
-                    "y": 1554,
+                    "x": 418,
+                    "y": 629,
                     "rotation": 270,
                     "products": {}
                 }
@@ -1542,6 +692,7 @@
         let scannedProducts = [];
         let isScannerActive = false;
         let isManualInputMode = false;
+        let cameraStream = null;
 
         // Elementos do DOM
         const cabinetSelect = document.getElementById('cabinetSelect');
@@ -1676,60 +827,78 @@
         }
 
         // Função para iniciar o scanner
-        function startScanner() {
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: cameraVideo,
-                    constraints: {
-                        width: 640,
-                        height: 480,
-                        facingMode: "environment"
-                    },
-                },
-                decoder: {
-                    readers: [
-                        "ean_reader",
-                        "ean_8_reader",
-                        "code_128_reader",
-                        "code_39_reader",
-                        "code_39_vin_reader",
-                        "codabar_reader",
-                        "upc_reader",
-                        "upc_e_reader",
-                        "i2of5_reader"
-                    ],
-                    debug: {
-                        drawBoundingBox: true,
-                        showFrequency: true,
-                        drawScanline: true,
-                        showPattern: true
+        async function startScanner() {
+            try {
+                // Solicitar permissão de câmera primeiro
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment', // Prioriza câmera traseira
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
                     }
-                },
-                locate: true
-            }, function(err) {
-                if (err) {
-                    console.error(err);
-                    alert("Erro ao inicializar leitor de código de barras: " + err);
-                    return;
-                }
-                Quagga.start();
-                isScannerActive = true;
-            });
+                });
 
-            Quagga.onDetected(function(result) {
-                const code = result.codeResult.code;
-                addScannedProduct(code);
-                
-                // Pausar temporariamente para evitar leituras múltiplas
-                Quagga.stop();
-                setTimeout(() => {
-                    if (isScannerActive) {
-                        Quagga.start();
+                cameraVideo.srcObject = cameraStream;
+                await cameraVideo.play();
+
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: cameraVideo,
+                        constraints: {
+                            width: { min: 640 },
+                            height: { min: 480 },
+                            aspectRatio: { ideal: 1.333333 }
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader",
+                            "code_39_reader",
+                            "upc_reader"
+                        ]
+                    },
+                    locator: {
+                        halfSample: true,
+                        patchSize: "medium"
                     }
-                }, 500);
-            });
+                }, function(err) {
+                    if (err) {
+                        console.error("Erro de inicialização:", err);
+                        alert("Erro ao iniciar scanner: " + err.message);
+                        return;
+                    }
+                    Quagga.start();
+                    isScannerActive = true;
+                });
+
+                Quagga.onDetected(function(result) {
+                    const code = result.codeResult.code;
+                    addScannedProduct(code);
+                    
+                    // Pausar temporariamente para evitar leituras múltiplas
+                    Quagga.stop();
+                    setTimeout(() => {
+                        if (!isManualInputMode && isScannerActive) {
+                            Quagga.start();
+                        }
+                    }, 500);
+                });
+
+            } catch (err) {
+                console.error("Erro de acesso à câmera:", err);
+                alert("Não foi possível acessar a câmera. Verifique as permissões!");
+                
+                // Mostrar opção manual como fallback
+                isManualInputMode = true;
+                manualInputContainer.style.display = 'flex';
+                cameraVideo.style.display = 'none';
+                toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
+                manualBarcodeInput.focus();
+            }
         }
 
         // Função para adicionar um produto escaneado/digitado
@@ -1787,10 +956,7 @@
 
         // Função para atualizar a lista de produtos escaneados
         function updateScannedProductsList() {
-            scannedProductsContainer.innerHTML = `
-                <h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>
-                <div class="scanned-count">Total: ${scannedProducts.length} itens</div>
-            `;
+            scannedProductsContainer.innerHTML = '<h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>';
             
             if (scannedProducts.length === 0) {
                 const emptyMsg = document.createElement('p');
@@ -1819,9 +985,9 @@
                 isScannerActive = false;
             }
             
-            if (cameraVideo.srcObject) {
-                cameraVideo.srcObject.getTracks().forEach(track => track.stop());
-                cameraVideo.srcObject = null;
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
             }
             
             cameraModal.style.display = 'none';
@@ -1868,16 +1034,6 @@
             }
         }
 
-        // Função para iniciar o scanner de código de barras
-        function startBarcodeScanner() {
-            cameraModal.style.display = 'flex';
-            scannedProducts = [];
-            updateScannedProductsList();
-            
-            // Iniciar o scanner
-            startScanner();
-        }
-
         // Event Listeners
         cabinetSelect.addEventListener('change', function() {
             const cabinetId = this.value;
@@ -1900,7 +1056,29 @@
             checkAddButton();
         });
 
-        addBtn.addEventListener('click', startBarcodeScanner);
+        addBtn.addEventListener('click', async function() {
+            try {
+                // Verificar se o dispositivo suporta acesso à câmera
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error("Navegador não suporta acesso à câmera");
+                }
+                
+                cameraModal.style.display = 'flex';
+                scannedProducts = [];
+                updateScannedProductsList();
+                await startScanner();
+            } catch (err) {
+                console.error("Erro ao iniciar câmera:", err);
+                alert("Erro ao acessar câmera: " + err.message);
+                
+                // Mostrar opção manual como fallback
+                isManualInputMode = true;
+                manualInputContainer.style.display = 'flex';
+                cameraVideo.style.display = 'none';
+                toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
+                manualBarcodeInput.focus();
+            }
+        });
 
         backBtn.addEventListener('click', stopBarcodeScanner);
 

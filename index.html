@@ -826,91 +826,101 @@
             }
         }
 
-        // Função para iniciar o scanner
-        async function startScanner() {
-            try {
-                // Solicitar permissão de câmera primeiro
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment', // Prioriza câmera traseira
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                });
-
-                cameraVideo.srcObject = cameraStream;
-                await cameraVideo.play();
-
-                Quagga.init({
-                    inputStream: {
-                        name: "Live",
-                        type: "LiveStream",
-                        target: cameraVideo,
-                        constraints: {
-                            width: { min: 640 },
-                            height: { min: 480 },
-                            aspectRatio: { ideal: 1.333333 }
-                        }
-                    },
-                    decoder: {
-                        readers: [
-                            "code_128_reader",
-                            "ean_reader",
-                            "ean_8_reader",
-                            "code_39_reader",
-                            "upc_reader"
-                        ]
-                    },
-                    locator: {
-                        halfSample: true,
-                        patchSize: "medium"
-                    }
-                }, function(err) {
-                    if (err) {
-                        console.error("Erro de inicialização:", err);
-                        alert("Erro ao iniciar scanner: " + err.message);
-                        return;
-                    }
-                    Quagga.start();
-                    isScannerActive = true;
-                });
-
-                Quagga.onDetected(function(result) {
-                    const code = result.codeResult.code;
-                    addScannedProduct(code);
-                    
-                    // Pausar temporariamente para evitar leituras múltiplas
-                    Quagga.stop();
-                    setTimeout(() => {
-                        if (!isManualInputMode && isScannerActive) {
-                            Quagga.start();
-                        }
-                    }, 500);
-                });
-
-            } catch (err) {
-                console.error("Erro de acesso à câmera:", err);
-                alert("Não foi possível acessar a câmera. Verifique as permissões!");
-                
-                // Mostrar opção manual como fallback
-                isManualInputMode = true;
-                manualInputContainer.style.display = 'flex';
-                cameraVideo.style.display = 'none';
-                toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
-                manualBarcodeInput.focus();
+        // Substitua a função startScanner() por esta versão melhorada
+async function startScanner() {
+    try {
+        // Solicitar permissão de câmera primeiro
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
             }
-        }
+        });
 
-        // Função para adicionar um produto escaneado/digitado
-        function addScannedProduct(code) {
-            // Verificar se o código já foi escaneado
-            if (!scannedProducts.some(p => p.code === code)) {
-                // Feedback visual e sonoro
+        cameraVideo.srcObject = cameraStream;
+        await cameraVideo.play();
+
+        Quagga.init({
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: cameraVideo,
+                constraints: {
+                    width: { min: 640 },
+                    height: { min: 480 },
+                    aspectRatio: { ideal: 1.333333 }
+                }
+            },
+            decoder: {
+                readers: [
+                    "code_128_reader",
+                    "ean_reader",
+                    "ean_8_reader", 
+                    "code_39_reader",
+                    "upc_reader"
+                ],
+                multiple: false // Não permitir múltiplas leituras simultâneas
+            },
+            locator: {
+                halfSample: true,
+                patchSize: "large", // Aumentar área de detecção
+                debug: {
+                    showCanvas: true,
+                    showPatches: true,
+                    showFoundPatches: true,
+                    showSkeleton: true,
+                    showLabels: true,
+                    showPatchLabels: true,
+                    showRemainingPatchLabels: true,
+                    boxFromPatches: {
+                        showTransformed: true,
+                        showTransformedBox: true,
+                        showBB: true
+                    }
+                }
+            },
+            numOfWorkers: 4, // Aumentar workers para melhor desempenho
+            frequency: 10, // Verificar a cada 10 frames
+            debug: false
+        }, function(err) {
+            if (err) {
+                console.error("Erro de inicialização:", err);
+                alert("Erro ao iniciar scanner: " + err.message);
+                return;
+            }
+            Quagga.start();
+            isScannerActive = true;
+        });
+
+        // Variável para controle de qualidade
+        let lastValidCode = null;
+        let validationCount = 0;
+
+        Quagga.onDetected(async function(result) {
+            const code = result.codeResult.code;
+            
+            // Validação básica do código (exemplo para EAN-13)
+            if (code.length < 8 || code.length > 13) {
+                console.log("Código inválido - tamanho incorreto");
+                return;
+            }
+            
+            // Se for o mesmo código da última leitura, incrementar contador
+            if (code === lastValidCode) {
+                validationCount++;
+            } else {
+                lastValidCode = code;
+                validationCount = 1;
+            }
+            
+            // Requer pelo menos 2 leituras consistentes do mesmo código
+            if (validationCount >= 2) {
+                // Feedback visual
                 cameraFeedback.style.opacity = '1';
                 cameraFeedback.classList.add('checkmark-animation');
-                playBeepSound();
                 
-                // Adicionar à lista
+                // Adicionar à lista (mesmo que já exista)
                 scannedProducts.push({
                     code: code,
                     timestamp: new Date().toLocaleTimeString()
@@ -925,15 +935,61 @@
                     cameraFeedback.classList.remove('checkmark-animation');
                 }, 1000);
                 
-                // Limpar o input manual se estiver nesse modo
-                if (isManualInputMode) {
-                    manualBarcodeInput.value = '';
-                }
-            } else {
-                // Feedback de código já adicionado
-                alert('Este código já foi adicionado anteriormente.');
+                // Resetar validação
+                lastValidCode = null;
+                validationCount = 0;
             }
-        }
+        });
+
+    } catch (err) {
+        console.error("Erro de acesso à câmera:", err);
+        alert("Não foi possível acessar a câmera. Verifique as permissões!");
+        manualInputFallback();
+    }
+}
+
+// Função de fallback para entrada manual
+function manualInputFallback() {
+    isManualInputMode = true;
+    manualInputContainer.style.display = 'flex';
+    cameraVideo.style.display = 'none';
+    toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
+    manualBarcodeInput.focus();
+}
+
+// Modifique a função addScannedProduct para remover a verificação de duplicados
+function addScannedProduct(code) {
+    // Validação básica do código
+    if (!code || code.length < 3) {
+        alert("Código inválido! Muito curto.");
+        return;
+    }
+    
+    // Feedback visual
+    cameraFeedback.style.opacity = '1';
+    cameraFeedback.classList.add('checkmark-animation');
+    playBeepSound();
+    
+    // Sempre adiciona, mesmo que já exista
+    scannedProducts.push({
+        code: code,
+        timestamp: new Date().toLocaleTimeString()
+    });
+    
+    updateScannedProductsList();
+    checkAddButton();
+    
+    // Resetar feedback
+    setTimeout(() => {
+        cameraFeedback.style.opacity = '0';
+        cameraFeedback.classList.remove('checkmark-animation');
+    }, 1000);
+    
+    // Limpar o input manual se estiver nesse modo
+    if (isManualInputMode) {
+        manualBarcodeInput.value = '';
+    }
+}
 
         // Função para reproduzir som de bip
         function playBeepSound() {

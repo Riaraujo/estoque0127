@@ -327,7 +327,7 @@
             width: 100%;
             max-width: 800px;
             position: relative;
-            height: 60vh;
+            height: calc(60vh - 80px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -424,6 +424,60 @@
             font-size: 16px;
         }
 
+        .scan-quality-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 1001;
+        }
+
+        /* Estilos para o botão de bipagem */
+        .scan-button-container {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            z-index: 1002;
+        }
+
+        .scan-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: rgba(52, 152, 219, 0.8);
+            border: 4px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .scan-button:active {
+            transform: scale(0.95);
+            background-color: rgba(41, 128, 185, 0.9);
+        }
+
+        .scan-button.hidden {
+            display: none;
+        }
+
+        .scan-button i {
+            font-size: 30px;
+        }
+
         @media (max-width: 1400px) {
             .content-wrapper {
                 flex-direction: column;
@@ -478,11 +532,16 @@
             }
 
             .camera-container {
-                height: 50vh;
+                height: calc(50vh - 80px);
             }
 
             .manual-input-container {
                 flex-direction: column;
+            }
+
+            .scan-button {
+                width: 70px;
+                height: 70px;
             }
         }
 
@@ -597,6 +656,9 @@
     <!-- Modal da Câmera -->
     <div class="camera-modal" id="cameraModal">
         <div class="camera-container">
+            <div class="scan-quality-indicator" id="qualityIndicator">
+                Qualidade da leitura: Aguardando...
+            </div>
             <video id="cameraVideo" autoplay playsinline></video>
             <canvas id="scannerCanvas"></canvas>
             <div class="camera-feedback" id="cameraFeedback">
@@ -624,6 +686,13 @@
         <div class="scanned-products" id="scannedProducts">
             <h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>
             <!-- Produtos escaneados aparecerão aqui -->
+        </div>
+
+        <!-- Botão de bipagem -->
+        <div class="scan-button-container">
+            <div class="scan-button" id="scanButton">
+                <i class="fas fa-barcode"></i>
+            </div>
         </div>
     </div>
 
@@ -693,6 +762,10 @@
         let isScannerActive = false;
         let isManualInputMode = false;
         let cameraStream = null;
+        let audioContext = null;
+        let beepSound = null;
+        let isScanButtonPressed = false;
+        let isProcessingScan = false;
 
         // Elementos do DOM
         const cabinetSelect = document.getElementById('cabinetSelect');
@@ -708,6 +781,24 @@
         const manualBarcodeInput = document.getElementById('manualBarcodeInput');
         const manualAddBtn = document.getElementById('manualAddBtn');
         const toggleInputBtn = document.getElementById('toggleInputBtn');
+        const qualityIndicator = document.getElementById('qualityIndicator');
+        const scanButton = document.getElementById('scanButton');
+
+        // Inicializar o contexto de áudio
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                beepSound = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                beepSound.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                beepSound.type = 'sine';
+                beepSound.frequency.value = 800;
+                gainNode.gain.value = 0.1;
+            } catch (e) {
+                console.error("Erro ao inicializar áudio:", e);
+            }
+        }
 
         // Função para renderizar o estoque estático
         function renderStaticStock() {
@@ -826,188 +917,192 @@
             }
         }
 
-        // Substitua a função startScanner() por esta versão melhorada
-async function startScanner() {
-    try {
-        // Solicitar permissão de câmera primeiro
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: 'environment',
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            }
-        });
+        // Funções para controle do botão de bipagem
+        function handleScanStart(e) {
+            e.preventDefault();
+            isScanButtonPressed = true;
+            scanButton.classList.add('active');
+        }
 
-        cameraVideo.srcObject = cameraStream;
-        await cameraVideo.play();
+        function handleScanEnd(e) {
+            e.preventDefault();
+            isScanButtonPressed = false;
+            scanButton.classList.remove('active');
+        }
 
-        Quagga.init({
-            inputStream: {
-                name: "Live",
-                type: "LiveStream",
-                target: cameraVideo,
-                constraints: {
-                    width: { min: 640 },
-                    height: { min: 480 },
-                    aspectRatio: { ideal: 1.333333 }
-                }
-            },
-            decoder: {
-                readers: [
-                    "code_128_reader",
-                    "ean_reader",
-                    "ean_8_reader", 
-                    "code_39_reader",
-                    "upc_reader"
-                ],
-                multiple: false // Não permitir múltiplas leituras simultâneas
-            },
-            locator: {
-                halfSample: true,
-                patchSize: "large", // Aumentar área de detecção
-                debug: {
-                    showCanvas: true,
-                    showPatches: true,
-                    showFoundPatches: true,
-                    showSkeleton: true,
-                    showLabels: true,
-                    showPatchLabels: true,
-                    showRemainingPatchLabels: true,
-                    boxFromPatches: {
-                        showTransformed: true,
-                        showTransformedBox: true,
-                        showBB: true
+        // Função para iniciar o scanner
+        async function startScanner() {
+            try {
+                // Solicitar permissão de câmera primeiro
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
                     }
-                }
-            },
-            numOfWorkers: 4, // Aumentar workers para melhor desempenho
-            frequency: 10, // Verificar a cada 10 frames
-            debug: false
-        }, function(err) {
-            if (err) {
-                console.error("Erro de inicialização:", err);
-                alert("Erro ao iniciar scanner: " + err.message);
-                return;
-            }
-            Quagga.start();
-            isScannerActive = true;
-        });
-
-        // Variável para controle de qualidade
-        let lastValidCode = null;
-        let validationCount = 0;
-
-        Quagga.onDetected(async function(result) {
-            const code = result.codeResult.code;
-            
-            // Validação básica do código (exemplo para EAN-13)
-            if (code.length < 8 || code.length > 13) {
-                console.log("Código inválido - tamanho incorreto");
-                return;
-            }
-            
-            // Se for o mesmo código da última leitura, incrementar contador
-            if (code === lastValidCode) {
-                validationCount++;
-            } else {
-                lastValidCode = code;
-                validationCount = 1;
-            }
-            
-            // Requer pelo menos 2 leituras consistentes do mesmo código
-            if (validationCount >= 2) {
-                // Feedback visual
-                cameraFeedback.style.opacity = '1';
-                cameraFeedback.classList.add('checkmark-animation');
-                
-                // Adicionar à lista (mesmo que já exista)
-                scannedProducts.push({
-                    code: code,
-                    timestamp: new Date().toLocaleTimeString()
                 });
-                
-                updateScannedProductsList();
-                checkAddButton();
-                
-                // Resetar feedback
-                setTimeout(() => {
-                    cameraFeedback.style.opacity = '0';
-                    cameraFeedback.classList.remove('checkmark-animation');
-                }, 300);
-                
-                // Resetar validação
-                lastValidCode = null;
-                validationCount = 0;
+
+                cameraVideo.srcObject = cameraStream;
+                await cameraVideo.play();
+
+                // Configurar eventos do botão de bipagem
+                scanButton.addEventListener('mousedown', handleScanStart);
+                scanButton.addEventListener('touchstart', handleScanStart);
+                scanButton.addEventListener('mouseup', handleScanEnd);
+                scanButton.addEventListener('touchend', handleScanEnd);
+                scanButton.addEventListener('mouseleave', handleScanEnd);
+
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: cameraVideo,
+                        constraints: {
+                            width: { min: 640 },
+                            height: { min: 480 },
+                            aspectRatio: { ideal: 1.333333 }
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader", 
+                            "code_39_reader",
+                            "upc_reader"
+                        ],
+                        multiple: false
+                    },
+                    locator: {
+                        halfSample: true,
+                        patchSize: "large",
+                        debug: {
+                            showCanvas: true,
+                            showPatches: true,
+                            showFoundPatches: true,
+                            showSkeleton: true,
+                            showLabels: true,
+                            showPatchLabels: true,
+                            showRemainingPatchLabels: true,
+                            boxFromPatches: {
+                                showTransformed: true,
+                                showTransformedBox: true,
+                                showBB: true
+                            }
+                        }
+                    },
+                    numOfWorkers: 4,
+                    frequency: 10,
+                    debug: false
+                }, function(err) {
+                    if (err) {
+                        console.error("Erro de inicialização:", err);
+                        alert("Erro ao iniciar scanner: " + err.message);
+                        return;
+                    }
+                    Quagga.start();
+                    isScannerActive = true;
+                });
+
+                Quagga.onDetected(async function(result) {
+                    // Só processa se o botão estiver pressionado e não estiver processando outra leitura
+                    if (!isScanButtonPressed || isProcessingScan) return;
+                    
+                    // Marcar que estamos processando uma leitura
+                    isProcessingScan = true;
+                    
+                    const code = result.codeResult.code;
+                    
+                    // Validação básica do código
+                    if (!code || code.length < 8 || code.length > 13) {
+                        console.log("Código inválido - tamanho incorreto");
+                        isProcessingScan = false;
+                        return;
+                    }
+                    
+                    // Esconder o botão temporariamente
+                    scanButton.classList.add('hidden');
+                    
+                    // Adicionar o produto
+                    addScannedProduct(code);
+                    
+                    // Mostrar o botão novamente após 2 segundos
+                    setTimeout(() => {
+                        scanButton.classList.remove('hidden');
+                        isProcessingScan = false;
+                    }, 2000);
+                });
+
+            } catch (err) {
+                console.error("Erro de acesso à câmera:", err);
+                alert("Não foi possível acessar a câmera. Verifique as permissões!");
+                manualInputFallback();
             }
-        });
+        }
 
-    } catch (err) {
-        console.error("Erro de acesso à câmera:", err);
-        alert("Não foi possível acessar a câmera. Verifique as permissões!");
-        manualInputFallback();
-    }
-}
+        // Função de fallback para entrada manual
+        function manualInputFallback() {
+            isManualInputMode = true;
+            manualInputContainer.style.display = 'flex';
+            cameraVideo.style.display = 'none';
+            toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
+            manualBarcodeInput.focus();
+        }
 
-// Função de fallback para entrada manual
-function manualInputFallback() {
-    isManualInputMode = true;
-    manualInputContainer.style.display = 'flex';
-    cameraVideo.style.display = 'none';
-    toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
-    manualBarcodeInput.focus();
-}
-
-// Modifique a função addScannedProduct para remover a verificação de duplicados
-function addScannedProduct(code) {
-    // Validação básica do código
-    if (!code || code.length < 3) {
-        alert("Código inválido! Muito curto.");
-        return;
-    }
-    
-    // Feedback visual
-    cameraFeedback.style.opacity = '1';
-    cameraFeedback.classList.add('checkmark-animation');
-    playBeepSound();
-    
-    // Sempre adiciona, mesmo que já exista
-    scannedProducts.push({
-        code: code,
-        timestamp: new Date().toLocaleTimeString()
-    });
-    
-    updateScannedProductsList();
-    checkAddButton();
-    
-    // Resetar feedback
-    setTimeout(() => {
-        cameraFeedback.style.opacity = '0';
-        cameraFeedback.classList.remove('checkmark-animation');
-    }, 1000);
-    
-    // Limpar o input manual se estiver nesse modo
-    if (isManualInputMode) {
-        manualBarcodeInput.value = '';
-    }
-}
+        // Função para adicionar um produto escaneado/digitado
+        function addScannedProduct(code) {
+            // Garantir que o som seja reproduzido
+            playBeepSound();
+            
+            // Feedback visual
+            cameraFeedback.style.opacity = '1';
+            cameraFeedback.classList.add('checkmark-animation');
+            
+            // Sempre adiciona, mesmo que já exista
+            scannedProducts.push({
+                code: code,
+                timestamp: new Date().toLocaleTimeString()
+            });
+            
+            updateScannedProductsList();
+            checkAddButton();
+            
+            // Resetar feedback
+            setTimeout(() => {
+                cameraFeedback.style.opacity = '0';
+                cameraFeedback.classList.remove('checkmark-animation');
+            }, 200);
+            
+            // Limpar o input manual se estiver nesse modo
+            if (isManualInputMode) {
+                manualBarcodeInput.value = '';
+            }
+        }
 
         // Função para reproduzir som de bip
         function playBeepSound() {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            oscillator.type = 'sine';
-            oscillator.frequency.value = 800;
-            gainNode.gain.value = 0.1;
-            
-            oscillator.start();
-            setTimeout(() => {
-                oscillator.stop();
-            }, 200);
+            try {
+                if (!audioContext) {
+                    initAudio();
+                }
+                
+                if (beepSound) {
+                    beepSound.start();
+                    setTimeout(() => {
+                        beepSound.stop();
+                        // Recriar o oscilador para poder tocar novamente
+                        beepSound = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        beepSound.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        beepSound.type = 'sine';
+                        beepSound.frequency.value = 800;
+                        gainNode.gain.value = 0.1;
+                    }, 200);
+                }
+            } catch (e) {
+                console.error("Erro ao reproduzir som:", e);
+            }
         }
 
         // Função para atualizar a lista de produtos escaneados
@@ -1051,6 +1146,12 @@ function addScannedProduct(code) {
             manualInputContainer.style.display = 'none';
             cameraVideo.style.display = 'block';
             toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
+            
+            // Resetar estados
+            isProcessingScan = false;
+            
+            // Garantir que o botão esteja visível
+            scanButton.classList.remove('hidden');
         }
 
         // Função para salvar os produtos no armário
@@ -1126,13 +1227,7 @@ function addScannedProduct(code) {
             } catch (err) {
                 console.error("Erro ao iniciar câmera:", err);
                 alert("Erro ao acessar câmera: " + err.message);
-                
-                // Mostrar opção manual como fallback
-                isManualInputMode = true;
-                manualInputContainer.style.display = 'flex';
-                cameraVideo.style.display = 'none';
-                toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
-                manualBarcodeInput.focus();
+                manualInputFallback();
             }
         });
 
@@ -1167,6 +1262,7 @@ function addScannedProduct(code) {
 
         // Inicialização
         window.onload = function() {
+            initAudio();
             renderStaticStock();
             
             if (estoque127.cabinets.length > 0) {

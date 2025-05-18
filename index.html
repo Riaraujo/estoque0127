@@ -382,6 +382,7 @@
             border-radius: 5px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
 
         .manual-input-container {
@@ -476,6 +477,20 @@
 
         .scan-button i {
             font-size: 30px;
+        }
+
+        /* Estilo para o botão de remoção */
+        .remove-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 5px;
+        }
+
+        .remove-btn:hover {
+            color: var(--accent-color);
         }
 
         @media (max-width: 1400px) {
@@ -762,10 +777,12 @@
         let isScannerActive = false;
         let isManualInputMode = false;
         let cameraStream = null;
+        let validationCount = 0;
+        let lastValidCode = null;
+        let isScanButtonPressed = false;
+        let scanButtonTimeout = null;
         let audioContext = null;
         let beepSound = null;
-        let isScanButtonPressed = false;
-        let isProcessingScan = false;
 
         // Elementos do DOM
         const cabinetSelect = document.getElementById('cabinetSelect');
@@ -1002,35 +1019,60 @@
                     }
                     Quagga.start();
                     isScannerActive = true;
+                    
+                    // Iniciar monitoramento da qualidade
+                    monitorScanQuality();
                 });
 
                 Quagga.onDetected(async function(result) {
-                    // Só processa se o botão estiver pressionado e não estiver processando outra leitura
-                    if (!isScanButtonPressed || isProcessingScan) return;
-                    
-                    // Marcar que estamos processando uma leitura
-                    isProcessingScan = true;
+                    // Só processa se o botão estiver pressionado
+                    if (!isScanButtonPressed) return;
                     
                     const code = result.codeResult.code;
                     
-                    // Validação básica do código
-                    if (!code || code.length < 8 || code.length > 13) {
-                        console.log("Código inválido - tamanho incorreto");
-                        isProcessingScan = false;
+                    // Validação do código - mínimo 12 caracteres, máximo 13
+                    if (!code || code.length < 12 || code.length > 13) {
+                        console.log("Código inválido - tamanho incorreto:", code);
+                        updateQualityIndicator(0, "Código inválido (deve ter 12-13 caracteres)");
                         return;
                     }
                     
-                    // Esconder o botão temporariamente
-                    scanButton.classList.add('hidden');
+                    // Verifica se contém apenas números
+                    if (!/^\d+$/.test(code)) {
+                        console.log("Código inválido - contém caracteres não numéricos:", code);
+                        updateQualityIndicator(0, "Código deve conter apenas números");
+                        return;
+                    }
                     
-                    // Adicionar o produto
-                    addScannedProduct(code);
+                    // Se for o mesmo código da última leitura, incrementar contador
+                    if (code === lastValidCode) {
+                        validationCount++;
+                    } else {
+                        lastValidCode = code;
+                        validationCount = 1;
+                    }
                     
-                    // Mostrar o botão novamente após 2 segundos
-                    setTimeout(() => {
-                        scanButton.classList.remove('hidden');
-                        isProcessingScan = false;
-                    }, 2000);
+                    // Atualizar indicador de qualidade
+                    updateQualityIndicator(validationCount);
+                    
+                    // Requer pelo menos 2 leituras consistentes do mesmo código
+                    if (validationCount >= 2) {
+                        // Esconder o botão temporariamente
+                        scanButton.classList.add('hidden');
+                        
+                        // Adicionar à lista (mesmo que já exista)
+                        addScannedProduct(code);
+                        
+                        // Resetar validação
+                        lastValidCode = null;
+                        validationCount = 0;
+                        updateQualityIndicator(0);
+                        
+                        // Mostrar o botão novamente após 2 segundos
+                        setTimeout(() => {
+                            scanButton.classList.remove('hidden');
+                        }, 2000);
+                    }
                 });
 
             } catch (err) {
@@ -1038,6 +1080,40 @@
                 alert("Não foi possível acessar a câmera. Verifique as permissões!");
                 manualInputFallback();
             }
+        }
+
+        // Função para monitorar a qualidade da leitura
+        function monitorScanQuality() {
+            setInterval(() => {
+                if (validationCount === 0) {
+                    updateQualityIndicator(0);
+                }
+            }, 1000);
+        }
+
+        // Função para atualizar o indicador de qualidade
+        function updateQualityIndicator(count, errorMessage = null) {
+            let qualityText, qualityColor;
+            
+            if (errorMessage) {
+                qualityText = errorMessage;
+                qualityColor = "red";
+            } else if (count === 0) {
+                qualityText = "Aguardando leitura...";
+                qualityColor = "gray";
+            } else if (count === 1) {
+                qualityText = "Leitura inicial - aproxime mais";
+                qualityColor = "orange";
+            } else if (count === 2) {
+                qualityText = "Boa leitura - mantenha estável";
+                qualityColor = "yellow";
+            } else {
+                qualityText = "Leitura confirmada!";
+                qualityColor = "green";
+            }
+            
+            qualityIndicator.textContent = `Qualidade: ${qualityText}`;
+            qualityIndicator.style.color = qualityColor;
         }
 
         // Função de fallback para entrada manual
@@ -1051,6 +1127,12 @@
 
         // Função para adicionar um produto escaneado/digitado
         function addScannedProduct(code) {
+            // Verificação do comprimento do código
+            if (code.length < 12) {
+                alert(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`);
+                return;
+            }
+            
             // Garantir que o som seja reproduzido
             playBeepSound();
             
@@ -1124,8 +1206,21 @@
                 productElement.innerHTML = `
                     <span>${product.code}</span>
                     <span>${product.timestamp}</span>
+                    <button class="remove-btn" data-index="${index}">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 `;
                 scannedProductsContainer.appendChild(productElement);
+            });
+
+            // Adicionar event listeners para os botões de remoção
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    scannedProducts.splice(index, 1);
+                    updateScannedProductsList();
+                    checkAddButton();
+                });
             });
         }
 
@@ -1147,8 +1242,9 @@
             cameraVideo.style.display = 'block';
             toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
             
-            // Resetar estados
-            isProcessingScan = false;
+            // Resetar validação
+            lastValidCode = null;
+            validationCount = 0;
             
             // Garantir que o botão esteja visível
             scanButton.classList.remove('hidden');

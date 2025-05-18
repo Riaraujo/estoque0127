@@ -777,10 +777,7 @@
         let isScannerActive = false;
         let isManualInputMode = false;
         let cameraStream = null;
-        let validationCount = 0;
-        let lastValidCode = null;
         let isScanButtonPressed = false;
-        let scanButtonTimeout = null;
         let audioContext = null;
         let beepSound = null;
 
@@ -1019,9 +1016,6 @@
                     }
                     Quagga.start();
                     isScannerActive = true;
-                    
-                    // Iniciar monitoramento da qualidade
-                    monitorScanQuality();
                 });
 
                 Quagga.onDetected(async function(result) {
@@ -1044,35 +1038,16 @@
                         return;
                     }
                     
-                    // Se for o mesmo código da última leitura, incrementar contador
-                    if (code === lastValidCode) {
-                        validationCount++;
-                    } else {
-                        lastValidCode = code;
-                        validationCount = 1;
-                    }
+                    // Esconder o botão imediatamente após a leitura
+                    scanButton.classList.add('hidden');
                     
-                    // Atualizar indicador de qualidade
-                    updateQualityIndicator(validationCount);
+                    // Adicionar o produto
+                    addScannedProduct(code);
                     
-                    // Requer pelo menos 2 leituras consistentes do mesmo código
-                    if (validationCount >= 2) {
-                        // Esconder o botão temporariamente
-                        scanButton.classList.add('hidden');
-                        
-                        // Adicionar à lista (mesmo que já exista)
-                        addScannedProduct(code);
-                        
-                        // Resetar validação
-                        lastValidCode = null;
-                        validationCount = 0;
-                        updateQualityIndicator(0);
-                        
-                        // Mostrar o botão novamente após 2 segundos
-                        setTimeout(() => {
-                            scanButton.classList.remove('hidden');
-                        }, 2000);
-                    }
+                    // Mostrar o botão novamente após 500ms
+                    setTimeout(() => {
+                        scanButton.classList.remove('hidden');
+                    }, 500);
                 });
 
             } catch (err) {
@@ -1080,15 +1055,6 @@
                 alert("Não foi possível acessar a câmera. Verifique as permissões!");
                 manualInputFallback();
             }
-        }
-
-        // Função para monitorar a qualidade da leitura
-        function monitorScanQuality() {
-            setInterval(() => {
-                if (validationCount === 0) {
-                    updateQualityIndicator(0);
-                }
-            }, 1000);
         }
 
         // Função para atualizar o indicador de qualidade
@@ -1101,12 +1067,6 @@
             } else if (count === 0) {
                 qualityText = "Aguardando leitura...";
                 qualityColor = "gray";
-            } else if (count === 1) {
-                qualityText = "Leitura inicial - aproxime mais";
-                qualityColor = "orange";
-            } else if (count === 2) {
-                qualityText = "Boa leitura - mantenha estável";
-                qualityColor = "yellow";
             } else {
                 qualityText = "Leitura confirmada!";
                 qualityColor = "green";
@@ -1140,7 +1100,7 @@
             cameraFeedback.style.opacity = '1';
             cameraFeedback.classList.add('checkmark-animation');
             
-            // Sempre adiciona, mesmo que já exista
+            // Adiciona apenas 1 item
             scannedProducts.push({
                 code: code,
                 timestamp: new Date().toLocaleTimeString()
@@ -1241,10 +1201,6 @@
             manualInputContainer.style.display = 'none';
             cameraVideo.style.display = 'block';
             toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
-            
-            // Resetar validação
-            lastValidCode = null;
-            validationCount = 0;
             
             // Garantir que o botão esteja visível
             scanButton.classList.remove('hidden');

@@ -780,6 +780,7 @@
         let isScanButtonPressed = false;
         let audioContext = null;
         let beepSound = null;
+        let isButtonDisabled = false;
 
         // Elementos do DOM
         const cabinetSelect = document.getElementById('cabinetSelect');
@@ -874,7 +875,7 @@
             
             cabinetInfo.innerHTML = `
                 <p><strong>ID:</strong> ${cabinet.id}</p>
-                <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
+                <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pqueno'}</p>
                 <p><strong>Produtos:</strong> ${Object.keys(cabinet.products).reduce((acc, shelf) => acc + (cabinet.products[shelf] ? cabinet.products[shelf].length : 0), 0)}</p>
             `;
             
@@ -934,14 +935,16 @@
         // Funções para controle do botão de bipagem
         function handleScanStart(e) {
             e.preventDefault();
-            isScanButtonPressed = true;
+            if (isButtonDisabled) return;
             scanButton.classList.add('active');
         }
 
         function handleScanEnd(e) {
             e.preventDefault();
-            isScanButtonPressed = false;
+            if (isButtonDisabled) return;
+            
             scanButton.classList.remove('active');
+            isScanButtonPressed = true;
         }
 
         // Função para iniciar o scanner
@@ -1019,8 +1022,8 @@
                 });
 
                 Quagga.onDetected(async function(result) {
-                    // Só processa se o botão estiver pressionado
-                    if (!isScanButtonPressed) return;
+                    // Só processa se o botão foi pressionado e solto
+                    if (!isScanButtonPressed || isButtonDisabled) return;
                     
                     const code = result.codeResult.code;
                     
@@ -1038,14 +1041,17 @@
                         return;
                     }
                     
-                    // Esconder o botão imediatamente após a leitura
+                    // Desativar temporariamente o botão
+                    isButtonDisabled = true;
                     scanButton.classList.add('hidden');
+                    isScanButtonPressed = false;
                     
-                    // Adicionar o produto
+                    // Adicionar o produto (apenas 1 por vez)
                     addScannedProduct(code);
                     
-                    // Mostrar o botão novamente após 500ms
+                    // Reativar o botão após 500ms
                     setTimeout(() => {
+                        isButtonDisabled = false;
                         scanButton.classList.remove('hidden');
                     }, 500);
                 });
@@ -1202,7 +1208,9 @@
             cameraVideo.style.display = 'block';
             toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
             
-            // Garantir que o botão esteja visível
+            // Resetar estados do botão
+            isButtonDisabled = false;
+            isScanButtonPressed = false;
             scanButton.classList.remove('hidden');
         }
 

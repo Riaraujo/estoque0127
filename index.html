@@ -2,15 +2,9 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adicionar Produtos</title>
-    
-    <!-- Font Awesome para ícones -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Busca de Produtos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- QuaggaJS para leitura de código de barras -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    
     <style>
         * {
             margin: 0;
@@ -35,43 +29,49 @@
         .container {
             display: flex;
             min-height: 100vh;
+            flex-direction: column;
         }
 
         .sidebar {
-            width: 15%;
+            width: 100%;
             background-color: white;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
+            position: relative;
             z-index: 100;
         }
 
         .logo {
-            padding: 20px 0;
+            padding: 15px 0;
             border-bottom: 1px solid #eee;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-align: center;
         }
 
         .nav-menu {
             list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
         }
 
         .nav-item {
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            flex: 1 1 120px;
         }
 
         .nav-link {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 12px 15px;
+            gap: 8px;
+            padding: 10px;
             color: var(--text-color);
             text-decoration: none;
             border-radius: 5px;
             transition: all 0.3s ease;
+            font-size: 14px;
+            justify-content: center;
         }
 
         .nav-link:hover, .nav-link.active {
@@ -81,38 +81,155 @@
 
         .main-content {
             flex: 1;
-            padding: 30px;
-            margin-left: 15%;
+            padding: 15px;
+            width: 100%;
+        }
+
+        .search-container {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        .input-group {
+            flex: 1;
+            position: relative;
+            width: 100%;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 35px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .search-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .search-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .clear-btn {
+            background-color: var(--accent-color);
+            color: white;
+            max-width: 50px;
+        }
+
+        .results-container {
+    width: 100%;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    overflow-x: hidden; /* Mantém escondido qualquer overflow */
+}
+
+        table {
+    width: 100%; /* Ocupa 100% do container */
+    border-collapse: collapse;
+    margin-top: 15px;
+    /* Remova o min-width: 600px */
+}
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 15px;
+            color: var(--secondary-color);
         }
 
         .content-wrapper {
             display: flex;
+            flex-direction: column;
             gap: 20px;
-            align-items: flex-start;
         }
 
         .stock-view {
-            margin-left: 80px;
-            margin-right: 50px;
-            flex: 1;
+            width: 95%;
+            margin: 0 auto;
             background: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-width: 800px;
+            overflow: hidden;
+        }
+
+        .plant-container-wrapper {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            padding-bottom: 250%; /* Proporção altura/largura (1700/680 ≈ 2.5) */
         }
 
         .plant-container-static {
-            position: relative;
-            width: 650px;
-            height: 650px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-image: 
                 linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
             background-size: 20px 20px;
             background-color: white;
             border: 1px solid #ddd;
-            overflow: hidden;
         }
 
         .cabinet-static {
@@ -125,6 +242,8 @@
             user-select: none;
             cursor: pointer;
             transition: all 0.2s ease;
+            z-index: 2;
+            transform-origin: center;
         }
 
         .cabinet-static:hover {
@@ -133,34 +252,33 @@
         }
 
         .cabinet-static.grande {
-            width: 100px;
-            height: 60px;
+            width: 14.7%; /* 100px / 680px ≈ 14.7% */
+            height: 3.53%; /* 60px / 1700px ≈ 3.53% */
             background-color: var(--secondary-color);
         }
 
         .cabinet-static.pequeno {
-            width: 40px;
-            height: 60px;
+            width: 5.88%; /* 40px / 680px ≈ 5.88% */
+            height: 3.53%; /* 60px / 1700px ≈ 3.53% */
             background-color: #27ae60;
         }
 
         .cabinet-display {
-            width: 350px;
+            width: 95%;
+            margin: 0 auto;
             background: white;
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 30px;
         }
 
         .cabinet-display-title {
-            font-size: 18px;
+            font-size: 16px;
             color: var(--primary-color);
             margin-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .cabinet-view {
@@ -173,12 +291,12 @@
         }
 
         .cabinet-view.grande {
-            height: 680px;
+            height: 500px;
         }
 
         .cabinet-view.pequeno {
-            height: 550px;
-            width: 100px;
+            height: 400px;
+            width: 100%;
         }
 
         .shelf {
@@ -194,16 +312,15 @@
             font-size: 12px;
             color: var(--text-color);
             box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+            width: 90%;
         }
 
         .shelf.grande {
-            width: 90%;
-            height: 100px;
+            height: 80px;
         }
 
         .shelf.pequeno {
-            width: 90%;
-            height: 80px;
+            height: 60px;
         }
 
         .shelf-label {
@@ -212,352 +329,52 @@
             top: 10px;
             font-weight: bold;
             color: var(--primary-color);
+            font-size: 12px;
         }
 
         .product-display {
             background-color: var(--secondary-color);
             color: white;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 4px;
-            margin: 5px;
+            margin: 3px;
             display: inline-block;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         .shelf-6 { top: 10px; }
-        .shelf-5 { top: 120px; }
-        .shelf-4 { top: 230px; }
-        .shelf-3 { top: 340px; }
-        .shelf-2 { top: 450px; }
-        .shelf-1 { top: 560px; }
+        .shelf-5 { top: 100px; }
+        .shelf-4 { top: 190px; }
+        .shelf-3 { top: 280px; }
+        .shelf-2 { top: 370px; }
+        .shelf-1 { top: 460px; }
 
         .shelf-6.pequeno { top: 10px; }
-        .shelf-5.pequeno { top: 100px; }
-        .shelf-4.pequeno { top: 190px; }
-        .shelf-3.pequeno { top: 280px; }
-        .shelf-2.pequeno { top: 370px; }
-        .shelf-1.pequeno { top: 460px; }
+        .shelf-5.pequeno { top: 80px; }
+        .shelf-4.pequeno { top: 150px; }
+        .shelf-3.pequeno { top: 220px; }
+        .shelf-2.pequeno { top: 290px; }
+        .shelf-1.pequeno { top: 360px; }
 
-        .add-form {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        select, input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .add-btn {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-
-        .add-btn:hover {
-            background-color: #2980b9;
-        }
-
-        .save-btn {
-            background-color: #27ae60;
-            color: white;
-        }
-
-        .save-btn:hover {
-            background-color: #219653;
-        }
-
-        .back-btn {
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        .back-btn:hover {
-            background-color: #c0392b;
-        }
-
-        .camera-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-            z-index: 1000;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .camera-container {
-            width: 100%;
-            max-width: 800px;
-            position: relative;
-            height: calc(60vh - 80px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #cameraVideo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background: black;
-        }
-
-        #scannerCanvas {
-            display: none;
-        }
-
-        .camera-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .camera-feedback {
+        .location-marker {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 100px;
-            color: #2ecc71;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 1001;
-        }
-
-        .scanned-products {
-            margin-top: 30px;
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 5px;
-            max-height: 200px;
-            overflow-y: auto;
-            width: 80%;
-            max-width: 800px;
-        }
-
-        .scanned-product {
-            background: rgba(255,255,255,0.2);
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .manual-input-container {
-            margin-top: 20px;
-            width: 80%;
-            max-width: 800px;
-            display: none;
-            gap: 10px;
-        }
-
-        .manual-input {
-            flex: 1;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 16px;
-        }
-
-        .manual-add-btn {
-            padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .manual-add-btn:hover {
-            background-color: #2980b9;
-        }
-
-        .switch-input-mode {
-            margin-top: 15px;
-            background: none;
-            border: none;
-            color: white;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .scan-quality-indicator {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            z-index: 1001;
-        }
-
-        /* Estilos para o botão de bipagem */
-        .scan-button-container {
-            position: fixed;
-            bottom: 30px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            z-index: 1002;
-        }
-
-        .scan-button {
-            width: 80px;
-            height: 80px;
+            width: 15px;
+            height: 15px;
+            background-color: #e74c3c;
             border-radius: 50%;
-            background-color: rgba(52, 152, 219, 0.8);
-            border: 4px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #e74c3c;
+            z-index: 10;
         }
 
-        .scan-button:active {
-            transform: scale(0.95);
-            background-color: rgba(41, 128, 185, 0.9);
+        .cabinet-marker {
+            top: 5px;
+            right: 5px;
         }
 
-        .scan-button.hidden {
-            display: none;
-        }
-
-        .scan-button i {
-            font-size: 30px;
-        }
-
-        /* Estilo para o botão de remoção */
-        .remove-btn {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 0 5px;
-        }
-
-        .remove-btn:hover {
-            color: var(--accent-color);
-        }
-
-        @media (max-width: 1400px) {
-            .content-wrapper {
-                flex-direction: column;
-            }
-            
-            .cabinet-display {
-                width: 100%;
-                max-width: 800px;
-                position: relative;
-                top: auto;
-            }
-            
-            .plant-container-static {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .stock-view {
-                flex-direction: column;
-            }
-            
-            .plant-container-static {
-                width: 100%;
-                height: 500px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-
-            .main-content {
-                width: 100%;
-                margin-left: 0;
-                padding: 15px;
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-            
-            .plant-container-static {
-                height: 400px;
-            }
-
-            .camera-container {
-                height: calc(50vh - 80px);
-            }
-
-            .manual-input-container {
-                flex-direction: column;
-            }
-
-            .scan-button {
-                width: 70px;
-                height: 70px;
-            }
+        .shelf-marker {
+            bottom: 5px;
+            right: 5px;
         }
 
         @keyframes fadeIn {
@@ -569,14 +386,112 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-        @keyframes checkmark {
-            0% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1.5); }
-            100% { opacity: 0; transform: scale(1); }
-        }
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
 
-        .checkmark-animation {
-            animation: checkmark 1s ease-out;
+             th, td {
+        padding: 8px; /* Reduz o padding */
+        font-size: 12px; /* Reduz o tamanho da fonte */
+    }
+
+            .sidebar {
+                width: 16%;
+                position: fixed;
+                height: 100vh;
+                padding: 20px;
+            }
+
+            .nav-menu {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-item {
+                flex: 0 1 auto;
+            }
+
+            .nav-link {
+                justify-content: flex-start;
+                padding: 12px 15px;
+            }
+
+            .main-content {
+                margin-left: 16%;
+                padding: 30px;
+                width: calc(100% - 200px);
+            }
+
+            .search-box {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .input-group {
+                flex: 1;
+                min-width: 200px;
+            }
+
+            .button-group {
+                width: auto;
+            }
+
+            .btn {
+                padding: 12px 25px;
+            }
+
+            .clear-btn {
+                max-width: none;
+            }
+
+            .content-wrapper {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+
+            .stock-view {
+                width: 65%;
+                margin-left: 0;
+                margin-right: 20px;
+            }
+
+            .cabinet-display {
+                width: 30%;
+                position: sticky;
+                top: 30px;
+            }
+
+            .cabinet-view.grande {
+                height: 680px;
+            }
+
+            .cabinet-view.pequeno {
+                height: 550px;
+                width: 100px;
+            }
+
+            .shelf.grande {
+                height: 100px;
+            }
+
+            .shelf.pequeno {
+                height: 80px;
+            }
+
+            .shelf-6 { top: 10px; }
+            .shelf-5 { top: 120px; }
+            .shelf-4 { top: 230px; }
+            .shelf-3 { top: 340px; }
+            .shelf-2 { top: 450px; }
+            .shelf-1 { top: 560px; }
+
+            .shelf-6.pequeno { top: 10px; }
+            .shelf-5.pequeno { top: 100px; }
+            .shelf-4.pequeno { top: 190px; }
+            .shelf-3.pequeno { top: 280px; }
+            .shelf-2.pequeno { top: 370px; }
+            .shelf-1.pequeno { top: 460px; }
         }
     </style>
 </head>
@@ -585,24 +500,24 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">
-                <img src="/img/d7f55c03-70f4-42be-9805-393122158e69___c038bed40f3763fc3be4ff844f7483ec.png" alt="Logo">
+                <img src="d7f55c03-70f4-42be-9805-393122158e69___c038bed40f3763fc3be4ff844f7483ec.png" alt="Logo" style="max-width: 100%; height: auto;">
             </div>
             
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="/estoque.html" class="nav-link">
+                    <a href="index.html" class="nav-link active">
                         <i class="fas fa-search"></i>
                         <span>Busca de Produtos</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/criarestoque.html" class="nav-link">
+                    <a href="criarestoque.html" class="nav-link">
                         <i class="fas fa-warehouse"></i>
                         <span>Criar Estoque</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/adicionar.html" class="nav-link active">
+                    <a href="adicionar.html" class="nav-link ">
                         <i class="fas fa-plus-circle"></i>
                         <span>Adicionar Produtos</span>
                     </a>
@@ -612,43 +527,56 @@
 
         <!-- Conteúdo Principal -->
         <div class="main-content">
-            <!-- Formulário de Adição -->
-            <div class="add-form">
-                <h2><i class="fas fa-box-open"></i> Adicionar Produtos</h2>
-                <div class="form-group">
-                    <label for="cabinetSelect">Selecione o Armário:</label>
-                    <select id="cabinetSelect">
-                        <option value="">-- Selecione --</option>
-                    </select>
+            <!-- Formulário de Busca -->
+            <div class="search-container">
+                <div class="search-box">
+                    <div class="input-group">
+                        <i class="fa fa-barcode"></i>
+                        <input type="text" id="codigo" placeholder="Código do Produto">
+                    </div>
+                    <div class="input-group">
+                        <i class="fa fa-file-invoice"></i>
+                        <input type="text" id="rct" placeholder="RCT">
+                    </div>
+                    <div class="button-group">
+                        <button onclick="realizarBusca()" class="btn search-btn">
+                            <i class="fa fa-search"></i> Buscar
+                        </button>
+                        <button onclick="limparBusca()" class="btn clear-btn">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="shelfSelect">Selecione a Prateleira:</label>
-                    <select id="shelfSelect">
-                        <option value="">-- Selecione --</option>
-                        <option value="shelf-1">Prateleira 1</option>
-                        <option value="shelf-2">Prateleira 2</option>
-                        <option value="shelf-3">Prateleira 3</option>
-                        <option value="shelf-4">Prateleira 4</option>
-                        <option value="shelf-5">Prateleira 5</option>
-                        <option value="shelf-6">Prateleira 6</option>
-                    </select>
-                </div>
-                <div class="button-group">
-                    <button id="addBtn" class="btn add-btn" disabled>
-                        <i class="fas fa-barcode"></i> Adicionar Produtos
-                    </button>
-                    <button id="saveBtn" class="btn save-btn" disabled>
-                        <i class="fas fa-save"></i> Salvar
-                    </button>
-                </div>
+            </div>
+
+            <!-- Resultados -->
+            <div class="results-container">
+                <div class="loading" id="loading">Carregando...</div>
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Código de Barras</th>
+                            <th>RCT</th>
+                            <th>Promocional</th>
+                            <th>Valor Tabela</th>
+                            <th>Saldo</th>
+                            <th>Localização</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Resultados serão inseridos aqui via JavaScript -->
+                    </tbody>
+                </table>
             </div>
 
             <!-- Container para estoque + visualização do armário -->
             <div class="content-wrapper">
                 <!-- Visualização do estoque -->
                 <div class="stock-view">
-                    <div class="plant-container-static" id="plantContainerStatic">
-                        <!-- Armários serão renderizados aqui -->
+                    <div class="plant-container-wrapper">
+                        <div class="plant-container-static" id="plantContainerStatic">
+                            <!-- Armários serão renderizados aqui -->
+                        </div>
                     </div>
                 </div>
                 
@@ -668,204 +596,1152 @@
         </div>
     </div>
 
-    <!-- Modal da Câmera -->
-    <div class="camera-modal" id="cameraModal">
-        <div class="camera-container">
-            <div class="scan-quality-indicator" id="qualityIndicator">
-                Qualidade da leitura: Aguardando...
-            </div>
-            <video id="cameraVideo" autoplay playsinline></video>
-            <canvas id="scannerCanvas"></canvas>
-            <div class="camera-feedback" id="cameraFeedback">
-                <i class="fas fa-check-circle"></i>
-            </div>
-        </div>
-        
-        <!-- Container para entrada manual -->
-        <div class="manual-input-container" id="manualInputContainer">
-            <input type="text" id="manualBarcodeInput" class="manual-input" placeholder="Digite o código de barras">
-            <button id="manualAddBtn" class="manual-add-btn">
-                <i class="fas fa-plus"></i> Adicionar
-            </button>
-        </div>
-        
-        <div class="camera-controls">
-            <button id="backBtn" class="btn back-btn">
-                <i class="fas fa-arrow-left"></i> Voltar
-            </button>
-            <button id="toggleInputBtn" class="switch-input-mode">
-                <i class="fas fa-keyboard"></i> Inserir manualmente
-            </button>
-        </div>
-        
-        <div class="scanned-products" id="scannedProducts">
-            <h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>
-            <!-- Produtos escaneados aparecerão aqui -->
-        </div>
-
-        <!-- Botão de bipagem -->
-        <div class="scan-button-container">
-            <div class="scan-button" id="scanButton">
-                <i class="fas fa-barcode"></i>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Objeto estoque127 com o layout criado
-        const estoque127 = {
-            "dimensions": {
-                "width": 548,
-                "height": 1700
+        // Dados reais dos produtos
+        const tabelaProdutos = {
+          produtos: [
+            {
+              codigo: "4066756633288",
+              rct: "HP02",
+              precoPromocao: 100.00,
+              precoTabela: 349.99,
+              saldo: 5,
+              localizacao: "1-3"  // cabinet 1, Prateleira 3
             },
-            "cabinets": [
-                {
-                    "id": "1",
-                    "type": "grande",
-                    "x": -19,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "2",
-                    "type": "grande",
-                    "x": 100,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "3",
-                    "type": "grande",
-                    "x": 219,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "4",
-                    "type": "pequeno",
-                    "x": 338,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "5",
-                    "type": "pequeno",
-                    "x": 378,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "6",
-                    "type": "pequeno",
-                    "x": 418,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                }
-            ]
+            {
+              codigo: "0196464441616",
+              rct: "HP02",
+              precoPromocao: 399.99,
+              precoTabela: 499.99,
+              saldo: null,
+              localizacao: "2-6"  // cabinet 2, Prateleira 6
+            },
+            {
+              codigo: "0054871712197",
+              rct: "HP02",
+              precoPromocao: 0.00,
+              precoTabela: 499.99,
+              saldo: null,
+              localizacao: "8-1"   // cabinet 8, Prateleira 1
+            },
+            {
+              codigo: "0054871712203",
+              rct: "HP02",
+              precoPromocao: 0.00,
+              precoTabela: 499.99,
+              saldo: null,
+              localizacao: "8-2"   // cabinet 8, Prateleira 2
+            },
+            {
+              codigo: "0054871712227",
+              rct: "HP02",
+              precoPromocao: 0.00,
+              precoTabela: 499.99,
+              saldo: null,
+              localizacao: "8-3"   // cabinet 8, Prateleira 3
+            },
+            {
+              codigo: "0054871712234",
+              rct: "HP02",
+              precoPromocao: 0.00,
+              precoTabela: 499.99,
+              saldo: null,
+              localizacao: "8-4"   // cabinet 8, Prateleira 4
+            },
+            {
+              codigo: "0054871712241",
+              rct: "002240WFSHPT38",
+              precoPromocao: 0.00,
+              precoTabela: 499.99,
+              saldo: null,
+              localizacao: "8-5"   // cabinet 8, Prateleira 5
+            },
+            {
+              codigo: "0054871712258",
+              rct: "002240WFSHPT39",
+              precoPromocao: 0.00,
+              precoTabela: 499.99,
+              saldo: null,
+              localizacao: "8-6"   // cabinet 8, Prateleira 6
+            }
+          ]
         };
 
-        // Variáveis globais
-        let selectedCabinet = null;
-        let selectedShelf = null;
-        let scannedProducts = [];
-        let isScannerActive = false;
-        let isManualInputMode = false;
-        let cameraStream = null;
-        let isScanButtonPressed = false;
-        let audioContext = null;
-        let beepSound = null;
-        let isButtonDisabled = false;
+       // Objeto estoque127 com o layout criado
+        const estoque127 = {
+  "dimensions": {
+    "width": 527,
+    "height": 1700
+  },
+  "cabinets": [
+    {
+      "id": "1",
+      "type": "grande",
+      "x": -19,
+      "y": 629,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "2",
+      "type": "grande",
+      "x": -18,
+      "y": 528,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "3",
+      "type": "grande",
+      "x": -19.265625,
+      "y": 426.828125,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "4",
+      "type": "grande",
+      "x": -18,
+      "y": 325,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "5",
+      "type": "grande",
+      "x": -18,
+      "y": 223,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "6",
+      "type": "grande",
+      "x": -19,
+      "y": 122,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "7",
+      "type": "grande",
+      "x": 102,
+      "y": 626,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "8",
+      "type": "grande",
+      "x": 101,
+      "y": 525,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "9",
+      "type": "grande",
+      "x": 101,
+      "y": 424,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "10",
+      "type": "grande",
+      "x": 101,
+      "y": 323,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "11",
+      "type": "grande",
+      "x": 101,
+      "y": 221,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "12",
+      "type": "grande",
+      "x": 100,
+      "y": 120,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "13",
+      "type": "grande",
+      "x": 163,
+      "y": 626,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "14",
+      "type": "grande",
+      "x": 162,
+      "y": 525,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "15",
+      "type": "grande",
+      "x": 162,
+      "y": 423,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "16",
+      "type": "grande",
+      "x": 163,
+      "y": 322,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "17",
+      "type": "grande",
+      "x": 163,
+      "y": 220,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "18",
+      "type": "grande",
+      "x": 161,
+      "y": 119,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "19",
+      "type": "grande",
+      "x": 282,
+      "y": 626,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "20",
+      "type": "grande",
+      "x": 282,
+      "y": 525,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "21",
+      "type": "grande",
+      "x": 283,
+      "y": 424,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "22",
+      "type": "grande",
+      "x": 283,
+      "y": 323,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "23",
+      "type": "grande",
+      "x": 282,
+      "y": 222,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "24",
+      "type": "grande",
+      "x": 282,
+      "y": 121,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "25",
+      "type": "grande",
+      "x": 344,
+      "y": 626,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "26",
+      "type": "grande",
+      "x": 343,
+      "y": 525,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "27",
+      "type": "grande",
+      "x": 344,
+      "y": 424,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "28",
+      "type": "grande",
+      "x": 344,
+      "y": 323,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "29",
+      "type": "grande",
+      "x": 343,
+      "y": 222,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "30",
+      "type": "grande",
+      "x": 343,
+      "y": 120,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "31",
+      "type": "grande",
+      "x": 463,
+      "y": 21,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "32",
+      "type": "grande",
+      "x": 463,
+      "y": 123,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "33",
+      "type": "grande",
+      "x": 62,
+      "y": 0,
+      "rotation": 0,
+      "products": {}
+    },
+    {
+      "id": "34",
+      "type": "grande",
+      "x": 163,
+      "y": 0,
+      "rotation": 0,
+      "products": {}
+    },
+    {
+      "id": "35",
+      "type": "grande",
+      "x": 264,
+      "y": 0,
+      "rotation": 0,
+      "products": {}
+    },
+    {
+      "id": "36",
+      "type": "grande",
+      "x": 280,
+      "y": 780,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "37",
+      "type": "grande",
+      "x": 280,
+      "y": 881,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "38",
+      "type": "grande",
+      "x": 281,
+      "y": 982,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "39",
+      "type": "grande",
+      "x": 282,
+      "y": 1083,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "40",
+      "type": "grande",
+      "x": 343,
+      "y": 1083,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "41",
+      "type": "grande",
+      "x": 342,
+      "y": 982,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "42",
+      "type": "grande",
+      "x": 341,
+      "y": 881,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "43",
+      "type": "grande",
+      "x": 341,
+      "y": 780,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "44",
+      "type": "grande",
+      "x": 462,
+      "y": 706,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "45",
+      "type": "grande",
+      "x": 463,
+      "y": 808,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "46",
+      "type": "grande",
+      "x": 463,
+      "y": 909,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "47",
+      "type": "grande",
+      "x": 463,
+      "y": 1010,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "48",
+      "type": "grande",
+      "x": 464,
+      "y": 1111,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "49",
+      "type": "grande",
+      "x": 342,
+      "y": 1190,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "58",
+      "type": "pequeno",
+      "x": 11,
+      "y": 710,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "59",
+      "type": "pequeno",
+      "x": 11,
+      "y": 751,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "60",
+      "type": "pequeno",
+      "x": 11,
+      "y": 792,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "61",
+      "type": "pequeno",
+      "x": 10,
+      "y": 833,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "62",
+      "type": "pequeno",
+      "x": 11,
+      "y": 874,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "63",
+      "type": "pequeno",
+      "x": 10,
+      "y": 915,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "64",
+      "type": "pequeno",
+      "x": 11,
+      "y": 956,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "65",
+      "type": "pequeno",
+      "x": 10,
+      "y": 997,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "66",
+      "type": "pequeno",
+      "x": 10,
+      "y": 1038,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "67",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1079,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "68",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1120,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "69",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1161,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "70",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1202,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "71",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1243,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "72",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1284,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "73",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1325,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "74",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1366,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "75",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1408,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "76",
+      "type": "pequeno",
+      "x": 12,
+      "y": 1450,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "77",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1491,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "78",
+      "type": "pequeno",
+      "x": 11,
+      "y": 1532,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "79",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1557,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "80",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1515,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "81",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1473,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "82",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1431,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "83",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1390,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "84",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1349,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "85",
+      "type": "pequeno",
+      "x": 133,
+      "y": 1308,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "86",
+      "type": "pequeno",
+      "x": 133,
+      "y": 1267,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "87",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1226,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "88",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1184,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "89",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1143,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "90",
+      "type": "pequeno",
+      "x": 132,
+      "y": 1102,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "91",
+      "type": "pequeno",
+      "x": 133,
+      "y": 1061,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "92",
+      "type": "pequeno",
+      "x": 131,
+      "y": 1020,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "93",
+      "type": "pequeno",
+      "x": 132,
+      "y": 979,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "94",
+      "type": "pequeno",
+      "x": 132,
+      "y": 938,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "95",
+      "type": "pequeno",
+      "x": 132,
+      "y": 897,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "96",
+      "type": "pequeno",
+      "x": 132,
+      "y": 856,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "97",
+      "type": "pequeno",
+      "x": 131.984375,
+      "y": 732.984375,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "98",
+      "type": "pequeno",
+      "x": 132,
+      "y": 774,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "99",
+      "type": "pequeno",
+      "x": 132,
+      "y": 815,
+      "rotation": 90,
+      "products": {}
+    },
+    {
+      "id": "100",
+      "type": "pequeno",
+      "x": 194,
+      "y": 733,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "101",
+      "type": "pequeno",
+      "x": 193,
+      "y": 775,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "102",
+      "type": "pequeno",
+      "x": 193,
+      "y": 816,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "103",
+      "type": "pequeno",
+      "x": 193,
+      "y": 857,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "104",
+      "type": "pequeno",
+      "x": 194,
+      "y": 898,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "105",
+      "type": "pequeno",
+      "x": 193,
+      "y": 939,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "106",
+      "type": "pequeno",
+      "x": 193,
+      "y": 980,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "107",
+      "type": "pequeno",
+      "x": 193,
+      "y": 1021,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "108",
+      "type": "pequeno",
+      "x": 194,
+      "y": 1062,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "109",
+      "type": "pequeno",
+      "x": 194,
+      "y": 1103,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "110",
+      "type": "pequeno",
+      "x": 193,
+      "y": 1144,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "111",
+      "type": "pequeno",
+      "x": 194,
+      "y": 1185,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "112",
+      "type": "pequeno",
+      "x": 193,
+      "y": 1226,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "113",
+      "type": "pequeno",
+      "x": 194,
+      "y": 1267,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "114",
+      "type": "pequeno",
+      "x": 195,
+      "y": 1308,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "115",
+      "type": "pequeno",
+      "x": 193,
+      "y": 1349,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "116",
+      "type": "pequeno",
+      "x": 193,
+      "y": 1390,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "117",
+      "type": "pequeno",
+      "x": 193,
+      "y": 1431,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "118",
+      "type": "pequeno",
+      "x": 194,
+      "y": 1472,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "119",
+      "type": "pequeno",
+      "x": 193,
+      "y": 1513,
+      "rotation": 270,
+      "products": {}
+    },
+    {
+      "id": "120",
+      "type": "pequeno",
+      "x": 193,
+      "y": 1554,
+      "rotation": 270,
+      "products": {}
+    }
+  ]
+};
 
-        // Elementos do DOM
-        const cabinetSelect = document.getElementById('cabinetSelect');
-        const shelfSelect = document.getElementById('shelfSelect');
-        const addBtn = document.getElementById('addBtn');
-        const saveBtn = document.getElementById('saveBtn');
-        const backBtn = document.getElementById('backBtn');
-        const cameraModal = document.getElementById('cameraModal');
-        const cameraVideo = document.getElementById('cameraVideo');
-        const cameraFeedback = document.getElementById('cameraFeedback');
-        const scannedProductsContainer = document.getElementById('scannedProducts');
-        const manualInputContainer = document.getElementById('manualInputContainer');
-        const manualBarcodeInput = document.getElementById('manualBarcodeInput');
-        const manualAddBtn = document.getElementById('manualAddBtn');
-        const toggleInputBtn = document.getElementById('toggleInputBtn');
-        const qualityIndicator = document.getElementById('qualityIndicator');
-        const scanButton = document.getElementById('scanButton');
+        // Variável para armazenar os resultados atuais
+        let resultadosAtuais = [];
 
-        // Inicializar o contexto de áudio
-        function initAudio() {
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                beepSound = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                beepSound.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                beepSound.type = 'sine';
-                beepSound.frequency.value = 800;
-                gainNode.gain.value = 0.1;
-            } catch (e) {
-                console.error("Erro ao inicializar áudio:", e);
+        function realizarBusca() {
+            const codigo = document.getElementById('codigo').value.trim();
+            const rct = document.getElementById('rct').value.trim().toUpperCase();
+            const loading = document.getElementById('loading');
+            const tableBody = document.getElementById('tableBody');
+
+            if (!codigo && !rct) {
+                alert('Preencha pelo menos um campo para buscar!');
+                return;
+            }
+
+            loading.style.display = 'block';
+            tableBody.innerHTML = '';
+
+            setTimeout(() => {
+                tableBody.innerHTML = '';
+
+                resultadosAtuais = tabelaProdutos.produtos.filter(item => {
+                    const itemRct = item.rct.toUpperCase();
+                    if (codigo && rct) {
+                        return item.codigo.includes(codigo) && itemRct.includes(rct);
+                    }
+                    else if (codigo) {
+                        return item.codigo.includes(codigo);
+                    }
+                    else {
+                        return itemRct.includes(rct);
+                    }
+                });
+
+                if (resultadosAtuais.length === 0) {
+                    resultadosAtuais = tabelaTotalDeProdutos.produtos.filter(item => {
+                        const itemRct = item.rct.toUpperCase();
+                        if (codigo && rct) {
+                            return item.codigo.toString().includes(codigo) && itemRct.includes(rct);
+                        }
+                        else if (codigo) {
+                            return item.codigo.toString().includes(codigo);
+                        }
+                        else {
+                            return itemRct.includes(rct);
+                        }
+                    });
+                }
+
+                if (resultadosAtuais.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = '<td colspan="6" style="text-align: center;">Nenhum produto encontrado</td>';
+                    tableBody.appendChild(tr);
+                    limparMarcadores();
+                } else {
+                    resultadosAtuais.forEach((item, index) => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'fade-in';
+                        tr.innerHTML = `
+                            <td>${item.codigo}</td>
+                            <td>${item.rct}</td>
+                            <td>R$ ${item.precoPromocao.toFixed(2)}</td>
+                            <td>R$ ${item.precoTabela.toFixed(2)}</td>
+                            <td>${item.saldo !== null ? item.saldo : 'N/A'}</td>
+                            <td>${item.localizacao || 'Não informada'}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+
+                    const produtosComLocalizacao = resultadosAtuais.filter(item => item.localizacao);
+                    if (produtosComLocalizacao.length > 0) {
+                        marcarLocalizacoes(produtosComLocalizacao);
+                    }
+                }
+
+                loading.style.display = 'none';
+            }, 500);
+        }
+
+        function limparBusca() {
+            document.getElementById('codigo').value = '';
+            document.getElementById('rct').value = '';
+            document.getElementById('tableBody').innerHTML = '';
+            document.getElementById('loading').style.display = 'none';
+            limparMarcadores();
+        }
+
+        function limparMarcadores() {
+            document.querySelectorAll('.location-marker').forEach(marker => marker.remove());
+            const cabinetView = document.getElementById('cabinetView');
+            if (cabinetView) {
+                cabinetView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
             }
         }
 
-        // Função para renderizar o estoque estático
+        function marcarLocalizacoes(produtos) {
+            limparMarcadores();
+            const armarioParaPrateleiras = new Map();
+
+            produtos.forEach(produto => {
+                if (produto.localizacao) {
+                    const [cabinetId, shelfId] = produto.localizacao.split('-');
+                    
+                    if (!armarioParaPrateleiras.has(cabinetId)) {
+                        armarioParaPrateleiras.set(cabinetId, []);
+                    }
+                    if (!armarioParaPrateleiras.get(cabinetId).includes(shelfId)) {
+                        armarioParaPrateleiras.get(cabinetId).push(shelfId);
+                    }
+
+                    const cabinetElement = document.getElementById(cabinetId);
+                    if (cabinetElement && !cabinetElement.querySelector('.cabinet-marker')) {
+                        const marker = document.createElement('div');
+                        marker.className = 'location-marker cabinet-marker';
+                        cabinetElement.appendChild(marker);
+
+                        cabinetElement.addEventListener('click', () => {
+                            setTimeout(() => {
+                                const prateleiras = armarioParaPrateleiras.get(cabinetId) || [];
+                                marcarPrateleiras(prateleiras);
+                            }, 50);
+                        });
+                    }
+                }
+            });
+        }
+
+        function marcarPrateleiras(shelfIds) {
+            const cabinetView = document.getElementById('cabinetView');
+            if (!cabinetView) return;
+
+            cabinetView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
+
+            shelfIds.forEach(shelfId => {
+                const shelfElement = cabinetView.querySelector(`.shelf-${shelfId}`);
+                if (shelfElement) {
+                    const marker = document.createElement('div');
+                    marker.className = 'location-marker shelf-marker';
+                    shelfElement.appendChild(marker);
+                }
+            });
+        }
+
         function renderStaticStock() {
             const container = document.getElementById('plantContainerStatic');
+            container.innerHTML = ''; // Limpa o container antes de renderizar
             
-            container.style.width = `${estoque127.dimensions.width}px`;
-            container.style.height = `${estoque127.dimensions.height}px`;
-            
-            // Preencher o dropdown de armários
-            cabinetSelect.innerHTML = '<option value="">-- Selecione --</option>';
+            // Calcula as proporções baseadas nas dimensões originais
+            const widthRatio = 100 / estoque127.dimensions.width;
+            const heightRatio = 100 / estoque127.dimensions.height;
             
             estoque127.cabinets.forEach(cab => {
                 const cabinet = document.createElement('div');
                 cabinet.className = `cabinet-static ${cab.type}`;
                 cabinet.id = cab.id;
-                cabinet.style.left = `${cab.x}px`;
-                cabinet.style.top = `${cab.y}px`;
+                
+                // Posiciona os armários usando porcentagens relativas ao tamanho da planta
+                cabinet.style.left = `${cab.x * widthRatio}%`;
+                cabinet.style.top = `${cab.y * heightRatio}%`;
                 cabinet.style.transform = `rotate(${cab.rotation}deg)`;
                 cabinet.textContent = cab.id;
                 
                 cabinet.addEventListener('click', function() {
-                    selectCabinet(cab);
+                    showCabinetDetails(cab);
                 });
                 
                 container.appendChild(cabinet);
-                
-                // Adicionar ao dropdown
-                const option = document.createElement('option');
-                option.value = cab.id;
-                option.textContent = `Armário ${cab.id} (${cab.type === 'grande' ? 'Grande' : 'Pequeno'})`;
-                cabinetSelect.appendChild(option);
             });
         }
 
-        // Função para selecionar um armário
-        function selectCabinet(cabinet) {
-            selectedCabinet = cabinet;
-            
-            // Atualizar o dropdown
-            cabinetSelect.value = cabinet.id;
-            
-            // Habilitar seleção de prateleira
-            shelfSelect.disabled = false;
-            
-            // Mostrar detalhes do armário
-            showCabinetDetails(cabinet);
-            
-            // Verificar se pode habilitar o botão de adicionar
-            checkAddButton();
-        }
-
-        // Função para mostrar detalhes do armário
         function showCabinetDetails(cabinet) {
             const cabinetInfo = document.getElementById('cabinetDisplayInfo');
             const cabinetView = document.getElementById('cabinetView');
@@ -875,8 +1751,7 @@
             
             cabinetInfo.innerHTML = `
                 <p><strong>ID:</strong> ${cabinet.id}</p>
-                <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pqueno'}</p>
-                <p><strong>Produtos:</strong> ${Object.keys(cabinet.products).reduce((acc, shelf) => acc + (cabinet.products[shelf] ? cabinet.products[shelf].length : 0), 0)}</p>
+                <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
             `;
             
             for (let i = 1; i <= 6; i++) {
@@ -888,448 +1763,216 @@
                     cabinet.products[`shelf-${i}`].forEach(product => {
                         const productElement = document.createElement('div');
                         productElement.className = 'product-display';
-                        productElement.textContent = product.code;
+                        productElement.textContent = product.name;
                         shelf.appendChild(productElement);
                     });
                 }
                 
                 cabinetView.appendChild(shelf);
             }
-        }
-
-        // Função para verificar se o botão de adicionar pode ser habilitado
-        function checkAddButton() {
-            addBtn.disabled = !(selectedCabinet && selectedShelf);
-            saveBtn.disabled = scannedProducts.length === 0;
-        }
-
-        // Função para alternar entre modo câmera e entrada manual
-        function toggleInputMode() {
-            isManualInputMode = !isManualInputMode;
             
-            if (isManualInputMode) {
-                // Parar o scanner
-                if (isScannerActive) {
-                    Quagga.stop();
-                    isScannerActive = false;
+            const produtosNoArmario = resultadosAtuais.filter(produto => {
+                if (produto.localizacao) {
+                    const [cabId, _] = produto.localizacao.split('-');
+                    return cabId === cabinet.id;
                 }
-                
-                // Mostrar entrada manual
-                manualInputContainer.style.display = 'flex';
-                cameraVideo.style.display = 'none';
-                toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
-                
-                // Focar no input
-                manualBarcodeInput.focus();
-            } else {
-                // Esconder entrada manual
-                manualInputContainer.style.display = 'none';
-                cameraVideo.style.display = 'block';
-                toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
-                
-                // Reiniciar o scanner
-                startScanner();
-            }
-        }
-
-        // Funções para controle do botão de bipagem
-        function handleScanStart(e) {
-            e.preventDefault();
-            if (isButtonDisabled) return;
-            scanButton.classList.add('active');
-        }
-
-        function handleScanEnd(e) {
-            e.preventDefault();
-            if (isButtonDisabled) return;
-            
-            scanButton.classList.remove('active');
-            isScanButtonPressed = true;
-        }
-
-        // Função para iniciar o scanner
-        async function startScanner() {
-            try {
-                // Solicitar permissão de câmera primeiro
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                });
-
-                cameraVideo.srcObject = cameraStream;
-                await cameraVideo.play();
-
-                // Configurar eventos do botão de bipagem
-                scanButton.addEventListener('mousedown', handleScanStart);
-                scanButton.addEventListener('touchstart', handleScanStart);
-                scanButton.addEventListener('mouseup', handleScanEnd);
-                scanButton.addEventListener('touchend', handleScanEnd);
-                scanButton.addEventListener('mouseleave', handleScanEnd);
-
-                Quagga.init({
-                    inputStream: {
-                        name: "Live",
-                        type: "LiveStream",
-                        target: cameraVideo,
-                        constraints: {
-                            width: { min: 640 },
-                            height: { min: 480 },
-                            aspectRatio: { ideal: 1.333333 }
-                        }
-                    },
-                    decoder: {
-                        readers: [
-                            "code_128_reader",
-                            "ean_reader",
-                            "ean_8_reader", 
-                            "code_39_reader",
-                            "upc_reader"
-                        ],
-                        multiple: false
-                    },
-                    locator: {
-                        halfSample: true,
-                        patchSize: "large",
-                        debug: {
-                            showCanvas: true,
-                            showPatches: true,
-                            showFoundPatches: true,
-                            showSkeleton: true,
-                            showLabels: true,
-                            showPatchLabels: true,
-                            showRemainingPatchLabels: true,
-                            boxFromPatches: {
-                                showTransformed: true,
-                                showTransformedBox: true,
-                                showBB: true
-                            }
-                        }
-                    },
-                    numOfWorkers: 4,
-                    frequency: 10,
-                    debug: false
-                }, function(err) {
-                    if (err) {
-                        console.error("Erro de inicialização:", err);
-                        alert("Erro ao iniciar scanner: " + err.message);
-                        return;
-                    }
-                    Quagga.start();
-                    isScannerActive = true;
-                });
-
-                Quagga.onDetected(async function(result) {
-                    // Só processa se o botão foi pressionado e solto
-                    if (!isScanButtonPressed || isButtonDisabled) return;
-                    
-                    const code = result.codeResult.code;
-                    
-                    // Validação do código - mínimo 12 caracteres, máximo 13
-                    if (!code || code.length < 12 || code.length > 13) {
-                        console.log("Código inválido - tamanho incorreto:", code);
-                        updateQualityIndicator(0, "Código inválido (deve ter 12-13 caracteres)");
-                        return;
-                    }
-                    
-                    // Verifica se contém apenas números
-                    if (!/^\d+$/.test(code)) {
-                        console.log("Código inválido - contém caracteres não numéricos:", code);
-                        updateQualityIndicator(0, "Código deve conter apenas números");
-                        return;
-                    }
-                    
-                    // Desativar temporariamente o botão
-                    isButtonDisabled = true;
-                    scanButton.classList.add('hidden');
-                    isScanButtonPressed = false;
-                    
-                    // Adicionar o produto (apenas 1 por vez)
-                    addScannedProduct(code);
-                    
-                    // Reativar o botão após 500ms
-                    setTimeout(() => {
-                        isButtonDisabled = false;
-                        scanButton.classList.remove('hidden');
-                    }, 500);
-                });
-
-            } catch (err) {
-                console.error("Erro de acesso à câmera:", err);
-                alert("Não foi possível acessar a câmera. Verifique as permissões!");
-                manualInputFallback();
-            }
-        }
-
-        // Função para atualizar o indicador de qualidade
-        function updateQualityIndicator(count, errorMessage = null) {
-            let qualityText, qualityColor;
-            
-            if (errorMessage) {
-                qualityText = errorMessage;
-                qualityColor = "red";
-            } else if (count === 0) {
-                qualityText = "Aguardando leitura...";
-                qualityColor = "gray";
-            } else {
-                qualityText = "Leitura confirmada!";
-                qualityColor = "green";
-            }
-            
-            qualityIndicator.textContent = `Qualidade: ${qualityText}`;
-            qualityIndicator.style.color = qualityColor;
-        }
-
-        // Função de fallback para entrada manual
-        function manualInputFallback() {
-            isManualInputMode = true;
-            manualInputContainer.style.display = 'flex';
-            cameraVideo.style.display = 'none';
-            toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
-            manualBarcodeInput.focus();
-        }
-
-        // Função para adicionar um produto escaneado/digitado
-        function addScannedProduct(code) {
-            // Verificação do comprimento do código
-            if (code.length < 12) {
-                alert(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`);
-                return;
-            }
-            
-            // Garantir que o som seja reproduzido
-            playBeepSound();
-            
-            // Feedback visual
-            cameraFeedback.style.opacity = '1';
-            cameraFeedback.classList.add('checkmark-animation');
-            
-            // Adiciona apenas 1 item
-            scannedProducts.push({
-                code: code,
-                timestamp: new Date().toLocaleTimeString()
+                return false;
             });
             
-            updateScannedProductsList();
-            checkAddButton();
-            
-            // Resetar feedback
-            setTimeout(() => {
-                cameraFeedback.style.opacity = '0';
-                cameraFeedback.classList.remove('checkmark-animation');
-            }, 1000);
-            
-            // Limpar o input manual se estiver nesse modo
-            if (isManualInputMode) {
-                manualBarcodeInput.value = '';
-            }
-        }
-
-        // Função para reproduzir som de bip
-        function playBeepSound() {
-            try {
-                if (!audioContext) {
-                    initAudio();
-                }
-                
-                if (beepSound) {
-                    beepSound.start();
-                    setTimeout(() => {
-                        beepSound.stop();
-                        // Recriar o oscilador para poder tocar novamente
-                        beepSound = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        beepSound.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        beepSound.type = 'sine';
-                        beepSound.frequency.value = 800;
-                        gainNode.gain.value = 0.1;
-                    }, 200);
-                }
-            } catch (e) {
-                console.error("Erro ao reproduzir som:", e);
-            }
-        }
-
-        // Função para atualizar a lista de produtos escaneados
-        function updateScannedProductsList() {
-            scannedProductsContainer.innerHTML = '<h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>';
-            
-            if (scannedProducts.length === 0) {
-                const emptyMsg = document.createElement('p');
-                emptyMsg.style.color = 'white';
-                emptyMsg.style.textAlign = 'center';
-                emptyMsg.textContent = 'Nenhum produto escaneado ainda. Aponte para um código de barras.';
-                scannedProductsContainer.appendChild(emptyMsg);
-                return;
-            }
-            
-            scannedProducts.forEach((product, index) => {
-                const productElement = document.createElement('div');
-                productElement.className = 'scanned-product';
-                productElement.innerHTML = `
-                    <span>${product.code}</span>
-                    <span>${product.timestamp}</span>
-                    <button class="remove-btn" data-index="${index}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
-                scannedProductsContainer.appendChild(productElement);
-            });
-
-            // Adicionar event listeners para os botões de remoção
-            document.querySelectorAll('.remove-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    scannedProducts.splice(index, 1);
-                    updateScannedProductsList();
-                    checkAddButton();
+            if (produtosNoArmario.length > 0) {
+                produtosNoArmario.forEach(produto => {
+                    const [_, shelfId] = produto.localizacao.split('-');
+                    marcarPrateleira(shelfId);
                 });
-            });
-        }
-
-        // Função para parar o scanner
-        function stopBarcodeScanner() {
-            if (isScannerActive) {
-                Quagga.stop();
-                isScannerActive = false;
-            }
-            
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-            
-            cameraModal.style.display = 'none';
-            isManualInputMode = false;
-            manualInputContainer.style.display = 'none';
-            cameraVideo.style.display = 'block';
-            toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
-            
-            // Resetar estados do botão
-            isButtonDisabled = false;
-            isScanButtonPressed = false;
-            scanButton.classList.remove('hidden');
-        }
-
-        // Função para salvar os produtos no armário
-        function saveProductsToCabinet() {
-            if (!selectedCabinet || !selectedShelf || scannedProducts.length === 0) return;
-            
-            // Encontrar o armário no objeto estoque127
-            const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
-            
-            if (cabinet) {
-                // Inicializar a prateleira se não existir
-                if (!cabinet.products[selectedShelf]) {
-                    cabinet.products[selectedShelf] = [];
-                }
-                
-                // Adicionar os produtos escaneados
-                scannedProducts.forEach(product => {
-                    cabinet.products[selectedShelf].push({
-                        code: product.code,
-                        name: `Produto ${product.code.substring(0, 4)}`,
-                        addedAt: new Date().toISOString()
-                    });
-                });
-                
-                // Atualizar a visualização
-                showCabinetDetails(cabinet);
-                
-                // Limpar a lista de produtos escaneados
-                scannedProducts = [];
-                updateScannedProductsList();
-                
-                // Desabilitar botão de salvar
-                saveBtn.disabled = true;
-                
-                // Mostrar mensagem de sucesso
-                alert('Produtos adicionados com sucesso!');
             }
         }
 
-        // Event Listeners
-        cabinetSelect.addEventListener('change', function() {
-            const cabinetId = this.value;
-            if (!cabinetId) {
-                selectedCabinet = null;
-                shelfSelect.disabled = true;
-                shelfSelect.value = '';
-                checkAddButton();
-                return;
-            }
-            
-            const cabinet = estoque127.cabinets.find(cab => cab.id === cabinetId);
-            if (cabinet) {
-                selectCabinet(cabinet);
-            }
+        window.addEventListener('resize', function() {
+            // A proporção já é mantida pelo CSS, não precisa de ajustes adicionais
         });
 
-        shelfSelect.addEventListener('change', function() {
-            selectedShelf = this.value;
-            checkAddButton();
-        });
-
-        addBtn.addEventListener('click', async function() {
-            try {
-                // Verificar se o dispositivo suporta acesso à câmera
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("Navegador não suporta acesso à câmera");
-                }
-                
-                cameraModal.style.display = 'flex';
-                scannedProducts = [];
-                updateScannedProductsList();
-                await startScanner();
-            } catch (err) {
-                console.error("Erro ao iniciar câmera:", err);
-                alert("Erro ao acessar câmera: " + err.message);
-                manualInputFallback();
-            }
-        });
-
-        backBtn.addEventListener('click', stopBarcodeScanner);
-
-        saveBtn.addEventListener('click', saveProductsToCabinet);
-
-        toggleInputBtn.addEventListener('click', toggleInputMode);
-
-        manualAddBtn.addEventListener('click', function() {
-            const code = manualBarcodeInput.value.trim();
-            if (code) {
-                addScannedProduct(code);
-            }
-        });
-
-        manualBarcodeInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const code = manualBarcodeInput.value.trim();
-                if (code) {
-                    addScannedProduct(code);
-                }
-            }
-        });
-
-        // Fechar o modal ao pressionar Esc
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && cameraModal.style.display === 'flex') {
-                stopBarcodeScanner();
-            }
-        });
-
-        // Inicialização
         window.onload = function() {
-            initAudio();
             renderStaticStock();
             
             if (estoque127.cabinets.length > 0) {
-                // Mostrar o primeiro armário por padrão
                 showCabinetDetails(estoque127.cabinets[0]);
             }
         };
+
+        const tabelaTotalDeProdutos = {
+  produtos: [
+    {
+      codigo: "COD-8,43275E+11",
+      rct: "RUBT3B0380BZ52U",
+      precoPromocao: 0,
+      precoTabela: 229.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-0843275130085",
+      rct: "RUF3D3203BZ41U",
+      precoPromocao: 0,
+      precoTabela: 169.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-0843275130726",
+      rct: "RUBT3B0380BZB4U",
+      precoPromocao: 0,
+      precoTabela: 229.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143001011",
+      rct: "100000108MEXOBC38",
+      precoPromocao: 449.99,
+      precoTabela: 549.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143001073",
+      rct: "100000108MEXOBC42",
+      precoPromocao: 449.99,
+      precoTabela: 549.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143001240",
+      rct: "100000109MEXOPT38",
+      precoPromocao: 449.99,
+      precoTabela: 549.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143001271",
+      rct: "100000109MEXOPT40",
+      precoPromocao: 449.99,
+      precoTabela: 549.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143001301",
+      rct: "100000109MEXOPT42",
+      precoPromocao: 449.99,
+      precoTabela: 549.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143001875",
+      rct: "100000120WPRIPT35",
+      precoPromocao: 229.99,
+      precoTabela: 449.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143013311",
+      rct: "100074325MCLNCZ38",
+      precoPromocao: 0,
+      precoTabela: 549.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143015216",
+      rct: "100074329WCLNRS40",
+      precoPromocao: 0,
+      precoTabela: 599.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143024010",
+      rct: "100074348UCOAPT36",
+      precoPromocao: 0,
+      precoTabela: 499.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143024041",
+      rct: "100074348UCOAPT37",
+      precoPromocao: 0,
+      precoTabela: 499.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143029756",
+      rct: "100074361WCLRRS34",
+      precoPromocao: 0,
+      precoTabela: 599.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143029909",
+      rct: "100074361WCLRRS38",
+      precoPromocao: 0,
+      precoTabela: 599.99,
+      saldo: 1,
+      localizacao: ""
+    },
+  
+    {
+      codigo: "COD-1200143083772",
+      rct: "100074493MNFXCZ42",
+      precoPromocao: 0,
+      precoTabela: 449.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143083833",
+      rct: "100074493MNFXCZ43",
+      precoPromocao: 0,
+      precoTabela: 449.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143083895",
+      rct: "100074493MNFXCZ44",
+      precoPromocao: 0,
+      precoTabela: 449.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143091302",
+      rct: "100074512MFLFBG44",
+      precoPromocao: 0,
+      precoTabela: 379.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    {
+      codigo: "COD-1200143091494",
+      rct: "100074513MFLFAZ39",
+      precoPromocao: 0,
+      precoTabela: 379.99,
+      saldo: 1,
+      localizacao: ""
+    },
+    
+    {
+      codigo: "COD-889131332637",
+      rct: "001354UNPCBC35",
+      precoPromocao: 199.99,
+      precoTabela: 399.99,
+      saldo: null,
+      localizacao: ""
+    }
+  ]
+};
     </script>
 </body>
 </html>

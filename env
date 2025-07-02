@@ -1,0 +1,10 @@
+MONGO_INITDB_ROOT_PASSWORD=irMEDNLAwAHBjiPvvPoGEBwfiwRaVmvM
+MONGO_INITDB_ROOT_USERNAME=mongo
+MONGO_PUBLIC_URL=mongodb://mongo:irMEDNLAwAHBjiPvvPoGEBwfiwRaVmvM@yamabiko.proxy.rlwy.net:23775
+MONGO_URL=mongodb://mongo:irMEDNLAwAHBjiPvvPoGEBwfiwRaVmvM@mongodb-toxa.railway.internal:27017
+MONGOHOST=mongodb-toxa.railway.internal
+MONGOPASSWORD=irMEDNLAwAHBjiPvvPoGEBwfiwRaVmvM
+MONGOPORT=27017
+MONGOUSER=mongo
+PORT=3000
+

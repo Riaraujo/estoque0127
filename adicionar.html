@@ -224,19 +224,19 @@
             font-size: 11px;
         }
 
-        .shelf-6 { top: 10px; }
-        .shelf-5 { top: 120px; }
-        .shelf-4 { top: 230px; }
-        .shelf-3 { top: 340px; }
-        .shelf-2 { top: 450px; }
-        .shelf-1 { top: 560px; }
+        .shelf-10 { top: 10px; }
+        .shelf-9 { top: 120px; }
+        .shelf-8 { top: 230px; }
+        .shelf-7 { top: 340px; }
+        .shelf-6 { top: 450px; }
+        .shelf-5 { top: 560px; }
 
-        .shelf-6.pequeno { top: 10px; }
-        .shelf-5.pequeno { top: 100px; }
-        .shelf-4.pequeno { top: 190px; }
-        .shelf-3.pequeno { top: 280px; }
-        .shelf-2.pequeno { top: 370px; }
-        .shelf-1.pequeno { top: 460px; }
+        .shelf-10.pequeno { top: 10px; }
+        .shelf-9.pequeno { top: 100px; }
+        .shelf-8.pequeno { top: 190px; }
+        .shelf-7.pequeno { top: 280px; }
+        .shelf-6.pequeno { top: 370px; }
+        .shelf-5.pequeno { top: 460px; }
 
         .add-form {
             background: white;
@@ -625,12 +625,12 @@
                     <label for="shelfSelect">Selecione a Prateleira:</label>
                     <select id="shelfSelect">
                         <option value="">-- Selecione --</option>
-                        <option value="shelf-1">Prateleira 1</option>
-                        <option value="shelf-2">Prateleira 2</option>
-                        <option value="shelf-3">Prateleira 3</option>
-                        <option value="shelf-4">Prateleira 4</option>
-                        <option value="shelf-5">Prateleira 5</option>
+                        <option value="shelf-10">Prateleira 10</option>
+                        <option value="shelf-9">Prateleira 9</option>
+                        <option value="shelf-8">Prateleira 8</option>
+                        <option value="shelf-7">Prateleira 7</option>
                         <option value="shelf-6">Prateleira 6</option>
+                        <option value="shelf-5">Prateleira 5</option>
                     </select>
                 </div>
                 <div class="button-group">
@@ -712,80 +712,8 @@
     </div>
 
     <script>
-        // Dados reais dos produtos
-        const tabelaTotalDeProdutos = {
-          produtos: [
-            {
-              codigo: "4066756633288",
-              rct: "002760MWTPPT44",
-              precoPromocao: 100.00,
-              precoTabela: 349.99,
-              saldo: 5,
-              localizacao: ""  // cabinet 1, Prateleira 3
-            },
-            {
-              codigo: "0196464441616",
-              rct: "100000103FSHBC34",
-              precoPromocao: 399.99,
-              precoTabela: 499.99,
-              saldo: null,
-              localizacao: ""  // cabinet 2, Prateleira 6 
-            },
-            {
-              codigo: "0054871712197",
-              rct: "002240WFSHPT34",
-              precoPromocao: 0.00,
-              precoTabela: 499.99,
-              saldo: null,
-              localizacao: ""   // cabinet 8, Prateleira 1
-            },
-            {
-              codigo: "0054871712203",
-              rct: "002240WFSHPT35",
-              precoPromocao: 0.00,
-              precoTabela: 499.99,
-              saldo: null,
-              localizacao: ""   // cabinet 8, Prateleira 2
-            },
-            {
-              codigo: "0054871712227",
-              rct: "002240WFSHPT36",
-              precoPromocao: 0.00,
-              precoTabela: 499.99,
-              saldo: null,
-              localizacao: ""   // cabinet 8, Prateleira 3
-            },
-            {
-              codigo: "0054871712234",
-              rct: "meu ovo",
-              precoPromocao: 6.00,
-              precoTabela: 49.99,
-              saldo: 8888,
-              localizacao: ""   // cabinet 8, Prateleira 4
-            },
-            {
-              codigo: "0054871712241",
-              rct: "002240WFSHPT38",
-              precoPromocao: 0.00,
-              precoTabela: 499.99,
-              saldo: null,
-              localizacao: ""   // cabinet 8, Prateleira 5
-            },
-            {
-              codigo: "0054871712258",
-              rct: "002240WFSHPT39",
-              precoPromocao: 0.00,
-              precoTabela: 499.99,
-              saldo: null,
-              localizacao: ""   // cabinet 8, Prateleira 6
-            }
-          ]
-        };
-
-        // Tabela de produtos (inicialmente vazia)
-        const tabelaProdutos = {
-          produtos: []
-        };
+        // Configuração da API
+        const API_BASE_URL = window.location.origin;
 
         // Objeto estoque127 com o layout criado
         const estoque127 = {
@@ -874,9 +802,18 @@
         const qualityIndicator = document.getElementById('qualityIndicator');
         const scanButton = document.getElementById('scanButton');
 
-        // Função para buscar produto na tabela total
-        function findProductByCode(code) {
-            return tabelaTotalDeProdutos.produtos.find(prod => prod.codigo === code);
+        // Função para buscar produto na API
+        async function findProductByCode(code) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/produto/${code}`);
+                if (response.ok) {
+                    return await response.json();
+                }
+                return null;
+            } catch (error) {
+                console.error('Erro ao buscar produto:', error);
+                return null;
+            }
         }
 
         // Inicializar o contexto de áudio
@@ -959,7 +896,8 @@
                 <p><strong>Produtos:</strong> ${Object.keys(cabinet.products).reduce((acc, shelf) => acc + (cabinet.products[shelf] ? cabinet.products[shelf].length : 0), 0)}</p>
             `;
             
-            for (let i = 1; i <= 7; i++) {
+            // Criar prateleiras com numeração atualizada (10, 9, 8, 7, 6, 5)
+            for (let i = 10; i >= 5; i--) {
                 const shelf = document.createElement('div');
                 shelf.className = `shelf ${cabinet.type} shelf-${i}${cabinet.type === 'pequeno' ? ' pequeno' : ''}`;
                 shelf.innerHTML = `<span class="shelf-label">Prateleira ${i}</span>`;
@@ -1127,7 +1065,7 @@
                     isScanButtonPressed = false;
                     
                     // Adicionar o produto (apenas 1 por vez)
-                    addScannedProduct(code);
+                    await addScannedProduct(code);
                     
                     // Reativar o botão após 500ms
                     setTimeout(() => {
@@ -1172,15 +1110,15 @@
         }
 
         // Função para adicionar um produto escaneado/digitado
-        function addScannedProduct(code) {
+        async function addScannedProduct(code) {
             // Verificação do comprimento do código
             if (code.length < 12) {
                 alert(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`);
                 return;
             }
             
-            // Verificar se o produto existe na tabela total
-            const produtoEncontrado = findProductByCode(code);
+            // Verificar se o produto existe na API
+            const produtoEncontrado = await findProductByCode(code);
             if (!produtoEncontrado) {
                 alert(`Produto com código ${code} não encontrado no catálogo.`);
                 return;
@@ -1301,112 +1239,58 @@
             scanButton.classList.remove('hidden');
         }
 
-        function saveProductsToCabinet() {
-    if (!selectedCabinet || !selectedShelf || scannedProducts.length === 0) return;
-    
-    const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
-    
-    if (cabinet) {
-        if (!cabinet.products[selectedShelf]) {
-            cabinet.products[selectedShelf] = [];
-        }
-        
-        scannedProducts.forEach(product => {
-            const produtoEncontrado = findProductByCode(product.code);
+        // Função para salvar produtos no armário
+        async function saveProductsToCabinet() {
+            if (!selectedCabinet || !selectedShelf || scannedProducts.length === 0) return;
             
-            if (produtoEncontrado) {
-                // Adicionar ao armário (prateleira)
-                cabinet.products[selectedShelf].push({
-                    code: product.code,
-                    name: `Produto ${product.code.substring(0, 4)}`,
-                    addedAt: new Date().toISOString()
-                });
+            try {
+                const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
                 
-                // **SEMPRE ADICIONAR À TABELA (MESMO QUE JÁ EXISTA)**
-                const novoProduto = JSON.parse(JSON.stringify(produtoEncontrado));
-                novoProduto.localizacao = `${cabinet.id}-${selectedShelf.split('-')[1]}`;
-                tabelaProdutos.produtos.push(novoProduto); // Adiciona mesmo se for duplicado
-            } else {
-                console.warn(`Produto com código ${product.code} não encontrado na tabela total.`);
+                if (cabinet) {
+                    if (!cabinet.products[selectedShelf]) {
+                        cabinet.products[selectedShelf] = [];
+                    }
+                    
+                    // Salvar cada produto na API
+                    for (const product of scannedProducts) {
+                        const shelfNumber = selectedShelf.split('-')[1];
+                        const localizacao = `${cabinet.id}-${shelfNumber}`;
+                        
+                        const response = await fetch(`${API_BASE_URL}/api/adicionar-produto`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                codigo: product.code,
+                                localizacao: localizacao
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            // Adicionar ao armário local
+                            cabinet.products[selectedShelf].push({
+                                code: product.code,
+                                name: `Produto ${product.code.substring(0, 4)}`,
+                                addedAt: new Date().toISOString()
+                            });
+                        } else {
+                            const error = await response.json();
+                            console.error('Erro ao salvar produto:', error);
+                        }
+                    }
+                    
+                    showCabinetDetails(cabinet);
+                    scannedProducts = [];
+                    updateScannedProductsList();
+                    saveBtn.disabled = true;
+                    alert('Produtos adicionados com sucesso!');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar produtos:', error);
+                alert('Erro ao salvar produtos. Tente novamente.');
             }
-        });
-        
-        showCabinetDetails(cabinet);
-        scannedProducts = [];
-        updateScannedProductsList();
-        saveBtn.disabled = true;
-        alert('Produtos adicionados com sucesso!');
-        showProdutosModal(); // Mostra o modal com os dados
-    }
-}
-
-// Função para mostrar os produtos em um modal
-function showProdutosModal() {
-    // Criar elementos do modal
-    const modal = document.createElement('div');
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    modal.style.display = 'flex';
-    modal.style.justifyContent = 'center';
-    modal.style.alignItems = 'center';
-    modal.style.zIndex = '1000';
-    
-    const modalContent = document.createElement('div');
-    modalContent.style.backgroundColor = '#fff';
-    modalContent.style.padding = '20px';
-    modalContent.style.borderRadius = '5px';
-    modalContent.style.maxWidth = '80%';
-    modalContent.style.maxHeight = '80%';
-    modalContent.style.overflow = 'auto';
-    
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = 'Fechar';
-    closeBtn.style.marginTop = '10px';
-    closeBtn.style.padding = '5px 10px';
-    closeBtn.addEventListener('click', () => {
-        document.body.removeChild(modal);
-    });
-    
-    // Criar textarea com o conteúdo JSON
-    const textarea = document.createElement('textarea');
-    textarea.value = JSON.stringify(tabelaProdutos, null, 2);
-    textarea.style.width = '100%';
-    textarea.style.height = '300px';
-    textarea.style.marginBottom = '10px';
-    textarea.style.fontFamily = 'monospace';
-    
-    // Adicionar botão de copiar
-    const copyBtn = document.createElement('button');
-    copyBtn.textContent = 'Copiar JSON';
-    copyBtn.style.padding = '5px 10px';
-    copyBtn.style.marginRight = '10px';
-    copyBtn.addEventListener('click', () => {
-        textarea.select();
-        document.execCommand('copy');
-        alert('JSON copiado para a área de transferência!');
-    });
-    
-    // Montar o modal
-    modalContent.innerHTML = '<h2>Tabela de Produtos (JSON)</h2>';
-    modalContent.appendChild(textarea);
-    modalContent.appendChild(copyBtn);
-    modalContent.appendChild(closeBtn);
-    modal.appendChild(modalContent);
-    
-    // Adicionar ao body
-    document.body.appendChild(modal);
-    
-    // Fechar modal ao clicar fora
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            document.body.removeChild(modal);
         }
-    });
-}
 
         // Event Listeners
         cabinetSelect.addEventListener('change', function() {
@@ -1454,18 +1338,18 @@ function showProdutosModal() {
 
         toggleInputBtn.addEventListener('click', toggleInputMode);
 
-        manualAddBtn.addEventListener('click', function() {
+        manualAddBtn.addEventListener('click', async function() {
             const code = manualBarcodeInput.value.trim();
             if (code) {
-                addScannedProduct(code);
+                await addScannedProduct(code);
             }
         });
 
-        manualBarcodeInput.addEventListener('keypress', function(e) {
+        manualBarcodeInput.addEventListener('keypress', async function(e) {
             if (e.key === 'Enter') {
                 const code = manualBarcodeInput.value.trim();
                 if (code) {
-                    addScannedProduct(code);
+                    await addScannedProduct(code);
                 }
             }
         });
@@ -1490,3 +1374,4 @@ function showProdutosModal() {
     </script>
 </body>
 </html>
+

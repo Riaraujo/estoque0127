@@ -1,7 +1,7 @@
 {
-  "name": "sistema-produtos-railway",
+  "name": "estoque-sistema",
   "version": "1.0.0",
-  "description": "Sistema de gerenciamento de produtos com MongoDB no Railway",
+  "description": "Sistema de controle de estoque com MongoDB",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -21,13 +21,12 @@
     "node": ">=18.0.0"
   },
   "keywords": [
-    "nodejs",
-    "express",
+    "estoque",
     "mongodb",
-    "railway",
-    "produtos"
+    "express",
+    "railway"
   ],
-  "author": "Seu Nome",
+  "author": "Sistema de Estoque",
   "license": "MIT"
 }
 

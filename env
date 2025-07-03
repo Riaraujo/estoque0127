@@ -1,2 +1,2 @@
-MONGO_PUBLIC_URL=https://estoque0127.railway.internal
-PORT=3000
+MONGO_PUBLIC_URL=https://estoque0127-production.up.railway.app
+PORT=8080

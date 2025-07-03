@@ -7,8 +7,22 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configuração de CORS mais permissiva para GitHub Pages
+const corsOptions = {
+    origin: [
+        'https://riaraujo.github.io',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:5500',
+        'http://127.0.0.1:5500'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -117,7 +131,22 @@ async function initializeData() {
     }
 }
 
+// Middleware para log de requisições
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('Origin')}`);
+    next();
+});
+
 // Rotas da API
+
+// Rota de teste para verificar se o servidor está funcionando
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        message: 'Servidor funcionando corretamente'
+    });
+});
 
 // Rota para buscar produto por código na tabela total
 app.get('/api/produto/:codigo', async (req, res) => {
@@ -338,6 +367,7 @@ async function startServer() {
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`Servidor rodando na porta ${PORT}`);
         console.log(`Acesse: http://localhost:${PORT}`);
+        console.log(`CORS configurado para GitHub Pages: https://riaraujo.github.io`);
     });
 }
 

@@ -140,7 +140,7 @@ app.use((req, res, next) => {
 // Rotas da API
 
 // Rota de teste para verificar se o servidor está funcionando
-app.get('/api/health', (req, res) => {
+app.get('/api/tabelaTotalDeProdutos', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),

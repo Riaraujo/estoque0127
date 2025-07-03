@@ -139,14 +139,7 @@ app.use((req, res, next) => {
 
 // Rotas da API
 
-// Rota de teste para verificar se o servidor está funcionando
-app.get('/api/tabelaTotalDeProdutos', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        message: 'Servidor funcionando corretamente'
-    });
-});
+
 
 // Rota para buscar produto por código na tabela total
 app.get('/api/produto/:codigo', async (req, res) => {

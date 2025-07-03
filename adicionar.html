@@ -55,6 +55,20 @@
             text-align: center;
         }
 
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 auto;
+        }
+
         .nav-menu {
             list-style: none;
         }
@@ -618,7 +632,9 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">
-                <img src="d7f55c03-70f4-42be-9805-393122158e69___c038bed40f3763fc3be4ff844f7483ec.png" alt="Logo">
+                <div class="logo-placeholder">
+                    <i class="fas fa-boxes"></i>
+                </div>
             </div>
             
             <ul class="nav-menu">
@@ -745,9 +761,9 @@
     </div>
 
     <script>
-        // Configuração da API - SUBSTITUA PELA URL DO SEU SERVIDOR NO RAILWAY
-        // Exemplo: const API_BASE_URL = 'https://seu-app-railway.up.railway.app';
-        const API_BASE_URL = 'https://estoque0127.railway.internal'; // ALTERE ESTA URL
+        // Configuração da API - SUBSTITUA PELA URL PÚBLICA DO SEU SERVIDOR NO RAILWAY
+        // Exemplo: const API_BASE_URL = 'https://estoque0127-production.up.railway.app';
+        const API_BASE_URL = 'https://estoque0127-production.up.railway.app'; // ALTERE ESTA URL PARA SUA URL PÚBLICA DO RAILWAY
 
         // Objeto estoque127 com o layout criado
         const estoque127 = {

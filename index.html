@@ -283,110 +283,6 @@
             font-size: 14px;
         }
 
-        /* Seção de visualização do estoque */
-        .stock-view-section {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: none;
-        }
-
-        .stock-view-title {
-            font-size: 20px;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .stock-visualization {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            flex-wrap: wrap;
-        }
-
-        .location-map {
-            flex: 1;
-            min-width: 300px;
-            background: #f8f9fa;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            position: relative;
-            height: 400px;
-            overflow: hidden;
-        }
-
-        .location-dot {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background-color: var(--accent-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        .location-dot:hover {
-            transform: scale(1.2);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-
-        .location-dot.multiple {
-            background-color: var(--warning-color);
-        }
-
-        .location-legend {
-            flex: 0 0 250px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .legend-title {
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-            padding: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .legend-item:hover {
-            background-color: rgba(52, 152, 219, 0.1);
-        }
-
-        .legend-dot {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .legend-text {
-            font-size: 14px;
-            color: var(--text-color);
-        }
-
         .no-results {
             text-align: center;
             padding: 40px;
@@ -528,15 +424,6 @@
             .camera-container {
                 height: calc(50vh - 80px);
             }
-
-            .stock-visualization {
-                flex-direction: column;
-            }
-
-            .location-legend {
-                flex: none;
-                width: 100%;
-            }
         }
 
         @keyframes fadeIn {
@@ -646,23 +533,6 @@
                     <!-- Resultados aparecerão aqui -->
                 </div>
             </div>
-
-            <!-- Seção de Visualização do Estoque -->
-            <div class="stock-view-section" id="stockViewSection">
-                <h2 class="stock-view-title">
-                    <i class="fas fa-map-marker-alt"></i>
-                    Localização no Estoque
-                </h2>
-                <div class="stock-visualization">
-                    <div class="location-map" id="locationMap">
-                        <!-- Pontos de localização aparecerão aqui -->
-                    </div>
-                    <div class="location-legend" id="locationLegend">
-                        <div class="legend-title">Localizações Encontradas</div>
-                        <!-- Legenda aparecerá aqui -->
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -688,7 +558,7 @@
     <script>
         // Configuração da API - SUBSTITUA PELA URL PÚBLICA DO SEU SERVIDOR NO RAILWAY
         // Exemplo: const API_BASE_URL = 'https://estoque0127-production.up.railway.app';
-        const API_BASE_URL = 'https://estoque0127-production.up.railway.app'; // ALTERE ESTA URL PARA SUA URL PÚBLICA DO RAILWAY
+        const API_BASE_URL = 'estoque0127-production.up.railway.app'; // ALTERE ESTA URL PARA SUA URL PÚBLICA DO RAILWAY
 
         // Elementos do DOM
         const searchInput = document.getElementById('searchInput');
@@ -696,9 +566,6 @@
         const cameraBtn = document.getElementById('cameraBtn');
         const resultsSection = document.getElementById('resultsSection');
         const resultsContainer = document.getElementById('resultsContainer');
-        const stockViewSection = document.getElementById('stockViewSection');
-        const locationMap = document.getElementById('locationMap');
-        const locationLegend = document.getElementById('locationLegend');
         const cameraModal = document.getElementById('cameraModal');
         const cameraVideo = document.getElementById('cameraVideo');
         const closeCameraBtn = document.getElementById('closeCameraBtn');
@@ -709,7 +576,6 @@
         // Variáveis globais
         let isScannerActive = false;
         let cameraStream = null;
-        let currentResults = [];
 
         // Função para testar conexão com o servidor
         async function testConnection() {
@@ -754,17 +620,13 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    currentResults = data;
                     displayResults(data);
-                    displayStockVisualization(data);
                 } else {
                     showError(data.error || 'Produto não encontrado');
-                    hideStockVisualization();
                 }
             } catch (error) {
                 console.error('Erro ao buscar produto:', error);
                 showError('Erro ao conectar com o servidor. Verifique se a URL da API está correta.');
-                hideStockVisualization();
             }
         }
 
@@ -783,17 +645,13 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    currentResults = data;
                     displayResults(data);
-                    displayStockVisualization(data);
                 } else {
                     showError(data.error || 'Produto não encontrado');
-                    hideStockVisualization();
                 }
             } catch (error) {
                 console.error('Erro ao buscar produto por RCT:', error);
                 showError('Erro ao conectar com o servidor. Verifique se a URL da API está correta.');
-                hideStockVisualization();
             }
         }
 
@@ -806,7 +664,6 @@
                     Buscando produto...
                 </div>
             `;
-            hideStockVisualization();
         }
 
         // Função para exibir erro
@@ -877,26 +734,17 @@
                 });
 
                 Object.entries(localizacoes).forEach(([localizacao, quantidade]) => {
-                    if (localizacao === 'Sem localização') {
-                        html += `
-                            <div class="stock-item">
-                                <strong>Sem localização</strong><br>
-                                <small>${quantidade} unidade(s)</small>
-                            </div>
-                        `;
-                    } else {
-                        const [armario, prateleira] = localizacao.split('-');
-                        const prateleiraNum = prateleira ? parseInt(prateleira) : null;
-                        const prateleiraTexto = prateleiraNum ? `Prateleira ${prateleiraNum}` : 'Sem prateleira';
-                        
-                        html += `
-                            <div class="stock-item">
-                                <strong>Armário ${armario}</strong><br>
-                                ${prateleiraTexto}<br>
-                                <small>${quantidade} unidade(s)</small>
-                            </div>
-                        `;
-                    }
+                    const [armario, prateleira] = localizacao.split('-');
+                    const prateleiraNum = prateleira ? parseInt(prateleira) : null;
+                    const prateleiraTexto = prateleiraNum ? `Prateleira ${prateleiraNum}` : 'Sem prateleira';
+                    
+                    html += `
+                        <div class="stock-item">
+                            <strong>Armário ${armario}</strong><br>
+                            ${prateleiraTexto}<br>
+                            <small>${quantidade} unidade(s)</small>
+                        </div>
+                    `;
                 });
 
                 html += `
@@ -921,118 +769,6 @@
             
             resultsSection.style.display = 'block';
             resultsContainer.innerHTML = html;
-        }
-
-        // Função para exibir visualização do estoque
-        function displayStockVisualization(data) {
-            const { produtosEstoque } = data;
-            
-            if (!produtosEstoque || produtosEstoque.length === 0) {
-                hideStockVisualization();
-                return;
-            }
-
-            // Filtrar apenas produtos com localização
-            const produtosComLocalizacao = produtosEstoque.filter(produto => produto.localizacao && produto.localizacao !== '');
-            
-            if (produtosComLocalizacao.length === 0) {
-                hideStockVisualization();
-                return;
-            }
-
-            // Agrupar por localização
-            const localizacoes = {};
-            produtosComLocalizacao.forEach(produto => {
-                const loc = produto.localizacao;
-                if (!localizacoes[loc]) {
-                    localizacoes[loc] = [];
-                }
-                localizacoes[loc].push(produto);
-            });
-
-            // Limpar mapa e legenda
-            locationMap.innerHTML = '';
-            locationLegend.innerHTML = '<div class="legend-title">Localizações Encontradas</div>';
-
-            // Criar pontos no mapa
-            Object.entries(localizacoes).forEach(([localizacao, produtos], index) => {
-                const [armario, prateleira] = localizacao.split('-');
-                
-                // Criar ponto no mapa (posição simulada baseada no armário)
-                const dot = document.createElement('div');
-                dot.className = 'location-dot';
-                if (produtos.length > 1) {
-                    dot.classList.add('multiple');
-                }
-                
-                // Posicionar o ponto baseado no número do armário
-                const armarioNum = parseInt(armario);
-                const x = (armarioNum % 10) * 35 + 20; // Distribuir horizontalmente
-                const y = Math.floor(armarioNum / 10) * 45 + 30; // Distribuir verticalmente
-                
-                dot.style.left = `${x}px`;
-                dot.style.top = `${y}px`;
-                dot.textContent = prateleira || '?';
-                
-                // Adicionar evento de clique
-                dot.addEventListener('click', () => {
-                    highlightLocation(localizacao);
-                });
-                
-                locationMap.appendChild(dot);
-
-                // Criar item na legenda
-                const legendItem = document.createElement('div');
-                legendItem.className = 'legend-item';
-                legendItem.innerHTML = `
-                    <div class="legend-dot" style="background-color: ${produtos.length > 1 ? 'var(--warning-color)' : 'var(--accent-color)'}"></div>
-                    <div class="legend-text">
-                        <strong>Armário ${armario} - Prateleira ${prateleira}</strong><br>
-                        <small>${produtos.length} produto(s)</small>
-                    </div>
-                `;
-                
-                legendItem.addEventListener('click', () => {
-                    highlightLocation(localizacao);
-                });
-                
-                locationLegend.appendChild(legendItem);
-            });
-
-            stockViewSection.style.display = 'block';
-        }
-
-        // Função para ocultar visualização do estoque
-        function hideStockVisualization() {
-            stockViewSection.style.display = 'none';
-        }
-
-        // Função para destacar uma localização
-        function highlightLocation(localizacao) {
-            // Remover destaque anterior
-            document.querySelectorAll('.location-dot').forEach(dot => {
-                dot.style.transform = 'scale(1)';
-                dot.style.zIndex = '1';
-            });
-            
-            document.querySelectorAll('.legend-item').forEach(item => {
-                item.style.backgroundColor = 'transparent';
-            });
-
-            // Destacar localização selecionada
-            const [armario, prateleira] = localizacao.split('-');
-            document.querySelectorAll('.location-dot').forEach(dot => {
-                if (dot.textContent === prateleira) {
-                    dot.style.transform = 'scale(1.5)';
-                    dot.style.zIndex = '10';
-                }
-            });
-
-            document.querySelectorAll('.legend-item').forEach(item => {
-                if (item.textContent.includes(`Armário ${armario} - Prateleira ${prateleira}`)) {
-                    item.style.backgroundColor = 'rgba(52, 152, 219, 0.2)';
-                }
-            });
         }
 
         // Função para determinar se é código ou RCT

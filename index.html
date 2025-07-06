@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* CSS */
         * {
             margin: 0;
             padding: 0;
@@ -53,6 +52,20 @@
             text-align: center;
         }
 
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 auto;
+        }
+
         .nav-menu {
             list-style: none;
         }
@@ -80,7 +93,7 @@
         .main-content {
             flex: 1;
             padding: 30px;
-            margin-left: 15%; /* Igual à largura da sidebar */
+            margin-left: 15%;
         }
 
         .search-container {
@@ -185,14 +198,12 @@
             color: var(--secondary-color);
         }
 
-        /* Container principal do conteúdo + visualização */
         .content-wrapper {
             display: flex;
             gap: 20px;
             align-items: flex-start;
         }
 
-        /* Estilos para a visualização do estoque */
         .stock-view {
             margin-left: 80px;
             margin-right: 50px;
@@ -246,7 +257,6 @@
             background-color: #27ae60;
         }
 
-        /* Estilos para a visualização do armário */
         .cabinet-display {
             width: 350px;
             background: white;
@@ -327,7 +337,6 @@
             font-size: 11px;
         }
 
-        /* Posicionamento das prateleiras */
         .shelf-6 { top: 10px; }
         .shelf-5 { top: 120px; }
         .shelf-4 { top: 230px; }
@@ -342,11 +351,9 @@
         .shelf-2.pequeno { top: 370px; }
         .shelf-1.pequeno { top: 460px; }
 
-        /* Responsividade */
         @media (max-width: 1450px) {
             .content-wrapper {
                 flex-direction: column;
-                
             }
             
             .cabinet-display {
@@ -356,7 +363,7 @@
                 top: auto;
             }
             .stock-view{
-                width:100%
+                width:100%;
                 position: relative;
                 height: auto;
             }
@@ -389,7 +396,7 @@
             }
 
             .stock-view{
-                width:100%
+                width:100%;
                 position: relative;
                 height: auto;
             }
@@ -423,7 +430,6 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-        /* Estilo para os marcadores de localização */
         .location-marker {
             position: absolute;
             width: 20px;
@@ -451,7 +457,9 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">
-                <img src="d7f55c03-70f4-42be-9805-393122158e69___c038bed40f3763fc3be4ff844f7483ec.png" alt="Logo">
+                <div class="logo-placeholder">
+                    <i class="fas fa-boxes"></i>
+                </div>
             </div>
             
             <ul class="nav-menu">
@@ -483,11 +491,11 @@
                 <div class="search-box">
                     <div class="input-group">
                         <i class="fa fa-barcode"></i>
-                        <input type="text" id="codigo" placeholder="Código do Produto">
+                        <input type="text" id="codigo" placeholder="Código do Produto (mín. 4 caracteres)">
                     </div>
                     <div class="input-group">
                         <i class="fa fa-file-invoice"></i>
-                        <input type="text" id="rct" placeholder="RCT">
+                        <input type="text" id="rct" placeholder="RCT (mín. 4 caracteres)">
                     </div>
                     <div class="button-group">
                         <button onclick="realizarBusca()" class="btn search-btn">
@@ -546,8 +554,8 @@
     </div>
 
     <script>
-        // Configuração da API - SUBSTITUA PELA URL PÚBLICA DO SEU SERVIDOR NO RAILWAY
-        const API_BASE_URL = 'https://estoque0127-production.up.railway.app'; // ALTERE ESTA URL PARA SUA URL PÚBLICA DO RAILWAY
+        // Configuração da API
+        const API_BASE_URL = 'https://estoque0127-production.up.railway.app';
 
         // Variável para armazenar os resultados atuais
         let resultadosAtuais = [];
@@ -567,44 +575,48 @@
                     "rotation": 270,
                     "products": {}
                 },
-                // ... (mantenha o restante do objeto estoque127 como estava)
+                // ... (restante dos armários)
             ]
         };
 
-         async function realizarBusca() {
-        const codigo = document.getElementById('codigo').value.trim();
-        const rct = document.getElementById('rct').value.trim().toUpperCase();
-        const loading = document.getElementById('loading');
-        const tableBody = document.getElementById('tableBody');
+        async function realizarBusca() {
+            const codigo = document.getElementById('codigo').value.trim();
+            const rct = document.getElementById('rct').value.trim().toUpperCase();
+            const loading = document.getElementById('loading');
+            const tableBody = document.getElementById('tableBody');
 
-        // Validação de mínimo 4 caracteres
-        if ((codigo && codigo.length < 4) || (rct && rct.length < 4)) {
-            alert('Digite pelo menos 4 caracteres para realizar a busca!');
-            return;
-        }
-
-        if (!codigo && !rct) {
-            alert('Preencha pelo menos um campo para buscar!');
-            return;
-        }
-
-        loading.style.display = 'block';
-        tableBody.innerHTML = '';
-
-        try {
-            let response;
-            if (codigo) {
-                // Busca por código (usando LIKE - contém o texto digitado)
-                response = await fetch(`${API_BASE_URL}/api/buscar/contem/${codigo}`);
-            } else {
-                // Busca por RCT (usando LIKE - contém o texto digitado)
-                response = await fetch(`${API_BASE_URL}/api/buscar/rct/contem/${rct}`);
+            // Validação de mínimo 4 caracteres
+            if ((codigo && codigo.length < 4) || (rct && rct.length < 4)) {
+                alert('Digite pelo menos 4 caracteres para realizar a busca!');
+                return;
             }
 
-            const data = await response.json();
+            if (!codigo && !rct) {
+                alert('Preencha pelo menos um campo para buscar!');
+                return;
+            }
 
-            if (response.ok) {
-                resultadosAtuais = data.produtosEstoque || [];
+            loading.style.display = 'block';
+            tableBody.innerHTML = '';
+
+            try {
+                let response;
+                if (codigo) {
+                    // Busca por código (usando LIKE - contém o texto digitado)
+                    response = await fetch(`${API_BASE_URL}/api/produtos?codigo_like=${encodeURIComponent(codigo)}`);
+                } else {
+                    // Busca por RCT (usando LIKE - contém o texto digitado)
+                    response = await fetch(`${API_BASE_URL}/api/produtos?rct_like=${encodeURIComponent(rct)}`);
+                }
+
+                // Verifica se a resposta foi bem-sucedida
+                if (!response.ok) {
+                    throw new Error(`Erro na requisição: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                resultadosAtuais = Array.isArray(data) ? data : [];
                 
                 if (resultadosAtuais.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
@@ -616,11 +628,11 @@
                         const tr = document.createElement('tr');
                         tr.className = 'fade-in';
                         tr.innerHTML = `
-                            <td>${item.codigo}</td>
-                            <td>${item.rct}</td>
+                            <td>${item.codigo || 'N/A'}</td>
+                            <td>${item.rct || 'N/A'}</td>
                             <td>R$ ${item.precoPromocao ? item.precoPromocao.toFixed(2) : '0.00'}</td>
                             <td>R$ ${item.precoTabela ? item.precoTabela.toFixed(2) : '0.00'}</td>
-                            <td>${item.saldo !== null ? item.saldo : 'N/A'}</td>
+                            <td>${item.saldo !== null && item.saldo !== undefined ? item.saldo : 'N/A'}</td>
                             <td>${item.localizacao || 'Não informada'}</td>
                         `;
                         tableBody.appendChild(tr);
@@ -632,18 +644,14 @@
                         marcarLocalizacoes(produtosComLocalizacao);
                     }
                 }
-            } else {
-                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
+            } catch (error) {
+                console.error('Erro ao buscar produtos:', error);
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Erro ao conectar com o servidor</td></tr>';
                 limparMarcadores();
+            } finally {
+                loading.style.display = 'none';
             }
-        } catch (error) {
-            console.error('Erro ao buscar produtos:', error);
-            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Erro ao conectar com o servidor</td></tr>';
-            limparMarcadores();
-        } finally {
-            loading.style.display = 'none';
         }
-    }
 
         function limparBusca() {
             document.getElementById('codigo').value = '';
@@ -654,10 +662,8 @@
         }
 
         function limparMarcadores() {
-            // Remove todos os marcadores existentes
             document.querySelectorAll('.location-marker').forEach(marker => marker.remove());
             
-            // Remove os marcadores das prateleiras
             const cabinetView = document.getElementById('cabinetView');
             if (cabinetView) {
                 cabinetView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
@@ -667,14 +673,12 @@
         function marcarLocalizacoes(produtos) {
             limparMarcadores();
             
-            // Mapeia armários e suas prateleiras (Ex: { "8": ["1", "2", "3", "4"], "2": ["6"] })
             const armarioParaPrateleiras = new Map();
 
             produtos.forEach(produto => {
                 if (produto.localizacao) {
                     const [cabinetId, shelfId] = produto.localizacao.split('-');
                     
-                    // Adiciona a prateleira ao armário correspondente
                     if (!armarioParaPrateleiras.has(cabinetId)) {
                         armarioParaPrateleiras.set(cabinetId, []);
                     }
@@ -682,14 +686,12 @@
                         armarioParaPrateleiras.get(cabinetId).push(shelfId);
                     }
 
-                    // Marca o armário (se ainda não marcado)
                     const cabinetElement = document.getElementById(cabinetId);
                     if (cabinetElement && !cabinetElement.querySelector('.cabinet-marker')) {
                         const marker = document.createElement('div');
                         marker.className = 'location-marker cabinet-marker';
                         cabinetElement.appendChild(marker);
 
-                        // Ao clicar no armário, marca TODAS as prateleiras relacionadas
                         cabinetElement.addEventListener('click', () => {
                             setTimeout(() => {
                                 const prateleiras = armarioParaPrateleiras.get(cabinetId) || [];
@@ -705,10 +707,8 @@
             const cabinetView = document.getElementById('cabinetView');
             if (!cabinetView) return;
 
-            // Limpa marcadores antigos
             cabinetView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
 
-            // Adiciona um marcador para cada prateleira
             shelfIds.forEach(shelfId => {
                 const shelfElement = cabinetView.querySelector(`.shelf-${shelfId}`);
                 if (shelfElement) {
@@ -771,7 +771,6 @@
                 cabinetView.appendChild(shelf);
             }
             
-            // Verifica se este armário tem produtos marcados
             const produtosNoArmario = resultadosAtuais.filter(produto => {
                 if (produto.localizacao) {
                     const [cabId, _] = produto.localizacao.split('-');
@@ -781,10 +780,9 @@
             });
             
             if (produtosNoArmario.length > 0) {
-                // Para cada produto neste armário, marca a prateleira correspondente
                 produtosNoArmario.forEach(produto => {
                     const [_, shelfId] = produto.localizacao.split('-');
-                    marcarPrateleira(shelfId);
+                    marcarPrateleiras([shelfId]);
                 });
             }
         }

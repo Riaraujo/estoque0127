@@ -571,71 +571,79 @@
             ]
         };
 
-        async function realizarBusca() {
-            const codigo = document.getElementById('codigo').value.trim();
-            const rct = document.getElementById('rct').value.trim().toUpperCase();
-            const loading = document.getElementById('loading');
-            const tableBody = document.getElementById('tableBody');
+         async function realizarBusca() {
+        const codigo = document.getElementById('codigo').value.trim();
+        const rct = document.getElementById('rct').value.trim().toUpperCase();
+        const loading = document.getElementById('loading');
+        const tableBody = document.getElementById('tableBody');
 
-            if (!codigo && !rct) {
-                alert('Preencha pelo menos um campo para buscar!');
-                return;
+        // Validação de mínimo 4 caracteres
+        if ((codigo && codigo.length < 4) || (rct && rct.length < 4)) {
+            alert('Digite pelo menos 4 caracteres para realizar a busca!');
+            return;
+        }
+
+        if (!codigo && !rct) {
+            alert('Preencha pelo menos um campo para buscar!');
+            return;
+        }
+
+        loading.style.display = 'block';
+        tableBody.innerHTML = '';
+
+        try {
+            let response;
+            if (codigo) {
+                // Busca por código (usando LIKE - contém o texto digitado)
+                response = await fetch(`${API_BASE_URL}/api/buscar/contem/${codigo}`);
+            } else {
+                // Busca por RCT (usando LIKE - contém o texto digitado)
+                response = await fetch(`${API_BASE_URL}/api/buscar/rct/contem/${rct}`);
             }
 
-            loading.style.display = 'block';
-            tableBody.innerHTML = '';
+            const data = await response.json();
 
-            try {
-                let response;
-                if (codigo) {
-                    response = await fetch(`${API_BASE_URL}/api/buscar/${codigo}`);
-                } else {
-                    response = await fetch(`${API_BASE_URL}/api/buscar/rct/${rct}`);
-                }
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    resultadosAtuais = data.produtosEstoque || [];
-                    
-                    if (resultadosAtuais.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
-                        limparMarcadores();
-                    } else {
-                        tableBody.innerHTML = '';
-                        
-                        resultadosAtuais.forEach((item, index) => {
-                            const tr = document.createElement('tr');
-                            tr.className = 'fade-in';
-                            tr.innerHTML = `
-                                <td>${item.codigo}</td>
-                                <td>${item.rct}</td>
-                                <td>R$ ${item.precoPromocao ? item.precoPromocao.toFixed(2) : '0.00'}</td>
-                                <td>R$ ${item.precoTabela ? item.precoTabela.toFixed(2) : '0.00'}</td>
-                                <td>${item.saldo !== null ? item.saldo : 'N/A'}</td>
-                                <td>${item.localizacao || 'Não informada'}</td>
-                            `;
-                            tableBody.appendChild(tr);
-                        });
-
-                        // Marca localizações apenas para produtos que têm localização
-                        const produtosComLocalizacao = resultadosAtuais.filter(item => item.localizacao);
-                        if (produtosComLocalizacao.length > 0) {
-                            marcarLocalizacoes(produtosComLocalizacao);
-                        }
-                    }
-                } else {
+            if (response.ok) {
+                resultadosAtuais = data.produtosEstoque || [];
+                
+                if (resultadosAtuais.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
                     limparMarcadores();
+                } else {
+                    tableBody.innerHTML = '';
+                    
+                    resultadosAtuais.forEach((item, index) => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'fade-in';
+                        tr.innerHTML = `
+                            <td>${item.codigo}</td>
+                            <td>${item.rct}</td>
+                            <td>R$ ${item.precoPromocao ? item.precoPromocao.toFixed(2) : '0.00'}</td>
+                            <td>R$ ${item.precoTabela ? item.precoTabela.toFixed(2) : '0.00'}</td>
+                            <td>${item.saldo !== null ? item.saldo : 'N/A'}</td>
+                            <td>${item.localizacao || 'Não informada'}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+
+                    // Marca localizações apenas para produtos que têm localização
+                    const produtosComLocalizacao = resultadosAtuais.filter(item => item.localizacao);
+                    if (produtosComLocalizacao.length > 0) {
+                        marcarLocalizacoes(produtosComLocalizacao);
+                    }
                 }
-            } catch (error) {
-                console.error('Erro ao buscar produtos:', error);
-                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Erro ao conectar com o servidor</td></tr>';
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
                 limparMarcadores();
-            } finally {
-                loading.style.display = 'none';
             }
+        } catch (error) {
+            console.error('Erro ao buscar produtos:', error);
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Erro ao conectar com o servidor</td></tr>';
+            limparMarcadores();
+        } finally {
+            loading.style.display = 'none';
         }
+    }
 
         function limparBusca() {
             document.getElementById('codigo').value = '';

@@ -601,13 +601,17 @@
 
             try {
                 let response;
-                if (codigo) {
-                    // Busca por código (usando LIKE - contém o texto digitado)
-                    response = await fetch(`${API_BASE_URL}/api/produtos?codigo_like=${encodeURIComponent(codigo)}`);
-                } else {
-                    // Busca por RCT (usando LIKE - contém o texto digitado)
-                    response = await fetch(`${API_BASE_URL}/api/produtos?rct_like=${encodeURIComponent(rct)}`);
+                let url;
+                
+                if (codigo && !rct) {
+                    // Busca APENAS por código (ignora RCT)
+                    url = `${API_BASE_URL}/api/produtos?codigo_like=${encodeURIComponent(codigo)}`;
+                } else if (rct && !codigo) {
+                    // Busca APENAS por RCT (ignora código)
+                    url = `${API_BASE_URL}/api/produtos?rct_like=${encodeURIComponent(rct)}`;
                 }
+
+                response = await fetch(url);
 
                 // Verifica se a resposta foi bem-sucedida
                 if (!response.ok) {
@@ -616,8 +620,18 @@
 
                 const data = await response.json();
 
-                resultadosAtuais = Array.isArray(data) ? data : [];
-                
+                // Filtro adicional no cliente para garantir a correspondência exata do texto pesquisado
+                resultadosAtuais = Array.isArray(data) ? data.filter(item => {
+                    if (codigo) {
+                        // Para busca por código, verifica se o código contém a string pesquisada
+                        return item.codigo && item.codigo.toString().includes(codigo);
+                    } else if (rct) {
+                        // Para busca por RCT, verifica se o RCT contém a string pesquisada
+                        return item.rct && item.rct.toUpperCase().includes(rct);
+                    }
+                    return false;
+                }) : [];
+
                 if (resultadosAtuais.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
                     limparMarcadores();

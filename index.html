@@ -2,16 +2,14 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Estoque</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Busca de Produtos</title>
     
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- QuaggaJS para leitura de código de barras -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    
     <style>
+        /* CSS */
         * {
             margin: 0;
             padding: 0;
@@ -23,8 +21,6 @@
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
             --background-color: #f8f9fa;
             --text-color: #2c3e50;
         }
@@ -57,20 +53,6 @@
             text-align: center;
         }
 
-        .logo-placeholder {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            margin: 0 auto;
-        }
-
         .nav-menu {
             list-style: none;
         }
@@ -98,10 +80,10 @@
         .main-content {
             flex: 1;
             padding: 30px;
-            margin-left: 15%;
+            margin-left: 15%; /* Igual à largura da sidebar */
         }
 
-        .search-section {
+        .search-container {
             background: white;
             padding: 25px;
             border-radius: 10px;
@@ -109,41 +91,40 @@
             margin-bottom: 30px;
         }
 
-        .search-title {
-            font-size: 24px;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .search-form {
+        .search-box {
             display: flex;
             gap: 15px;
-            margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
-        .search-input {
+        .input-group {
             flex: 1;
-            min-width: 250px;
-            padding: 12px;
-            border: 2px solid #ddd;
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 35px;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
+            font-size: 14px;
         }
 
-        .search-input:focus {
-            outline: none;
-            border-color: var(--secondary-color);
+        .button-group {
+            display: flex;
+            gap: 10px;
         }
 
-        .search-btn {
+        .btn {
             padding: 12px 25px;
-            background-color: var(--secondary-color);
-            color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -151,351 +132,251 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 16px;
+        }
+
+        .search-btn {
+            background-color: var(--secondary-color);
+            color: white;
         }
 
         .search-btn:hover {
             background-color: #2980b9;
-            transform: translateY(-2px);
         }
 
-        .camera-btn {
-            background-color: var(--success-color);
-        }
-
-        .camera-btn:hover {
-            background-color: #219653;
-        }
-
-        .results-section {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: none;
-        }
-
-        .results-title {
-            font-size: 20px;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .product-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            background: #f9f9f9;
-            transition: all 0.3s ease;
-        }
-
-        .product-card:hover {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-
-        .product-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .product-code {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .product-rct {
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 14px;
-        }
-
-        .product-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: var(--text-color);
-            font-size: 14px;
-        }
-
-        .detail-value {
-            font-size: 16px;
-            color: var(--primary-color);
-        }
-
-        .price-promo {
-            color: var(--success-color);
-            font-weight: bold;
-        }
-
-        .price-table {
-            color: var(--warning-color);
-            text-decoration: line-through;
-        }
-
-        .stock-info {
-            background: linear-gradient(135deg, var(--secondary-color), #3498db);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-
-        .stock-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
-
-        .stock-items {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-        }
-
-        .stock-item {
-            background: rgba(255,255,255,0.2);
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        /* Seção de visualização do estoque */
-        .stock-view-section {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: none;
-        }
-
-        .stock-view-title {
-            font-size: 20px;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .stock-visualization {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            flex-wrap: wrap;
-        }
-
-        .location-map {
-            flex: 1;
-            min-width: 300px;
-            background: #f8f9fa;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            position: relative;
-            height: 400px;
-            overflow: hidden;
-        }
-
-        .location-dot {
-            position: absolute;
-            width: 40px;
-            height: 40px;
+        .clear-btn {
             background-color: var(--accent-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             color: white;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            padding: 12px;
         }
 
-        .location-dot:hover {
-            transform: scale(1.2);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        .results-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
 
-        .location-dot.multiple {
-            background-color: var(--warning-color);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
 
-        .location-legend {
-            flex: 0 0 250px;
-            background: #f8f9fa;
-            border-radius: 8px;
+        th, td {
             padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
         }
 
-        .legend-title {
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 10px;
+        th {
+            background-color: var(--primary-color);
+            color: white;
         }
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-            padding: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .legend-item:hover {
-            background-color: rgba(52, 152, 219, 0.1);
-        }
-
-        .legend-dot {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .legend-text {
-            font-size: 14px;
-            color: var(--text-color);
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            font-size: 18px;
-        }
-
-        .error-message {
-            background-color: #fee;
-            color: var(--accent-color);
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--accent-color);
-        }
-
-        .success-message {
-            background-color: #efe;
-            color: var(--success-color);
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--success-color);
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
         }
 
         .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            font-size: 18px;
+            display: none;
+            text-align: center;
+            padding: 20px;
             color: var(--secondary-color);
         }
 
-        .loading i {
-            margin-right: 10px;
-            animation: spin 1s linear infinite;
+        /* Container principal do conteúdo + visualização */
+        .content-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Estilos para a visualização do estoque */
+        .stock-view {
+            margin-left: 80px;
+            margin-right: 50px;
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
         }
 
-        /* Modal da Câmera */
-        .camera-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+        .plant-container-static {
+            position: relative;
+            width: 650px;
+            height: 650px;
+            background-image: 
+                linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            overflow: hidden;
+        }
+
+        .cabinet-static {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            user-select: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cabinet-static:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .cabinet-static.grande {
+            width: 100px;
+            height: 60px;
+            background-color: var(--secondary-color);
+        }
+
+        .cabinet-static.pequeno {
+            width: 40px;
+            height: 60px;
+            background-color: #27ae60;
+        }
+
+        /* Estilos para a visualização do armário */
+        .cabinet-display {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 30px;
+        }
+
+        .cabinet-display-title {
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cabinet-view {
+            position: relative;
             width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-            z-index: 1000;
+            border: 2px solid var(--primary-color);
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            overflow: hidden;
+        }
+
+        .cabinet-view.grande {
+            height: 680px;
+        }
+
+        .cabinet-view.pequeno {
+            height: 550px;
+            width: 100px;
+        }
+
+        .shelf {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            font-size: 12px;
+            color: var(--text-color);
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
         }
 
-        .camera-container {
-            width: 100%;
-            max-width: 800px;
-            position: relative;
-            height: calc(60vh - 80px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .shelf.grande {
+            width: 90%;
+            height: 100px;
         }
 
-        #cameraVideo {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background: black;
+        .shelf.pequeno {
+            width: 90%;
+            height: 80px;
         }
 
-        .camera-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .camera-feedback {
+        .shelf-label {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 100px;
-            color: #2ecc71;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 1001;
-        }
-
-        .scan-quality-indicator {
-            position: absolute;
-            top: 10px;
             left: 10px;
-            background: rgba(0,0,0,0.7);
+            top: 10px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .product-display {
+            background-color: var(--secondary-color);
             color: white;
             padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            z-index: 1001;
+            border-radius: 4px;
+            margin: 5px;
+            display: inline-block;
+            font-size: 11px;
         }
 
+        /* Posicionamento das prateleiras */
+        .shelf-6 { top: 10px; }
+        .shelf-5 { top: 120px; }
+        .shelf-4 { top: 230px; }
+        .shelf-3 { top: 340px; }
+        .shelf-2 { top: 450px; }
+        .shelf-1 { top: 560px; }
+
+        .shelf-6.pequeno { top: 10px; }
+        .shelf-5.pequeno { top: 100px; }
+        .shelf-4.pequeno { top: 190px; }
+        .shelf-3.pequeno { top: 280px; }
+        .shelf-2.pequeno { top: 370px; }
+        .shelf-1.pequeno { top: 460px; }
+
         /* Responsividade */
+        @media (max-width: 1450px) {
+            .content-wrapper {
+                flex-direction: column;
+                
+            }
+            
+            .cabinet-display {
+                width: 100%;
+                max-width: 800px;
+                position: relative;
+                top: auto;
+            }
+            .stock-view{
+                width:100%
+                position: relative;
+                height: auto;
+            }
+            
+            .plant-container-static {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .stock-view {
+                flex-direction: column;
+            }
+            
+            .plant-container-static {
+                width: 100%;
+                height: 500px;
+            }
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -507,35 +388,29 @@
                 height: auto;
             }
 
+            .stock-view{
+                width:100%
+                position: relative;
+                height: auto;
+            }
+
             .main-content {
                 width: 100%;
                 margin-left: 0;
                 padding: 15px;
             }
 
-            .search-form {
+            .search-box {
                 flex-direction: column;
             }
 
-            .search-input {
-                min-width: 100%;
+            table {
+                overflow-x: auto;
+                display: block;
             }
-
-            .product-details {
-                grid-template-columns: 1fr;
-            }
-
-            .camera-container {
-                height: calc(50vh - 80px);
-            }
-
-            .stock-visualization {
-                flex-direction: column;
-            }
-
-            .location-legend {
-                flex: none;
-                width: 100%;
+            
+            .plant-container-static {
+                height: 400px;
             }
         }
 
@@ -548,48 +423,35 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-        /* Indicador de status da conexão */
-        .connection-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
-            z-index: 1000;
-            transition: all 0.3s ease;
+        /* Estilo para os marcadores de localização */
+        .location-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #e74c3c;
+            z-index: 10;
         }
 
-        .connection-status.online {
-            background-color: var(--success-color);
-            color: white;
+        .cabinet-marker {
+            top: 5px;
+            right: 5px;
         }
 
-        .connection-status.offline {
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        .connection-status.testing {
-            background-color: var(--warning-color);
-            color: white;
+        .shelf-marker {
+            bottom: 5px;
+            right: 5px;
         }
     </style>
 </head>
 <body>
-    <!-- Indicador de status da conexão -->
-    <div class="connection-status testing" id="connectionStatus">
-        <i class="fas fa-circle"></i> Testando conexão...
-    </div>
-
     <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">
-                <div class="logo-placeholder">
-                    <i class="fas fa-boxes"></i>
-                </div>
+                <img src="d7f55c03-70f4-42be-9805-393122158e69___c038bed40f3763fc3be4ff844f7483ec.png" alt="Logo">
             </div>
             
             <ul class="nav-menu">
@@ -606,7 +468,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="adicionar.html" class="nav-link">
+                    <a href="adicionar.html" class="nav-link ">
                         <i class="fas fa-plus-circle"></i>
                         <span>Adicionar Produtos</span>
                     </a>
@@ -616,576 +478,316 @@
 
         <!-- Conteúdo Principal -->
         <div class="main-content">
-            <!-- Seção de Busca -->
-            <div class="search-section">
-                <h1 class="search-title">
-                    <i class="fas fa-search"></i>
-                    Busca de Produtos
-                </h1>
+            <!-- Formulário de Busca -->
+            <div class="search-container">
+                <div class="search-box">
+                    <div class="input-group">
+                        <i class="fa fa-barcode"></i>
+                        <input type="text" id="codigo" placeholder="Código do Produto">
+                    </div>
+                    <div class="input-group">
+                        <i class="fa fa-file-invoice"></i>
+                        <input type="text" id="rct" placeholder="RCT">
+                    </div>
+                    <div class="button-group">
+                        <button onclick="realizarBusca()" class="btn search-btn">
+                            <i class="fa fa-search"></i> Buscar
+                        </button>
+                        <button onclick="limparBusca()" class="btn clear-btn">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resultados -->
+            <div class="results-container">
+                <div class="loading" id="loading">Carregando...</div>
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Código de Barras</th>
+                            <th>RCT</th>
+                            <th>Promocional</th>
+                            <th>Valor Tabela</th>
+                            <th>Saldo</th>
+                            <th>Localização</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Resultados serão inseridos aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Container para estoque + visualização do armário -->
+            <div class="content-wrapper">
+                <!-- Visualização do estoque -->
+                <div class="stock-view">
+                    <div class="plant-container-static" id="plantContainerStatic">
+                        <!-- Armários serão renderizados aqui -->
+                    </div>
+                </div>
                 
-                <div class="search-form">
-                    <input type="text" id="searchInput" class="search-input" placeholder="Digite o código de barras ou RCT do produto...">
-                    <button id="searchBtn" class="search-btn">
-                        <i class="fas fa-search"></i>
-                        Buscar
-                    </button>
-                    <button id="cameraBtn" class="search-btn camera-btn">
-                        <i class="fas fa-camera"></i>
-                        Escanear
-                    </button>
-                </div>
-            </div>
-
-            <!-- Seção de Resultados -->
-            <div class="results-section" id="resultsSection">
-                <h2 class="results-title">
-                    <i class="fas fa-box"></i>
-                    Resultados da Busca
-                </h2>
-                <div id="resultsContainer">
-                    <!-- Resultados aparecerão aqui -->
-                </div>
-            </div>
-
-            <!-- Seção de Visualização do Estoque -->
-            <div class="stock-view-section" id="stockViewSection">
-                <h2 class="stock-view-title">
-                    <i class="fas fa-map-marker-alt"></i>
-                    Localização no Estoque
-                </h2>
-                <div class="stock-visualization">
-                    <div class="location-map" id="locationMap">
-                        <!-- Pontos de localização aparecerão aqui -->
+                <!-- Visualização do armário -->
+                <div class="cabinet-display">
+                    <h2 class="cabinet-display-title">
+                        <i class="fas fa-archive"></i> Visualização do Armário
+                    </h2>
+                    <div id="cabinetDisplayInfo">
+                        <p>Selecione um armário para visualizar detalhes</p>
                     </div>
-                    <div class="location-legend" id="locationLegend">
-                        <div class="legend-title">Localizações Encontradas</div>
-                        <!-- Legenda aparecerá aqui -->
+                    <div id="cabinetView" class="cabinet-view">
+                        <!-- Prateleiras serão renderizadas aqui -->
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal da Câmera -->
-    <div class="camera-modal" id="cameraModal">
-        <div class="camera-container">
-            <div class="scan-quality-indicator" id="qualityIndicator">
-                Qualidade da leitura: Aguardando...
-            </div>
-            <video id="cameraVideo" autoplay playsinline></video>
-            <div class="camera-feedback" id="cameraFeedback">
-                <i class="fas fa-check-circle"></i>
-            </div>
-        </div>
-        
-        <div class="camera-controls">
-            <button id="closeCameraBtn" class="search-btn">
-                <i class="fas fa-times"></i> Fechar
-            </button>
         </div>
     </div>
 
     <script>
         // Configuração da API - SUBSTITUA PELA URL PÚBLICA DO SEU SERVIDOR NO RAILWAY
-        // Exemplo: const API_BASE_URL = 'https://estoque0127-production.up.railway.app';
         const API_BASE_URL = 'https://estoque0127-production.up.railway.app'; // ALTERE ESTA URL PARA SUA URL PÚBLICA DO RAILWAY
 
-        // Elementos do DOM
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const cameraBtn = document.getElementById('cameraBtn');
-        const resultsSection = document.getElementById('resultsSection');
-        const resultsContainer = document.getElementById('resultsContainer');
-        const stockViewSection = document.getElementById('stockViewSection');
-        const locationMap = document.getElementById('locationMap');
-        const locationLegend = document.getElementById('locationLegend');
-        const cameraModal = document.getElementById('cameraModal');
-        const cameraVideo = document.getElementById('cameraVideo');
-        const closeCameraBtn = document.getElementById('closeCameraBtn');
-        const cameraFeedback = document.getElementById('cameraFeedback');
-        const qualityIndicator = document.getElementById('qualityIndicator');
-        const connectionStatus = document.getElementById('connectionStatus');
+        // Variável para armazenar os resultados atuais
+        let resultadosAtuais = [];
 
-        // Variáveis globais
-        let isScannerActive = false;
-        let cameraStream = null;
-        let currentResults = [];
+        // Objeto estoque127 com o layout criado
+        const estoque127 = {
+            "dimensions": {
+                "width": 680,
+                "height": 1700
+            },
+            "cabinets": [
+                {
+                    "id": "1",
+                    "type": "grande",
+                    "x": -19,
+                    "y": 629,
+                    "rotation": 270,
+                    "products": {}
+                },
+                // ... (mantenha o restante do objeto estoque127 como estava)
+            ]
+        };
 
-        // Função para testar conexão com o servidor
-        async function testConnection() {
-            try {
-                connectionStatus.className = 'connection-status testing';
-                connectionStatus.innerHTML = '<i class="fas fa-circle"></i> Testando conexão...';
-                
-                const response = await fetch(`${API_BASE_URL}/api/health`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    connectionStatus.className = 'connection-status online';
-                    connectionStatus.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
-                    return true;
-                } else {
-                    throw new Error('Servidor não respondeu corretamente');
-                }
-            } catch (error) {
-                console.error('Erro de conexão:', error);
-                connectionStatus.className = 'connection-status offline';
-                connectionStatus.innerHTML = '<i class="fas fa-times-circle"></i> Desconectado';
-                return false;
-            }
-        }
+        async function realizarBusca() {
+            const codigo = document.getElementById('codigo').value.trim();
+            const rct = document.getElementById('rct').value.trim().toUpperCase();
+            const loading = document.getElementById('loading');
+            const tableBody = document.getElementById('tableBody');
 
-        // Função para buscar produto por código
-        async function buscarProduto(codigo) {
-            try {
-                showLoading();
-                
-                const response = await fetch(`${API_BASE_URL}/api/buscar/${codigo}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    currentResults = data;
-                    displayResults(data);
-                    displayStockVisualization(data);
-                } else {
-                    showError(data.error || 'Produto não encontrado');
-                    hideStockVisualization();
-                }
-            } catch (error) {
-                console.error('Erro ao buscar produto:', error);
-                showError('Erro ao conectar com o servidor. Verifique se a URL da API está correta.');
-                hideStockVisualization();
-            }
-        }
-
-        // Função para buscar produto por RCT
-        async function buscarProdutoPorRCT(rct) {
-            try {
-                showLoading();
-                
-                const response = await fetch(`${API_BASE_URL}/api/buscar/rct/${rct}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    currentResults = data;
-                    displayResults(data);
-                    displayStockVisualization(data);
-                } else {
-                    showError(data.error || 'Produto não encontrado');
-                    hideStockVisualization();
-                }
-            } catch (error) {
-                console.error('Erro ao buscar produto por RCT:', error);
-                showError('Erro ao conectar com o servidor. Verifique se a URL da API está correta.');
-                hideStockVisualization();
-            }
-        }
-
-        // Função para exibir loading
-        function showLoading() {
-            resultsSection.style.display = 'block';
-            resultsContainer.innerHTML = `
-                <div class="loading">
-                    <i class="fas fa-spinner"></i>
-                    Buscando produto...
-                </div>
-            `;
-            hideStockVisualization();
-        }
-
-        // Função para exibir erro
-        function showError(message) {
-            resultsSection.style.display = 'block';
-            resultsContainer.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    ${message}
-                </div>
-            `;
-        }
-
-        // Função para exibir resultados
-        function displayResults(data) {
-            const { produtoTotal, produtosEstoque, quantidadeEstoque } = data;
-            
-            if (!produtoTotal) {
-                showError('Produto não encontrado no catálogo');
+            if (!codigo && !rct) {
+                alert('Preencha pelo menos um campo para buscar!');
                 return;
             }
 
-            let html = `
-                <div class="product-card fade-in">
-                    <div class="product-header">
-                        <span class="product-code">${produtoTotal.codigo}</span>
-                        <span class="product-rct">${produtoTotal.rct}</span>
-                    </div>
+            loading.style.display = 'block';
+            tableBody.innerHTML = '';
+
+            try {
+                let response;
+                if (codigo) {
+                    response = await fetch(`${API_BASE_URL}/api/buscar/${codigo}`);
+                } else {
+                    response = await fetch(`${API_BASE_URL}/api/buscar/rct/${rct}`);
+                }
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultadosAtuais = data.produtosEstoque || [];
                     
-                    <div class="product-details">
-                        <div class="detail-item">
-                            <span class="detail-label">Preço Promoção</span>
-                            <span class="detail-value price-promo">R$ ${produtoTotal.precoPromocao.toFixed(2)}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Preço Tabela</span>
-                            <span class="detail-value price-table">R$ ${produtoTotal.precoTabela.toFixed(2)}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Saldo Sistema</span>
-                            <span class="detail-value">${produtoTotal.saldo || 'N/A'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Quantidade no Estoque</span>
-                            <span class="detail-value">${quantidadeEstoque}</span>
-                        </div>
-                    </div>
-            `;
-
-            if (produtosEstoque && produtosEstoque.length > 0) {
-                html += `
-                    <div class="stock-info">
-                        <div class="stock-title">
-                            <i class="fas fa-map-marker-alt"></i>
-                            Localizações no Estoque (${quantidadeEstoque} unidades)
-                        </div>
-                        <div class="stock-items">
-                `;
-                
-                // Agrupar por localização
-                const localizacoes = {};
-                produtosEstoque.forEach(produto => {
-                    const loc = produto.localizacao || 'Sem localização';
-                    if (!localizacoes[loc]) {
-                        localizacoes[loc] = 0;
-                    }
-                    localizacoes[loc]++;
-                });
-
-                Object.entries(localizacoes).forEach(([localizacao, quantidade]) => {
-                    if (localizacao === 'Sem localização') {
-                        html += `
-                            <div class="stock-item">
-                                <strong>Sem localização</strong><br>
-                                <small>${quantidade} unidade(s)</small>
-                            </div>
-                        `;
+                    if (resultadosAtuais.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
+                        limparMarcadores();
                     } else {
-                        const [armario, prateleira] = localizacao.split('-');
-                        const prateleiraNum = prateleira ? parseInt(prateleira) : null;
-                        const prateleiraTexto = prateleiraNum ? `Prateleira ${prateleiraNum}` : 'Sem prateleira';
+                        tableBody.innerHTML = '';
                         
-                        html += `
-                            <div class="stock-item">
-                                <strong>Armário ${armario}</strong><br>
-                                ${prateleiraTexto}<br>
-                                <small>${quantidade} unidade(s)</small>
-                            </div>
-                        `;
-                    }
-                });
+                        resultadosAtuais.forEach((item, index) => {
+                            const tr = document.createElement('tr');
+                            tr.className = 'fade-in';
+                            tr.innerHTML = `
+                                <td>${item.codigo}</td>
+                                <td>${item.rct}</td>
+                                <td>R$ ${item.precoPromocao ? item.precoPromocao.toFixed(2) : '0.00'}</td>
+                                <td>R$ ${item.precoTabela ? item.precoTabela.toFixed(2) : '0.00'}</td>
+                                <td>${item.saldo !== null ? item.saldo : 'N/A'}</td>
+                                <td>${item.localizacao || 'Não informada'}</td>
+                            `;
+                            tableBody.appendChild(tr);
+                        });
 
-                html += `
-                        </div>
-                    </div>
-                `;
-            } else {
-                html += `
-                    <div class="stock-info">
-                        <div class="stock-title">
-                            <i class="fas fa-exclamation-circle"></i>
-                            Produto não encontrado no estoque físico
-                        </div>
-                        <p style="margin-top: 10px; opacity: 0.9;">
-                            Este produto existe no catálogo mas ainda não foi adicionado ao estoque.
-                        </p>
-                    </div>
-                `;
-            }
-
-            html += '</div>';
-            
-            resultsSection.style.display = 'block';
-            resultsContainer.innerHTML = html;
-        }
-
-        // Função para exibir visualização do estoque
-        function displayStockVisualization(data) {
-            const { produtosEstoque } = data;
-            
-            if (!produtosEstoque || produtosEstoque.length === 0) {
-                hideStockVisualization();
-                return;
-            }
-
-            // Filtrar apenas produtos com localização
-            const produtosComLocalizacao = produtosEstoque.filter(produto => produto.localizacao && produto.localizacao !== '');
-            
-            if (produtosComLocalizacao.length === 0) {
-                hideStockVisualization();
-                return;
-            }
-
-            // Agrupar por localização
-            const localizacoes = {};
-            produtosComLocalizacao.forEach(produto => {
-                const loc = produto.localizacao;
-                if (!localizacoes[loc]) {
-                    localizacoes[loc] = [];
-                }
-                localizacoes[loc].push(produto);
-            });
-
-            // Limpar mapa e legenda
-            locationMap.innerHTML = '';
-            locationLegend.innerHTML = '<div class="legend-title">Localizações Encontradas</div>';
-
-            // Criar pontos no mapa
-            Object.entries(localizacoes).forEach(([localizacao, produtos], index) => {
-                const [armario, prateleira] = localizacao.split('-');
-                
-                // Criar ponto no mapa (posição simulada baseada no armário)
-                const dot = document.createElement('div');
-                dot.className = 'location-dot';
-                if (produtos.length > 1) {
-                    dot.classList.add('multiple');
-                }
-                
-                // Posicionar o ponto baseado no número do armário
-                const armarioNum = parseInt(armario);
-                const x = (armarioNum % 10) * 35 + 20; // Distribuir horizontalmente
-                const y = Math.floor(armarioNum / 10) * 45 + 30; // Distribuir verticalmente
-                
-                dot.style.left = `${x}px`;
-                dot.style.top = `${y}px`;
-                dot.textContent = prateleira || '?';
-                
-                // Adicionar evento de clique
-                dot.addEventListener('click', () => {
-                    highlightLocation(localizacao);
-                });
-                
-                locationMap.appendChild(dot);
-
-                // Criar item na legenda
-                const legendItem = document.createElement('div');
-                legendItem.className = 'legend-item';
-                legendItem.innerHTML = `
-                    <div class="legend-dot" style="background-color: ${produtos.length > 1 ? 'var(--warning-color)' : 'var(--accent-color)'}"></div>
-                    <div class="legend-text">
-                        <strong>Armário ${armario} - Prateleira ${prateleira}</strong><br>
-                        <small>${produtos.length} produto(s)</small>
-                    </div>
-                `;
-                
-                legendItem.addEventListener('click', () => {
-                    highlightLocation(localizacao);
-                });
-                
-                locationLegend.appendChild(legendItem);
-            });
-
-            stockViewSection.style.display = 'block';
-        }
-
-        // Função para ocultar visualização do estoque
-        function hideStockVisualization() {
-            stockViewSection.style.display = 'none';
-        }
-
-        // Função para destacar uma localização
-        function highlightLocation(localizacao) {
-            // Remover destaque anterior
-            document.querySelectorAll('.location-dot').forEach(dot => {
-                dot.style.transform = 'scale(1)';
-                dot.style.zIndex = '1';
-            });
-            
-            document.querySelectorAll('.legend-item').forEach(item => {
-                item.style.backgroundColor = 'transparent';
-            });
-
-            // Destacar localização selecionada
-            const [armario, prateleira] = localizacao.split('-');
-            document.querySelectorAll('.location-dot').forEach(dot => {
-                if (dot.textContent === prateleira) {
-                    dot.style.transform = 'scale(1.5)';
-                    dot.style.zIndex = '10';
-                }
-            });
-
-            document.querySelectorAll('.legend-item').forEach(item => {
-                if (item.textContent.includes(`Armário ${armario} - Prateleira ${prateleira}`)) {
-                    item.style.backgroundColor = 'rgba(52, 152, 219, 0.2)';
-                }
-            });
-        }
-
-        // Função para determinar se é código ou RCT
-        function isBarcode(input) {
-            // Códigos de barras são geralmente numéricos e têm 12-13 dígitos
-            return /^\d{12,13}$/.test(input);
-        }
-
-        // Função para realizar busca
-        function realizarBusca() {
-            const termo = searchInput.value.trim();
-            
-            if (!termo) {
-                showError('Digite um código de barras ou RCT para buscar');
-                return;
-            }
-
-            if (isBarcode(termo)) {
-                buscarProduto(termo);
-            } else {
-                buscarProdutoPorRCT(termo);
-            }
-        }
-
-        // Função para iniciar scanner
-        async function startScanner() {
-            try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                });
-
-                cameraVideo.srcObject = cameraStream;
-                await cameraVideo.play();
-
-                Quagga.init({
-                    inputStream: {
-                        name: "Live",
-                        type: "LiveStream",
-                        target: cameraVideo,
-                        constraints: {
-                            width: { min: 640 },
-                            height: { min: 480 },
-                            aspectRatio: { ideal: 1.333333 }
+                        // Marca localizações apenas para produtos que têm localização
+                        const produtosComLocalizacao = resultadosAtuais.filter(item => item.localizacao);
+                        if (produtosComLocalizacao.length > 0) {
+                            marcarLocalizacoes(produtosComLocalizacao);
                         }
-                    },
-                    decoder: {
-                        readers: [
-                            "code_128_reader",
-                            "ean_reader",
-                            "ean_8_reader", 
-                            "code_39_reader",
-                            "upc_reader"
-                        ],
-                        multiple: false
-                    },
-                    locator: {
-                        halfSample: true,
-                        patchSize: "large"
-                    },
-                    numOfWorkers: 4,
-                    frequency: 10,
-                    debug: false
-                }, function(err) {
-                    if (err) {
-                        console.error("Erro de inicialização:", err);
-                        alert("Erro ao iniciar scanner: " + err.message);
-                        return;
                     }
-                    Quagga.start();
-                    isScannerActive = true;
-                });
-
-                Quagga.onDetected(function(result) {
-                    const code = result.codeResult.code;
-                    
-                    if (!code || code.length < 12 || code.length > 13) {
-                        return;
-                    }
-                    
-                    if (!/^\d+$/.test(code)) {
-                        return;
-                    }
-                    
-                    // Feedback visual
-                    cameraFeedback.style.opacity = '1';
-                    
-                    // Buscar produto
-                    searchInput.value = code;
-                    stopScanner();
-                    buscarProduto(code);
-                    
-                    setTimeout(() => {
-                        cameraFeedback.style.opacity = '0';
-                    }, 1000);
-                });
-
-            } catch (err) {
-                console.error("Erro de acesso à câmera:", err);
-                alert("Não foi possível acessar a câmera. Verifique as permissões!");
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
+                    limparMarcadores();
+                }
+            } catch (error) {
+                console.error('Erro ao buscar produtos:', error);
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Erro ao conectar com o servidor</td></tr>';
+                limparMarcadores();
+            } finally {
+                loading.style.display = 'none';
             }
         }
 
-        // Função para parar scanner
-        function stopScanner() {
-            if (isScannerActive) {
-                Quagga.stop();
-                isScannerActive = false;
-            }
-            
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-            
-            cameraModal.style.display = 'none';
+        function limparBusca() {
+            document.getElementById('codigo').value = '';
+            document.getElementById('rct').value = '';
+            document.getElementById('tableBody').innerHTML = '';
+            document.getElementById('loading').style.display = 'none';
+            limparMarcadores();
         }
 
-        // Event Listeners
-        searchBtn.addEventListener('click', realizarBusca);
-
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                realizarBusca();
+        function limparMarcadores() {
+            // Remove todos os marcadores existentes
+            document.querySelectorAll('.location-marker').forEach(marker => marker.remove());
+            
+            // Remove os marcadores das prateleiras
+            const cabinetView = document.getElementById('cabinetView');
+            if (cabinetView) {
+                cabinetView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
             }
-        });
+        }
 
-        cameraBtn.addEventListener('click', function() {
-            cameraModal.style.display = 'flex';
-            startScanner();
-        });
+        function marcarLocalizacoes(produtos) {
+            limparMarcadores();
+            
+            // Mapeia armários e suas prateleiras (Ex: { "8": ["1", "2", "3", "4"], "2": ["6"] })
+            const armarioParaPrateleiras = new Map();
 
-        closeCameraBtn.addEventListener('click', stopScanner);
+            produtos.forEach(produto => {
+                if (produto.localizacao) {
+                    const [cabinetId, shelfId] = produto.localizacao.split('-');
+                    
+                    // Adiciona a prateleira ao armário correspondente
+                    if (!armarioParaPrateleiras.has(cabinetId)) {
+                        armarioParaPrateleiras.set(cabinetId, []);
+                    }
+                    if (!armarioParaPrateleiras.get(cabinetId).includes(shelfId)) {
+                        armarioParaPrateleiras.get(cabinetId).push(shelfId);
+                    }
 
-        // Fechar modal com Esc
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && cameraModal.style.display === 'flex') {
-                stopScanner();
+                    // Marca o armário (se ainda não marcado)
+                    const cabinetElement = document.getElementById(cabinetId);
+                    if (cabinetElement && !cabinetElement.querySelector('.cabinet-marker')) {
+                        const marker = document.createElement('div');
+                        marker.className = 'location-marker cabinet-marker';
+                        cabinetElement.appendChild(marker);
+
+                        // Ao clicar no armário, marca TODAS as prateleiras relacionadas
+                        cabinetElement.addEventListener('click', () => {
+                            setTimeout(() => {
+                                const prateleiras = armarioParaPrateleiras.get(cabinetId) || [];
+                                marcarPrateleiras(prateleiras);
+                            }, 50);
+                        });
+                    }
+                }
+            });
+        }
+
+        function marcarPrateleiras(shelfIds) {
+            const cabinetView = document.getElementById('cabinetView');
+            if (!cabinetView) return;
+
+            // Limpa marcadores antigos
+            cabinetView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
+
+            // Adiciona um marcador para cada prateleira
+            shelfIds.forEach(shelfId => {
+                const shelfElement = cabinetView.querySelector(`.shelf-${shelfId}`);
+                if (shelfElement) {
+                    const marker = document.createElement('div');
+                    marker.className = 'location-marker shelf-marker';
+                    shelfElement.appendChild(marker);
+                }
+            });
+        }
+
+        function renderStaticStock() {
+            const container = document.getElementById('plantContainerStatic');
+            
+            container.style.width = `${estoque127.dimensions.width}px`;
+            container.style.height = `${estoque127.dimensions.height}px`;
+            
+            estoque127.cabinets.forEach(cab => {
+                const cabinet = document.createElement('div');
+                cabinet.className = `cabinet-static ${cab.type}`;
+                cabinet.id = cab.id;
+                cabinet.style.left = `${cab.x}px`;
+                cabinet.style.top = `${cab.y}px`;
+                cabinet.style.transform = `rotate(${cab.rotation}deg)`;
+                cabinet.textContent = cab.id;
+                
+                cabinet.addEventListener('click', function() {
+                    showCabinetDetails(cab);
+                });
+                
+                container.appendChild(cabinet);
+            });
+        }
+
+        function showCabinetDetails(cabinet) {
+            const cabinetInfo = document.getElementById('cabinetDisplayInfo');
+            const cabinetView = document.getElementById('cabinetView');
+            
+            cabinetView.innerHTML = '';
+            cabinetView.className = 'cabinet-view ' + cabinet.type;
+            
+            cabinetInfo.innerHTML = `
+                <p><strong>ID:</strong> ${cabinet.id}</p>
+                <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
+            `;
+            
+            for (let i = 1; i <= 6; i++) {
+                const shelf = document.createElement('div');
+                shelf.className = `shelf ${cabinet.type} shelf-${i}${cabinet.type === 'pequeno' ? ' pequeno' : ''}`;
+                shelf.innerHTML = `<span class="shelf-label">Prateleira ${i}</span>`;
+                
+                if (cabinet.products && cabinet.products[`shelf-${i}`]) {
+                    cabinet.products[`shelf-${i}`].forEach(product => {
+                        const productElement = document.createElement('div');
+                        productElement.className = 'product-display';
+                        productElement.textContent = product.name;
+                        shelf.appendChild(productElement);
+                    });
+                }
+                
+                cabinetView.appendChild(shelf);
             }
-        });
+            
+            // Verifica se este armário tem produtos marcados
+            const produtosNoArmario = resultadosAtuais.filter(produto => {
+                if (produto.localizacao) {
+                    const [cabId, _] = produto.localizacao.split('-');
+                    return cabId === cabinet.id;
+                }
+                return false;
+            });
+            
+            if (produtosNoArmario.length > 0) {
+                // Para cada produto neste armário, marca a prateleira correspondente
+                produtosNoArmario.forEach(produto => {
+                    const [_, shelfId] = produto.localizacao.split('-');
+                    marcarPrateleira(shelfId);
+                });
+            }
+        }
 
-        // Inicialização
         window.onload = function() {
-            searchInput.focus();
-            testConnection();
+            renderStaticStock();
             
-            // Testar conexão a cada 30 segundos
-            setInterval(testConnection, 30000);
+            if (estoque127.cabinets.length > 0) {
+                showCabinetDetails(estoque127.cabinets[0]);
+            }
         };
     </script>
 </body>
 </html>
-

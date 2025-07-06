@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Adicionar Produtos</title>
+    <title>Sistema de Estoque</title>
     
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -23,6 +23,8 @@
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
             --background-color: #f8f9fa;
             --text-color: #2c3e50;
         }
@@ -99,194 +101,49 @@
             margin-left: 15%;
         }
 
-        .content-wrapper {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
-
-        .stock-view {
-            margin-left: 80px;
-            margin-right: 50px;
-            flex: 1;
+        .search-section {
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            max-width: 800px;
+            margin-bottom: 30px;
         }
 
-        .plant-container-static {
-            position: relative;
-            width: 650px;
-            height: 650px;
-            background-image: 
-                linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
-            background-size: 20px 20px;
-            background-color: white;
-            border: 1px solid #ddd;
-            overflow: hidden;
-        }
-
-        .cabinet-static {
-            position: absolute;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: white;
-            user-select: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .cabinet-static:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-        }
-
-        .cabinet-static.grande {
-            width: 100px;
-            height: 60px;
-            background-color: var(--secondary-color);
-        }
-
-        .cabinet-static.pequeno {
-            width: 40px;
-            height: 60px;
-            background-color: #27ae60;
-        }
-
-        .cabinet-display {
-            width: 350px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 30px;
-        }
-
-        .cabinet-display-title {
-            font-size: 18px;
+        .search-title {
+            font-size: 24px;
             color: var(--primary-color);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .cabinet-view {
-            position: relative;
-            width: 100%;
-            border: 2px solid var(--primary-color);
-            margin-top: 10px;
-            background-color: #f9f9f9;
-            overflow: hidden;
-        }
-
-        .cabinet-view.grande {
-            height: 680px;
-        }
-
-        .cabinet-view.pequeno {
-            height: 550px;
-            width: 100px;
-        }
-
-        .shelf {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #e0e0e0;
-            border: 1px solid #ccc;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            color: var(--text-color);
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
-        }
-
-        .shelf.grande {
-            width: 90%;
-            height: 100px;
-        }
-
-        .shelf.pequeno {
-            width: 90%;
-            height: 80px;
-        }
-
-        .shelf-label {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .product-display {
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            margin: 5px;
-            display: inline-block;
-            font-size: 11px;
-        }
-
-        .shelf-10 { top: 10px; }
-        .shelf-9 { top: 120px; }
-        .shelf-8 { top: 230px; }
-        .shelf-7 { top: 340px; }
-        .shelf-6 { top: 450px; }
-        .shelf-5 { top: 560px; }
-
-        .shelf-10.pequeno { top: 10px; }
-        .shelf-9.pequeno { top: 100px; }
-        .shelf-8.pequeno { top: 190px; }
-        .shelf-7.pequeno { top: 280px; }
-        .shelf-6.pequeno { top: 370px; }
-        .shelf-5.pequeno { top: 460px; }
-
-        .add-form {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        select, input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .button-group {
             display: flex;
+            align-items: center;
             gap: 10px;
-            margin-top: 20px;
         }
 
-        .btn {
+        .search-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        .search-btn {
             padding: 12px 25px;
+            background-color: var(--secondary-color);
+            color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -294,35 +151,183 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 16px;
         }
 
-        .add-btn {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-
-        .add-btn:hover {
+        .search-btn:hover {
             background-color: #2980b9;
+            transform: translateY(-2px);
         }
 
-        .save-btn {
-            background-color: #27ae60;
-            color: white;
+        .camera-btn {
+            background-color: var(--success-color);
         }
 
-        .save-btn:hover {
+        .camera-btn:hover {
             background-color: #219653;
         }
 
-        .back-btn {
-            background-color: var(--accent-color);
+        .results-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .results-title {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .product-code {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .product-rct {
+            background-color: var(--secondary-color);
             color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
         }
 
-        .back-btn:hover {
-            background-color: #c0392b;
+        .product-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: var(--primary-color);
+        }
+
+        .price-promo {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .price-table {
+            color: var(--warning-color);
+            text-decoration: line-through;
+        }
+
+        .stock-info {
+            background: linear-gradient(135deg, var(--secondary-color), #3498db);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .stock-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .stock-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .stock-item {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .error-message {
+            background-color: #fee;
+            color: var(--accent-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .success-message {
+            background-color: #efe;
+            color: var(--success-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            font-size: 18px;
+            color: var(--secondary-color);
+        }
+
+        .loading i {
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal da Câmera */
         .camera-modal {
             display: none;
             position: fixed;
@@ -354,10 +359,6 @@
             background: black;
         }
 
-        #scannerCanvas {
-            display: none;
-        }
-
         .camera-controls {
             margin-top: 20px;
             display: flex;
@@ -378,67 +379,6 @@
             z-index: 1001;
         }
 
-        .scanned-products {
-            margin-top: 30px;
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 5px;
-            max-height: 200px;
-            overflow-y: auto;
-            width: 80%;
-            max-width: 800px;
-        }
-
-        .scanned-product {
-            background: rgba(255,255,255,0.2);
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .manual-input-container {
-            margin-top: 20px;
-            width: 80%;
-            max-width: 800px;
-            display: none;
-            gap: 10px;
-        }
-
-        .manual-input {
-            flex: 1;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 16px;
-        }
-
-        .manual-add-btn {
-            padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .manual-add-btn:hover {
-            background-color: #2980b9;
-        }
-
-        .switch-input-mode {
-            margin-top: 15px;
-            background: none;
-            border: none;
-            color: white;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
         .scan-quality-indicator {
             position: absolute;
             top: 10px;
@@ -451,118 +391,7 @@
             z-index: 1001;
         }
 
-        /* Estilos para o botão de bipagem */
-        .scan-button-container {
-            position: fixed;
-            bottom: 30px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            z-index: 1002;
-        }
-
-        .scan-button {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: rgba(52, 152, 219, 0.8);
-            border: 4px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .scan-button:active {
-            transform: scale(0.95);
-            background-color: rgba(41, 128, 185, 0.9);
-        }
-
-        .scan-button.hidden {
-            display: none;
-        }
-
-        .scan-button i {
-            font-size: 30px;
-        }
-
-        /* Estilo para o botão de remoção */
-        .remove-btn {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 0 5px;
-        }
-
-        .remove-btn:hover {
-            color: var(--accent-color);
-        }
-
-        /* Indicador de status da conexão */
-        .connection-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .connection-status.online {
-            background-color: #27ae60;
-            color: white;
-        }
-
-        .connection-status.offline {
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        .connection-status.testing {
-            background-color: #f39c12;
-            color: white;
-        }
-
-        @media (max-width: 1400px) {
-            .content-wrapper {
-                flex-direction: column;
-            }
-            
-            .cabinet-display {
-                width: 100%;
-                max-width: 800px;
-                position: relative;
-                top: auto;
-            }
-            
-            .plant-container-static {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .stock-view {
-                flex-direction: column;
-            }
-            
-            .plant-container-static {
-                width: 100%;
-                height: 500px;
-            }
-        }
-
+        /* Responsividade */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -580,25 +409,20 @@
                 padding: 15px;
             }
 
-            .button-group {
+            .search-form {
                 flex-direction: column;
             }
-            
-            .plant-container-static {
-                height: 400px;
+
+            .search-input {
+                min-width: 100%;
+            }
+
+            .product-details {
+                grid-template-columns: 1fr;
             }
 
             .camera-container {
                 height: calc(50vh - 80px);
-            }
-
-            .manual-input-container {
-                flex-direction: column;
-            }
-
-            .scan-button {
-                width: 70px;
-                height: 70px;
             }
         }
 
@@ -611,14 +435,32 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-        @keyframes checkmark {
-            0% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1.5); }
-            100% { opacity: 0; transform: scale(1); }
+        /* Indicador de status da conexão */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
 
-        .checkmark-animation {
-            animation: checkmark 1s ease-out;
+        .connection-status.online {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .connection-status.offline {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .connection-status.testing {
+            background-color: var(--warning-color);
+            color: white;
         }
     </style>
 </head>
@@ -639,7 +481,7 @@
             
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="index.html" class="nav-link">
+                    <a href="index.html" class="nav-link active">
                         <i class="fas fa-search"></i>
                         <span>Busca de Produtos</span>
                     </a>
@@ -651,7 +493,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="adicionar.html" class="nav-link active">
+                    <a href="adicionar.html" class="nav-link">
                         <i class="fas fa-plus-circle"></i>
                         <span>Adicionar Produtos</span>
                     </a>
@@ -661,57 +503,34 @@
 
         <!-- Conteúdo Principal -->
         <div class="main-content">
-            <!-- Formulário de Adição -->
-            <div class="add-form">
-                <h2><i class="fas fa-box-open"></i> Adicionar Produtos</h2>
-                <div class="form-group">
-                    <label for="cabinetSelect">Selecione o Armário:</label>
-                    <select id="cabinetSelect">
-                        <option value="">-- Selecione --</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="shelfSelect">Selecione a Prateleira:</label>
-                    <select id="shelfSelect">
-                        <option value="">-- Selecione --</option>
-                        <option value="shelf-10">Prateleira 10</option>
-                        <option value="shelf-9">Prateleira 9</option>
-                        <option value="shelf-8">Prateleira 8</option>
-                        <option value="shelf-7">Prateleira 7</option>
-                        <option value="shelf-6">Prateleira 6</option>
-                        <option value="shelf-5">Prateleira 5</option>
-                    </select>
-                </div>
-                <div class="button-group">
-                    <button id="addBtn" class="btn add-btn" disabled>
-                        <i class="fas fa-barcode"></i> Adicionar Produtos
+            <!-- Seção de Busca -->
+            <div class="search-section">
+                <h1 class="search-title">
+                    <i class="fas fa-search"></i>
+                    Busca de Produtos
+                </h1>
+                
+                <div class="search-form">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Digite o código de barras ou RCT do produto...">
+                    <button id="searchBtn" class="search-btn">
+                        <i class="fas fa-search"></i>
+                        Buscar
                     </button>
-                    <button id="saveBtn" class="btn save-btn" disabled>
-                        <i class="fas fa-save"></i> Salvar
+                    <button id="cameraBtn" class="search-btn camera-btn">
+                        <i class="fas fa-camera"></i>
+                        Escanear
                     </button>
                 </div>
             </div>
 
-            <!-- Container para estoque + visualização do armário -->
-            <div class="content-wrapper">
-                <!-- Visualização do estoque -->
-                <div class="stock-view">
-                    <div class="plant-container-static" id="plantContainerStatic">
-                        <!-- Armários serão renderizados aqui -->
-                    </div>
-                </div>
-                
-                <!-- Visualização do armário -->
-                <div class="cabinet-display">
-                    <h2 class="cabinet-display-title">
-                        <i class="fas fa-archive"></i> Visualização do Armário
-                    </h2>
-                    <div id="cabinetDisplayInfo">
-                        <p>Selecione um armário para visualizar detalhes</p>
-                    </div>
-                    <div id="cabinetView" class="cabinet-view">
-                        <!-- Prateleiras serão renderizadas aqui -->
-                    </div>
+            <!-- Seção de Resultados -->
+            <div class="results-section" id="resultsSection">
+                <h2 class="results-title">
+                    <i class="fas fa-box"></i>
+                    Resultados da Busca
+                </h2>
+                <div id="resultsContainer">
+                    <!-- Resultados aparecerão aqui -->
                 </div>
             </div>
         </div>
@@ -724,134 +543,39 @@
                 Qualidade da leitura: Aguardando...
             </div>
             <video id="cameraVideo" autoplay playsinline></video>
-            <canvas id="scannerCanvas"></canvas>
             <div class="camera-feedback" id="cameraFeedback">
                 <i class="fas fa-check-circle"></i>
             </div>
         </div>
         
-        <!-- Container para entrada manual -->
-        <div class="manual-input-container" id="manualInputContainer">
-            <input type="text" id="manualBarcodeInput" class="manual-input" placeholder="Digite o código de barras">
-            <button id="manualAddBtn" class="manual-add-btn">
-                <i class="fas fa-plus"></i> Adicionar
-            </button>
-        </div>
-        
         <div class="camera-controls">
-            <button id="backBtn" class="btn back-btn">
-                <i class="fas fa-arrow-left"></i> Voltar
+            <button id="closeCameraBtn" class="search-btn">
+                <i class="fas fa-times"></i> Fechar
             </button>
-            <button id="toggleInputBtn" class="switch-input-mode">
-                <i class="fas fa-keyboard"></i> Inserir manualmente
-            </button>
-        </div>
-        
-        <div class="scanned-products" id="scannedProducts">
-            <h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>
-            <!-- Produtos escaneados aparecerão aqui -->
-        </div>
-
-        <!-- Botão de bipagem -->
-        <div class="scan-button-container">
-            <div class="scan-button" id="scanButton">
-                <i class="fas fa-barcode"></i>
-            </div>
         </div>
     </div>
 
     <script>
         // Configuração da API - SUBSTITUA PELA URL PÚBLICA DO SEU SERVIDOR NO RAILWAY
         // Exemplo: const API_BASE_URL = 'https://estoque0127-production.up.railway.app';
-        const API_BASE_URL = 'https://estoque0127-production.up.railway.app'; // ALTERE ESTA URL PARA SUA URL PÚBLICA DO RAILWAY
-
-        // Objeto estoque127 com o layout criado
-        const estoque127 = {
-            "dimensions": {
-                "width": 548,
-                "height": 1700
-            },
-            "cabinets": [
-                {
-                    "id": "1",
-                    "type": "grande",
-                    "x": -19,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "2",
-                    "type": "grande",
-                    "x": 100,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "3",
-                    "type": "grande",
-                    "x": 219,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "4",
-                    "type": "pequeno",
-                    "x": 338,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "5",
-                    "type": "pequeno",
-                    "x": 378,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                },
-                {
-                    "id": "6",
-                    "type": "pequeno",
-                    "x": 418,
-                    "y": 629,
-                    "rotation": 270,
-                    "products": {}
-                }
-            ]
-        };
-
-        // Variáveis globais
-        let selectedCabinet = null;
-        let selectedShelf = null;
-        let scannedProducts = [];
-        let isScannerActive = false;
-        let isManualInputMode = false;
-        let cameraStream = null;
-        let isScanButtonPressed = false;
-        let audioContext = null;
-        let beepSound = null;
-        let isButtonDisabled = false;
+        const API_BASE_URL = 'estoque0127-production.up.railway.app'; // ALTERE ESTA URL PARA SUA URL PÚBLICA DO RAILWAY
 
         // Elementos do DOM
-        const cabinetSelect = document.getElementById('cabinetSelect');
-        const shelfSelect = document.getElementById('shelfSelect');
-        const addBtn = document.getElementById('addBtn');
-        const saveBtn = document.getElementById('saveBtn');
-        const backBtn = document.getElementById('backBtn');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContainer = document.getElementById('resultsContainer');
         const cameraModal = document.getElementById('cameraModal');
         const cameraVideo = document.getElementById('cameraVideo');
+        const closeCameraBtn = document.getElementById('closeCameraBtn');
         const cameraFeedback = document.getElementById('cameraFeedback');
-        const scannedProductsContainer = document.getElementById('scannedProducts');
-        const manualInputContainer = document.getElementById('manualInputContainer');
-        const manualBarcodeInput = document.getElementById('manualBarcodeInput');
-        const manualAddBtn = document.getElementById('manualAddBtn');
-        const toggleInputBtn = document.getElementById('toggleInputBtn');
         const qualityIndicator = document.getElementById('qualityIndicator');
-        const scanButton = document.getElementById('scanButton');
         const connectionStatus = document.getElementById('connectionStatus');
+
+        // Variáveis globais
+        let isScannerActive = false;
+        let cameraStream = null;
 
         // Função para testar conexão com o servidor
         async function testConnection() {
@@ -881,178 +605,197 @@
             }
         }
 
-        // Função para buscar produto na API
-        async function findProductByCode(code) {
+        // Função para buscar produto por código
+        async function buscarProduto(codigo) {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/produto/${code}`, {
+                showLoading();
+                
+                const response = await fetch(`${API_BASE_URL}/api/buscar/${codigo}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
+                
+                const data = await response.json();
+                
                 if (response.ok) {
-                    return await response.json();
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'Produto não encontrado');
                 }
-                return null;
             } catch (error) {
                 console.error('Erro ao buscar produto:', error);
-                return null;
+                showError('Erro ao conectar com o servidor. Verifique se a URL da API está correta.');
             }
         }
 
-        // Inicializar o contexto de áudio
-        function initAudio() {
+        // Função para buscar produto por RCT
+        async function buscarProdutoPorRCT(rct) {
             try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                beepSound = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                beepSound.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                beepSound.type = 'sine';
-                beepSound.frequency.value = 800;
-                gainNode.gain.value = 0.1;
-            } catch (e) {
-                console.error("Erro ao inicializar áudio:", e);
-            }
-        }
-
-        // Função para renderizar o estoque estático
-        function renderStaticStock() {
-            const container = document.getElementById('plantContainerStatic');
-            
-            container.style.width = `${estoque127.dimensions.width}px`;
-            container.style.height = `${estoque127.dimensions.height}px`;
-            
-            // Preencher o dropdown de armários
-            cabinetSelect.innerHTML = '<option value="">-- Selecione --</option>';
-            
-            estoque127.cabinets.forEach(cab => {
-                const cabinet = document.createElement('div');
-                cabinet.className = `cabinet-static ${cab.type}`;
-                cabinet.id = cab.id;
-                cabinet.style.left = `${cab.x}px`;
-                cabinet.style.top = `${cab.y}px`;
-                cabinet.style.transform = `rotate(${cab.rotation}deg)`;
-                cabinet.textContent = cab.id;
+                showLoading();
                 
-                cabinet.addEventListener('click', function() {
-                    selectCabinet(cab);
+                const response = await fetch(`${API_BASE_URL}/api/buscar/rct/${rct}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
-                container.appendChild(cabinet);
+                const data = await response.json();
                 
-                // Adicionar ao dropdown
-                const option = document.createElement('option');
-                option.value = cab.id;
-                option.textContent = `Armário ${cab.id} (${cab.type === 'grande' ? 'Grande' : 'Pequeno'})`;
-                cabinetSelect.appendChild(option);
-            });
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'Produto não encontrado');
+                }
+            } catch (error) {
+                console.error('Erro ao buscar produto por RCT:', error);
+                showError('Erro ao conectar com o servidor. Verifique se a URL da API está correta.');
+            }
         }
 
-        // Função para selecionar um armário
-        function selectCabinet(cabinet) {
-            selectedCabinet = cabinet;
-            
-            // Atualizar o dropdown
-            cabinetSelect.value = cabinet.id;
-            
-            // Habilitar seleção de prateleira
-            shelfSelect.disabled = false;
-            
-            // Mostrar detalhes do armário
-            showCabinetDetails(cabinet);
-            
-            // Verificar se pode habilitar o botão de adicionar
-            checkAddButton();
-        }
-
-        // Função para mostrar detalhes do armário
-        function showCabinetDetails(cabinet) {
-            const cabinetInfo = document.getElementById('cabinetDisplayInfo');
-            const cabinetView = document.getElementById('cabinetView');
-            
-            cabinetView.innerHTML = '';
-            cabinetView.className = 'cabinet-view ' + cabinet.type;
-            
-            cabinetInfo.innerHTML = `
-                <p><strong>ID:</strong> ${cabinet.id}</p>
-                <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
-                <p><strong>Produtos:</strong> ${Object.keys(cabinet.products).reduce((acc, shelf) => acc + (cabinet.products[shelf] ? cabinet.products[shelf].length : 0), 0)}</p>
+        // Função para exibir loading
+        function showLoading() {
+            resultsSection.style.display = 'block';
+            resultsContainer.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    Buscando produto...
+                </div>
             `;
+        }
+
+        // Função para exibir erro
+        function showError(message) {
+            resultsSection.style.display = 'block';
+            resultsContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Função para exibir resultados
+        function displayResults(data) {
+            const { produtoTotal, produtosEstoque, quantidadeEstoque } = data;
             
-            // Criar prateleiras com numeração atualizada (10, 9, 8, 7, 6, 5)
-            for (let i = 10; i >= 5; i--) {
-                const shelf = document.createElement('div');
-                shelf.className = `shelf ${cabinet.type} shelf-${i}${cabinet.type === 'pequeno' ? ' pequeno' : ''}`;
-                shelf.innerHTML = `<span class="shelf-label">Prateleira ${i}</span>`;
-                
-                if (cabinet.products && cabinet.products[`shelf-${i}`]) {
-                    cabinet.products[`shelf-${i}`].forEach(product => {
-                        const productElement = document.createElement('div');
-                        productElement.className = 'product-display';
-                        productElement.textContent = product.code;
-                        shelf.appendChild(productElement);
-                    });
-                }
-                
-                cabinetView.appendChild(shelf);
+            if (!produtoTotal) {
+                showError('Produto não encontrado no catálogo');
+                return;
             }
-        }
 
-        // Função para verificar se o botão de adicionar pode ser habilitado
-        function checkAddButton() {
-            addBtn.disabled = !(selectedCabinet && selectedShelf);
-            saveBtn.disabled = scannedProducts.length === 0;
-        }
+            let html = `
+                <div class="product-card fade-in">
+                    <div class="product-header">
+                        <span class="product-code">${produtoTotal.codigo}</span>
+                        <span class="product-rct">${produtoTotal.rct}</span>
+                    </div>
+                    
+                    <div class="product-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Preço Promoção</span>
+                            <span class="detail-value price-promo">R$ ${produtoTotal.precoPromocao.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Preço Tabela</span>
+                            <span class="detail-value price-table">R$ ${produtoTotal.precoTabela.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Saldo Sistema</span>
+                            <span class="detail-value">${produtoTotal.saldo || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Quantidade no Estoque</span>
+                            <span class="detail-value">${quantidadeEstoque}</span>
+                        </div>
+                    </div>
+            `;
 
-        // Função para alternar entre modo câmera e entrada manual
-        function toggleInputMode() {
-            isManualInputMode = !isManualInputMode;
-            
-            if (isManualInputMode) {
-                // Parar o scanner
-                if (isScannerActive) {
-                    Quagga.stop();
-                    isScannerActive = false;
-                }
+            if (produtosEstoque && produtosEstoque.length > 0) {
+                html += `
+                    <div class="stock-info">
+                        <div class="stock-title">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Localizações no Estoque (${quantidadeEstoque} unidades)
+                        </div>
+                        <div class="stock-items">
+                `;
                 
-                // Mostrar entrada manual
-                manualInputContainer.style.display = 'flex';
-                cameraVideo.style.display = 'none';
-                toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
-                
-                // Focar no input
-                manualBarcodeInput.focus();
+                // Agrupar por localização
+                const localizacoes = {};
+                produtosEstoque.forEach(produto => {
+                    const loc = produto.localizacao || 'Sem localização';
+                    if (!localizacoes[loc]) {
+                        localizacoes[loc] = 0;
+                    }
+                    localizacoes[loc]++;
+                });
+
+                Object.entries(localizacoes).forEach(([localizacao, quantidade]) => {
+                    const [armario, prateleira] = localizacao.split('-');
+                    const prateleiraNum = prateleira ? parseInt(prateleira) : null;
+                    const prateleiraTexto = prateleiraNum ? `Prateleira ${prateleiraNum}` : 'Sem prateleira';
+                    
+                    html += `
+                        <div class="stock-item">
+                            <strong>Armário ${armario}</strong><br>
+                            ${prateleiraTexto}<br>
+                            <small>${quantidade} unidade(s)</small>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
             } else {
-                // Esconder entrada manual
-                manualInputContainer.style.display = 'none';
-                cameraVideo.style.display = 'block';
-                toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
-                
-                // Reiniciar o scanner
-                startScanner();
+                html += `
+                    <div class="stock-info">
+                        <div class="stock-title">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Produto não encontrado no estoque físico
+                        </div>
+                        <p style="margin-top: 10px; opacity: 0.9;">
+                            Este produto existe no catálogo mas ainda não foi adicionado ao estoque.
+                        </p>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            
+            resultsSection.style.display = 'block';
+            resultsContainer.innerHTML = html;
+        }
+
+        // Função para determinar se é código ou RCT
+        function isBarcode(input) {
+            // Códigos de barras são geralmente numéricos e têm 12-13 dígitos
+            return /^\d{12,13}$/.test(input);
+        }
+
+        // Função para realizar busca
+        function realizarBusca() {
+            const termo = searchInput.value.trim();
+            
+            if (!termo) {
+                showError('Digite um código de barras ou RCT para buscar');
+                return;
+            }
+
+            if (isBarcode(termo)) {
+                buscarProduto(termo);
+            } else {
+                buscarProdutoPorRCT(termo);
             }
         }
 
-        // Funções para controle do botão de bipagem
-        function handleScanStart(e) {
-            e.preventDefault();
-            if (isButtonDisabled) return;
-            scanButton.classList.add('active');
-        }
-
-        function handleScanEnd(e) {
-            e.preventDefault();
-            if (isButtonDisabled) return;
-            
-            scanButton.classList.remove('active');
-            isScanButtonPressed = true;
-        }
-
-        // Função para iniciar o scanner
+        // Função para iniciar scanner
         async function startScanner() {
             try {
-                // Solicitar permissão de câmera primeiro
                 cameraStream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: 'environment',
@@ -1063,13 +806,6 @@
 
                 cameraVideo.srcObject = cameraStream;
                 await cameraVideo.play();
-
-                // Configurar eventos do botão de bipagem
-                scanButton.addEventListener('mousedown', handleScanStart);
-                scanButton.addEventListener('touchstart', handleScanStart);
-                scanButton.addEventListener('mouseup', handleScanEnd);
-                scanButton.addEventListener('touchend', handleScanEnd);
-                scanButton.addEventListener('mouseleave', handleScanEnd);
 
                 Quagga.init({
                     inputStream: {
@@ -1094,21 +830,7 @@
                     },
                     locator: {
                         halfSample: true,
-                        patchSize: "large",
-                        debug: {
-                            showCanvas: true,
-                            showPatches: true,
-                            showFoundPatches: true,
-                            showSkeleton: true,
-                            showLabels: true,
-                            showPatchLabels: true,
-                            showRemainingPatchLabels: true,
-                            boxFromPatches: {
-                                showTransformed: true,
-                                showTransformedBox: true,
-                                showBB: true
-                            }
-                        }
+                        patchSize: "large"
                     },
                     numOfWorkers: 4,
                     frequency: 10,
@@ -1123,184 +845,38 @@
                     isScannerActive = true;
                 });
 
-                Quagga.onDetected(async function(result) {
-                    // Só processa se o botão foi pressionado e solto
-                    if (!isScanButtonPressed || isButtonDisabled) return;
-                    
+                Quagga.onDetected(function(result) {
                     const code = result.codeResult.code;
                     
-                    // Validação do código - mínimo 12 caracteres, máximo 13
                     if (!code || code.length < 12 || code.length > 13) {
-                        console.log("Código inválido - tamanho incorreto:", code);
-                        updateQualityIndicator(0, "Código inválido (deve ter 12-13 caracteres)");
                         return;
                     }
                     
-                    // Verifica se contém apenas números
                     if (!/^\d+$/.test(code)) {
-                        console.log("Código inválido - contém caracteres não numéricos:", code);
-                        updateQualityIndicator(0, "Código deve conter apenas números");
                         return;
                     }
                     
-                    // Desativar temporariamente o botão
-                    isButtonDisabled = true;
-                    scanButton.classList.add('hidden');
-                    isScanButtonPressed = false;
+                    // Feedback visual
+                    cameraFeedback.style.opacity = '1';
                     
-                    // Adicionar o produto (apenas 1 por vez)
-                    await addScannedProduct(code);
+                    // Buscar produto
+                    searchInput.value = code;
+                    stopScanner();
+                    buscarProduto(code);
                     
-                    // Reativar o botão após 500ms
                     setTimeout(() => {
-                        isButtonDisabled = false;
-                        scanButton.classList.remove('hidden');
-                    }, 500);
+                        cameraFeedback.style.opacity = '0';
+                    }, 1000);
                 });
 
             } catch (err) {
                 console.error("Erro de acesso à câmera:", err);
                 alert("Não foi possível acessar a câmera. Verifique as permissões!");
-                manualInputFallback();
             }
         }
 
-        // Função para atualizar o indicador de qualidade
-        function updateQualityIndicator(count, errorMessage = null) {
-            let qualityText, qualityColor;
-            
-            if (errorMessage) {
-                qualityText = errorMessage;
-                qualityColor = "red";
-            } else if (count === 0) {
-                qualityText = "Aguardando leitura...";
-                qualityColor = "gray";
-            } else {
-                qualityText = "Leitura confirmada!";
-                qualityColor = "green";
-            }
-            
-            qualityIndicator.textContent = `Qualidade: ${qualityText}`;
-            qualityIndicator.style.color = qualityColor;
-        }
-
-        // Função de fallback para entrada manual
-        function manualInputFallback() {
-            isManualInputMode = true;
-            manualInputContainer.style.display = 'flex';
-            cameraVideo.style.display = 'none';
-            toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
-            manualBarcodeInput.focus();
-        }
-
-        // Função para adicionar um produto escaneado/digitado
-        async function addScannedProduct(code) {
-            // Verificação do comprimento do código
-            if (code.length < 12) {
-                alert(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`);
-                return;
-            }
-            
-            // Verificar se o produto existe na API
-            const produtoEncontrado = await findProductByCode(code);
-            if (!produtoEncontrado) {
-                alert(`Produto com código ${code} não encontrado no catálogo.`);
-                return;
-            }
-            
-            // Garantir que o som seja reproduzido
-            playBeepSound();
-            
-            // Feedback visual
-            cameraFeedback.style.opacity = '1';
-            cameraFeedback.classList.add('checkmark-animation');
-            
-            // Adiciona apenas 1 item
-            scannedProducts.push({
-                code: code,
-                timestamp: new Date().toLocaleTimeString()
-            });
-            
-            updateScannedProductsList();
-            checkAddButton();
-            
-            // Resetar feedback
-            setTimeout(() => {
-                cameraFeedback.style.opacity = '0';
-                cameraFeedback.classList.remove('checkmark-animation');
-            }, 1000);
-            
-            // Limpar o input manual se estiver nesse modo
-            if (isManualInputMode) {
-                manualBarcodeInput.value = '';
-            }
-        }
-
-        // Função para reproduzir som de bip
-        function playBeepSound() {
-            try {
-                if (!audioContext) {
-                    initAudio();
-                }
-                
-                if (beepSound) {
-                    beepSound.start();
-                    setTimeout(() => {
-                        beepSound.stop();
-                        // Recriar o oscilador para poder tocar novamente
-                        beepSound = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        beepSound.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        beepSound.type = 'sine';
-                        beepSound.frequency.value = 800;
-                        gainNode.gain.value = 0.1;
-                    }, 200);
-                }
-            } catch (e) {
-                console.error("Erro ao reproduzir som:", e);
-            }
-        }
-
-        // Função para atualizar a lista de produtos escaneados
-        function updateScannedProductsList() {
-            scannedProductsContainer.innerHTML = '<h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>';
-            
-            if (scannedProducts.length === 0) {
-                const emptyMsg = document.createElement('p');
-                emptyMsg.style.color = 'white';
-                emptyMsg.style.textAlign = 'center';
-                emptyMsg.textContent = 'Nenhum produto escaneado ainda. Aponte para um código de barras.';
-                scannedProductsContainer.appendChild(emptyMsg);
-                return;
-            }
-            
-            scannedProducts.forEach((product, index) => {
-                const productElement = document.createElement('div');
-                productElement.className = 'scanned-product';
-                productElement.innerHTML = `
-                    <span>${product.code}</span>
-                    <span>${product.timestamp}</span>
-                    <button class="remove-btn" data-index="${index}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
-                scannedProductsContainer.appendChild(productElement);
-            });
-
-            // Adicionar event listeners para os botões de remoção
-            document.querySelectorAll('.remove-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
-                    scannedProducts.splice(index, 1);
-                    updateScannedProductsList();
-                    checkAddButton();
-                });
-            });
-        }
-
-        // Função para parar o scanner
-        function stopBarcodeScanner() {
+        // Função para parar scanner
+        function stopScanner() {
             if (isScannerActive) {
                 Quagga.stop();
                 isScannerActive = false;
@@ -1312,152 +888,38 @@
             }
             
             cameraModal.style.display = 'none';
-            isManualInputMode = false;
-            manualInputContainer.style.display = 'none';
-            cameraVideo.style.display = 'block';
-            toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
-            
-            // Resetar estados do botão
-            isButtonDisabled = false;
-            isScanButtonPressed = false;
-            scanButton.classList.remove('hidden');
-        }
-
-        // Função para salvar produtos no armário
-        async function saveProductsToCabinet() {
-            if (!selectedCabinet || !selectedShelf || scannedProducts.length === 0) return;
-            
-            try {
-                const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
-                
-                if (cabinet) {
-                    if (!cabinet.products[selectedShelf]) {
-                        cabinet.products[selectedShelf] = [];
-                    }
-                    
-                    // Salvar cada produto na API
-                    for (const product of scannedProducts) {
-                        const shelfNumber = selectedShelf.split('-')[1];
-                        const localizacao = `${cabinet.id}-${shelfNumber}`;
-                        
-                        const response = await fetch(`${API_BASE_URL}/api/adicionar-produto`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                codigo: product.code,
-                                localizacao: localizacao
-                            })
-                        });
-                        
-                        if (response.ok) {
-                            // Adicionar ao armário local
-                            cabinet.products[selectedShelf].push({
-                                code: product.code,
-                                name: `Produto ${product.code.substring(0, 4)}`,
-                                addedAt: new Date().toISOString()
-                            });
-                        } else {
-                            const error = await response.json();
-                            console.error('Erro ao salvar produto:', error);
-                        }
-                    }
-                    
-                    showCabinetDetails(cabinet);
-                    scannedProducts = [];
-                    updateScannedProductsList();
-                    saveBtn.disabled = true;
-                    alert('Produtos adicionados com sucesso!');
-                }
-            } catch (error) {
-                console.error('Erro ao salvar produtos:', error);
-                alert('Erro ao salvar produtos. Tente novamente.');
-            }
         }
 
         // Event Listeners
-        cabinetSelect.addEventListener('change', function() {
-            const cabinetId = this.value;
-            if (!cabinetId) {
-                selectedCabinet = null;
-                shelfSelect.disabled = true;
-                shelfSelect.value = '';
-                checkAddButton();
-                return;
-            }
-            
-            const cabinet = estoque127.cabinets.find(cab => cab.id === cabinetId);
-            if (cabinet) {
-                selectCabinet(cabinet);
-            }
-        });
+        searchBtn.addEventListener('click', realizarBusca);
 
-        shelfSelect.addEventListener('change', function() {
-            selectedShelf = this.value;
-            checkAddButton();
-        });
-
-        addBtn.addEventListener('click', async function() {
-            try {
-                // Verificar se o dispositivo suporta acesso à câmera
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("Navegador não suporta acesso à câmera");
-                }
-                
-                cameraModal.style.display = 'flex';
-                scannedProducts = [];
-                updateScannedProductsList();
-                await startScanner();
-            } catch (err) {
-                console.error("Erro ao iniciar câmera:", err);
-                alert("Erro ao acessar câmera: " + err.message);
-                manualInputFallback();
-            }
-        });
-
-        backBtn.addEventListener('click', stopBarcodeScanner);
-
-        saveBtn.addEventListener('click', saveProductsToCabinet);
-
-        toggleInputBtn.addEventListener('click', toggleInputMode);
-
-        manualAddBtn.addEventListener('click', async function() {
-            const code = manualBarcodeInput.value.trim();
-            if (code) {
-                await addScannedProduct(code);
-            }
-        });
-
-        manualBarcodeInput.addEventListener('keypress', async function(e) {
+        searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                const code = manualBarcodeInput.value.trim();
-                if (code) {
-                    await addScannedProduct(code);
-                }
+                realizarBusca();
             }
         });
 
-        // Fechar o modal ao pressionar Esc
+        cameraBtn.addEventListener('click', function() {
+            cameraModal.style.display = 'flex';
+            startScanner();
+        });
+
+        closeCameraBtn.addEventListener('click', stopScanner);
+
+        // Fechar modal com Esc
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && cameraModal.style.display === 'flex') {
-                stopBarcodeScanner();
+                stopScanner();
             }
         });
 
         // Inicialização
         window.onload = function() {
-            initAudio();
-            renderStaticStock();
+            searchInput.focus();
             testConnection();
             
             // Testar conexão a cada 30 segundos
             setInterval(testConnection, 30000);
-            
-            if (estoque127.cabinets.length > 0) {
-                // Mostrar o primeiro armário por padrão
-                showCabinetDetails(estoque127.cabinets[0]);
-            }
         };
     </script>
 </body>

@@ -286,11 +286,11 @@
         }
 
         .cabinet-view.grande {
-            height: 680px;
+            height: 780px;
         }
 
         .cabinet-view.pequeno {
-            height: 550px;
+            height: 650px;
             width: 100px;
         }
 
@@ -337,19 +337,21 @@
             font-size: 11px;
         }
 
-        .shelf-6 { top: 10px; }
-        .shelf-5 { top: 120px; }
-        .shelf-4 { top: 230px; }
-        .shelf-3 { top: 340px; }
-        .shelf-2 { top: 450px; }
-        .shelf-1 { top: 560px; }
+        .shelf-7 { top: 10px; }
+        .shelf-6 { top: 120px; }
+        .shelf-5 { top: 230px; }
+        .shelf-4 { top: 340px; }
+        .shelf-3 { top: 450px; }
+        .shelf-2 { top: 560px; }
+        .shelf-1 { top: 670px; }
 
-        .shelf-6.pequeno { top: 10px; }
-        .shelf-5.pequeno { top: 100px; }
-        .shelf-4.pequeno { top: 190px; }
-        .shelf-3.pequeno { top: 280px; }
-        .shelf-2.pequeno { top: 370px; }
-        .shelf-1.pequeno { top: 460px; }
+        .shelf-7.pequeno { top: 10px; }
+        .shelf-6.pequeno { top: 100px; }
+        .shelf-5.pequeno { top: 190px; }
+        .shelf-4.pequeno { top: 280px; }
+        .shelf-3.pequeno { top: 370px; }
+        .shelf-2.pequeno { top: 460px; }
+        .shelf-1.pequeno { top: 550px; }
 
         @media (max-width: 1450px) {
             .content-wrapper {
@@ -768,7 +770,7 @@
                 <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
             `;
             
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 7; i >= 1; i--) {
                 const shelf = document.createElement('div');
                 shelf.className = `shelf ${cabinet.type} shelf-${i}${cabinet.type === 'pequeno' ? ' pequeno' : ''}`;
                 shelf.innerHTML = `<span class="shelf-label">Prateleira ${i}</span>`;

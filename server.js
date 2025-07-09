@@ -215,6 +215,51 @@ app.post('/api/adicionar-produto', async (req, res) => {
     }
 });
 
+// Rota para substituir todos os produtos de uma prateleira
+app.post('/api/substituir-produtos-prateleira', async (req, res) => {
+    try {
+        const { produtos, localizacao } = req.body;
+        
+        if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
+            return res.status(400).json({ error: 'Lista de produtos é obrigatória' });
+        }
+        
+        if (!localizacao) {
+            return res.status(400).json({ error: 'Localização é obrigatória' });
+        }
+        
+        // Primeiro, remover todos os produtos da localização especificada
+        await db.collection('tabelaProdutos').deleteMany({ localizacao });
+        
+        // Verificar se todos os produtos existem na tabela total
+        const produtosParaAdicionar = [];
+        for (const codigo of produtos) {
+            const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
+            if (!produtoTotal) {
+                return res.status(404).json({ error: `Produto com código ${codigo} não encontrado na tabela total` });
+            }
+            
+            produtosParaAdicionar.push({
+                ...produtoTotal,
+                localizacao,
+                dataAdicao: new Date()
+            });
+        }
+        
+        // Inserir todos os novos produtos
+        const resultado = await db.collection('tabelaProdutos').insertMany(produtosParaAdicionar);
+        
+        res.json({ 
+            success: true, 
+            produtosAdicionados: resultado.insertedCount,
+            produtos: produtosParaAdicionar 
+        });
+    } catch (error) {
+        console.error('Erro ao substituir produtos da prateleira:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
 // Rota para buscar produtos por localização
 app.get('/api/produtos/localizacao/:localizacao', async (req, res) => {
     try {

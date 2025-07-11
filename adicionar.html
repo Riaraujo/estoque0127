@@ -1405,78 +1405,77 @@
 
         // Função para salvar produtos no armário - REFATORADA COMPLETAMENTE
         async function saveProductsToCabinet() {
-            if (!selectedCabinet || !selectedShelf || scannedProducts.length === 0) {
-                showNotification('Selecione um armário, prateleira e escaneie pelo menos um produto', 'error');
-                return;
-            }
-            
-            try {
-                const shelfNumber = selectedShelf.split('-')[1];
-                const localizacao = `${selectedCabinet.id}-${shelfNumber}`;
-                const codigosProdutos = scannedProducts.map(product => product.code);
-                
-                console.log('Salvando produtos:', {
-                    produtos: codigosProdutos,
-                    localizacao: localizacao,
-                    quantidade: codigosProdutos.length
-                });
-                
-                // Mostrar loading
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
-                
-                const response = await fetch(`${API_BASE_URL}/api/substituir-produtos-prateleira`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        produtos: codigosProdutos,
-                        localizacao: localizacao
-                    })
-                });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Erro ao salvar produtos');
-                }
-                
-                const result = await response.json();
-                console.log('Resposta do servidor:', result);
-                
-                // Atualizar interface
-                const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
-                if (cabinet) {
-                    if (!cabinet.products) cabinet.products = {};
-                    if (!cabinet.products[selectedShelf]) cabinet.products[selectedShelf] = [];
-                    cabinet.products[selectedShelf] = scannedProducts.map(product => ({
-                        code: product.code,
-                        name: `Produto ${product.code.substring(0, 4)}`,
-                        addedAt: new Date().toISOString()
-                    }));
-                    
-                    showCabinetDetails(cabinet);
-                }
-                
-                // Limpar a lista de produtos escaneados após salvar com sucesso
-                scannedProducts = [];
-                updateScannedProductsList();
-                updateButtonStates();
-                
-                // Fechar o modal da câmera
-                stopBarcodeScanner();
-                
-                showNotification(result.message || `${result.produtosAdicionados} produtos salvos com sucesso na localização ${localizacao}!`, 'success');
-                
-            } catch (error) {
-                console.error('Erro ao salvar produtos:', error);
-                showNotification('Erro ao salvar produtos: ' + error.message, 'error');
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar (<span id="productCount">0</span>)';
-                updateButtonStates();
-            }
+    if (!selectedCabinet || !selectedShelf) {
+        showNotification('Selecione um armário e uma prateleira', 'error');
+        return;
+    }
+    
+    try {
+        const shelfNumber = selectedShelf.split('-')[1];
+        const localizacao = `${selectedCabinet.id}-${shelfNumber}`;
+        const codigosProdutos = scannedProducts.map(product => product.code);
+        
+        console.log('Salvando produtos:', {
+            produtos: codigosProdutos,
+            localizacao: localizacao,
+            quantidade: codigosProdutos.length
+        });
+        
+        // Mostrar loading
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        
+        const response = await fetch(`${API_BASE_URL}/api/substituir-produtos-prateleira`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                produtos: codigosProdutos,
+                localizacao: localizacao
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Erro ao salvar produtos');
         }
+        
+        const result = await response.json();
+        console.log('Resposta do servidor:', result);
+        
+        // Atualizar interface
+        const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
+        if (cabinet) {
+            if (!cabinet.products) cabinet.products = {};
+            cabinet.products[selectedShelf] = scannedProducts.map(product => ({
+                code: product.code,
+                name: `Produto ${product.code.substring(0, 4)}`,
+                addedAt: new Date().toISOString()
+            }));
+            
+            showCabinetDetails(cabinet);
+        }
+        
+        // Limpar a lista de produtos escaneados após salvar com sucesso
+        scannedProducts = [];
+        updateScannedProductsList();
+        updateButtonStates();
+        
+        // Fechar o modal da câmera
+        stopBarcodeScanner();
+        
+        showNotification(result.message || `${result.produtosAdicionados} produtos salvos com sucesso na localização ${localizacao}!`, 'success');
+        
+    } catch (error) {
+        console.error('Erro ao salvar produtos:', error);
+        showNotification('Erro ao salvar produtos: ' + error.message, 'error');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar (<span id="productCount">0</span>)';
+        updateButtonStates();
+    }
+}
 
         // ===== EVENT LISTENERS =====
 

@@ -137,6 +137,23 @@ app.use((req, res, next) => {
     next();
 });
 
+// Middleware para verificar conexão com o banco
+async function checkDatabaseConnection(req, res, next) {
+    try {
+        if (!db) {
+            console.error('Conexão com o banco de dados não estabelecida');
+            return res.status(500).json({ error: 'Erro de conexão com o banco de dados' });
+        }
+        
+        // Testar a conexão fazendo um ping
+        await db.admin().ping();
+        next();
+    } catch (error) {
+        console.error('Erro de conexão com o banco:', error);
+        return res.status(500).json({ error: 'Erro de conexão com o banco de dados' });
+    }
+}
+
 // Rotas da API
 
 // Rota de teste para verificar se o servidor está funcionando
@@ -149,14 +166,18 @@ app.get('/api/health', (req, res) => {
 });
 
 // Rota para buscar produto por código na tabela total
-app.get('/api/produto/:codigo', async (req, res) => {
+app.get('/api/produto/:codigo', checkDatabaseConnection, async (req, res) => {
     try {
         const { codigo } = req.params;
+        console.log(`Buscando produto com código: ${codigo}`);
+        
         const produto = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
         
         if (produto) {
+            console.log(`Produto encontrado: ${produto.rct}`);
             res.json(produto);
         } else {
+            console.log(`Produto não encontrado: ${codigo}`);
             res.status(404).json({ error: 'Produto não encontrado' });
         }
     } catch (error) {
@@ -166,14 +187,18 @@ app.get('/api/produto/:codigo', async (req, res) => {
 });
 
 // Rota para buscar produto por RCT na tabela total
-app.get('/api/produto/rct/:rct', async (req, res) => {
+app.get('/api/produto/rct/:rct', checkDatabaseConnection, async (req, res) => {
     try {
         const { rct } = req.params;
+        console.log(`Buscando produto com RCT: ${rct}`);
+        
         const produto = await db.collection('tabelaTotalDeProdutos').findOne({ rct });
         
         if (produto) {
+            console.log(`Produto encontrado por RCT: ${produto.codigo}`);
             res.json(produto);
         } else {
+            console.log(`Produto não encontrado por RCT: ${rct}`);
             res.status(404).json({ error: 'Produto não encontrado' });
         }
     } catch (error) {
@@ -182,89 +207,175 @@ app.get('/api/produto/rct/:rct', async (req, res) => {
     }
 });
 
-// Rota para adicionar produto à tabelaProdutos
-app.post('/api/adicionar-produto', async (req, res) => {
+// Rota para adicionar produto à tabelaProdutos - CORRIGIDA
+app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => {
     try {
         const { codigo, localizacao } = req.body;
+        console.log(`Adicionando produto: ${codigo} na localização: ${localizacao}`);
+        
+        // Validações de entrada
+        if (!codigo || typeof codigo !== 'string' || codigo.trim() === '') {
+            return res.status(400).json({ error: 'Código do produto é obrigatório e deve ser uma string válida' });
+        }
+        
+        if (!localizacao || typeof localizacao !== 'string' || localizacao.trim() === '') {
+            return res.status(400).json({ error: 'Localização é obrigatória e deve ser uma string válida' });
+        }
         
         // Buscar produto na tabela total
-        const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
+        const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo: codigo.trim() });
         
         if (!produtoTotal) {
+            console.log(`Produto não encontrado na tabela total: ${codigo}`);
             return res.status(404).json({ error: 'Produto não encontrado na tabela total' });
         }
         
         // Criar novo produto para a tabela de produtos
         const novoProduto = {
             ...produtoTotal,
-            localizacao,
+            localizacao: localizacao.trim(),
             dataAdicao: new Date()
         };
         
         // Inserir na tabelaProdutos
         const resultado = await db.collection('tabelaProdutos').insertOne(novoProduto);
+        console.log(`Produto adicionado com sucesso: ${resultado.insertedId}`);
         
         res.json({ 
             success: true, 
             id: resultado.insertedId,
-            produto: novoProduto 
+            produto: novoProduto,
+            message: 'Produto adicionado com sucesso'
         });
     } catch (error) {
         console.error('Erro ao adicionar produto:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        res.status(500).json({ error: 'Erro interno do servidor: ' + error.message });
     }
 });
 
-// Rota para substituir todos os produtos de uma prateleira
-app.post('/api/substituir-produtos-prateleira', async (req, res) => {
+// Rota para substituir todos os produtos de uma prateleira - CORRIGIDA PARA PRATELEIRAS VAZIAS
+app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (req, res) => {
     try {
+        console.log('=== INÍCIO DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
+        console.log('Body recebido:', JSON.stringify(req.body, null, 2));
+        
         const { produtos, localizacao } = req.body;
         
-        if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
-            return res.status(400).json({ error: 'Lista de produtos é obrigatória' });
+        // Validações mais detalhadas
+        if (!produtos) {
+            console.error('Campo "produtos" não fornecido');
+            return res.status(400).json({ error: 'Campo "produtos" é obrigatório' });
+        }
+        
+        if (!Array.isArray(produtos)) {
+            console.error('Campo "produtos" não é um array:', typeof produtos);
+            return res.status(400).json({ error: 'Campo "produtos" deve ser um array' });
+        }
+        
+        if (produtos.length === 0) {
+            console.error('Array de produtos está vazio');
+            return res.status(400).json({ error: 'Lista de produtos não pode estar vazia' });
         }
         
         if (!localizacao) {
-            return res.status(400).json({ error: 'Localização é obrigatória' });
+            console.error('Campo "localizacao" não fornecido');
+            return res.status(400).json({ error: 'Campo "localizacao" é obrigatório' });
         }
         
-        // Primeiro, remover todos os produtos da localização especificada
-        await db.collection('tabelaProdutos').deleteMany({ localizacao });
+        if (typeof localizacao !== 'string' || localizacao.trim() === '') {
+            console.error('Campo "localizacao" inválido:', localizacao);
+            return res.status(400).json({ error: 'Campo "localizacao" deve ser uma string não vazia' });
+        }
         
-        // Verificar se todos os produtos existem na tabela total
+        console.log(`Processando ${produtos.length} produtos para localização: ${localizacao}`);
+        
+        // Primeiro, remover todos os produtos da localização especificada
+        // CORREÇÃO: Não falhar se não houver produtos para remover (prateleira vazia)
+        console.log(`Removendo produtos existentes da localização: ${localizacao}`);
+        const deleteResult = await db.collection('tabelaProdutos').deleteMany({ localizacao: localizacao.trim() });
+        console.log(`Produtos removidos: ${deleteResult.deletedCount}`);
+        
+        // Verificar se todos os produtos existem na tabela total e preparar para inserção
         const produtosParaAdicionar = [];
-        for (const codigo of produtos) {
-            const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
-            if (!produtoTotal) {
-                return res.status(404).json({ error: `Produto com código ${codigo} não encontrado na tabela total` });
+        const produtosNaoEncontrados = [];
+        
+        for (let i = 0; i < produtos.length; i++) {
+            const codigo = produtos[i];
+            console.log(`Verificando produto ${i + 1}/${produtos.length}: ${codigo}`);
+            
+            if (!codigo || typeof codigo !== 'string' || codigo.trim() === '') {
+                console.error(`Código inválido no índice ${i}:`, codigo);
+                return res.status(400).json({ error: `Código inválido no índice ${i}: deve ser uma string não vazia` });
             }
             
-            produtosParaAdicionar.push({
-                ...produtoTotal,
-                localizacao,
-                dataAdicao: new Date()
+            const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo: codigo.trim() });
+            
+            if (!produtoTotal) {
+                console.log(`Produto não encontrado na tabela total: ${codigo}`);
+                produtosNaoEncontrados.push(codigo);
+            } else {
+                console.log(`Produto encontrado: ${codigo} - ${produtoTotal.rct}`);
+                produtosParaAdicionar.push({
+                    ...produtoTotal,
+                    localizacao: localizacao.trim(),
+                    dataAdicao: new Date()
+                });
+            }
+        }
+        
+        // Se algum produto não foi encontrado, retornar erro
+        if (produtosNaoEncontrados.length > 0) {
+            console.error(`Produtos não encontrados: ${produtosNaoEncontrados.join(', ')}`);
+            return res.status(404).json({ 
+                error: `Produtos não encontrados na tabela total: ${produtosNaoEncontrados.join(', ')}` 
             });
         }
         
         // Inserir todos os novos produtos
+        console.log(`Inserindo ${produtosParaAdicionar.length} produtos na tabelaProdutos`);
         const resultado = await db.collection('tabelaProdutos').insertMany(produtosParaAdicionar);
+        console.log(`Produtos inseridos com sucesso: ${resultado.insertedCount}`);
         
-        res.json({ 
+        const response = { 
             success: true, 
             produtosAdicionados: resultado.insertedCount,
-            produtos: produtosParaAdicionar 
-        });
+            produtosRemovidos: deleteResult.deletedCount,
+            localizacao: localizacao.trim(),
+            message: `${resultado.insertedCount} produtos adicionados com sucesso na localização ${localizacao.trim()}`,
+            produtos: produtosParaAdicionar.map(p => ({
+                codigo: p.codigo,
+                rct: p.rct,
+                dataAdicao: p.dataAdicao
+            }))
+        };
+        
+        console.log('Resposta de sucesso:', JSON.stringify(response, null, 2));
+        console.log('=== FIM DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
+        
+        res.json(response);
+        
     } catch (error) {
-        console.error('Erro ao substituir produtos da prateleira:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        console.error('=== ERRO NA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
+        console.error('Erro completo:', error);
+        console.error('Stack trace:', error.stack);
+        console.error('=== FIM DO ERRO ===');
+        
+        res.status(500).json({ 
+            error: 'Erro interno do servidor',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 
 // Rota para buscar produtos por localização
-app.get('/api/produtos/localizacao/:localizacao', async (req, res) => {
+app.get('/api/produtos/localizacao/:localizacao', checkDatabaseConnection, async (req, res) => {
     try {
         const { localizacao } = req.params;
+        console.log(`Buscando produtos na localização: ${localizacao}`);
+        
         const produtos = await db.collection('tabelaProdutos').find({ localizacao }).toArray();
+        console.log(`Encontrados ${produtos.length} produtos na localização ${localizacao}`);
+        
         res.json(produtos);
     } catch (error) {
         console.error('Erro ao buscar produtos por localização:', error);
@@ -273,9 +384,11 @@ app.get('/api/produtos/localizacao/:localizacao', async (req, res) => {
 });
 
 // Rota para buscar todos os produtos da tabelaProdutos
-app.get('/api/produtos', async (req, res) => {
+app.get('/api/produtos', checkDatabaseConnection, async (req, res) => {
     try {
+        console.log('Buscando todos os produtos da tabelaProdutos');
         const produtos = await db.collection('tabelaProdutos').find({}).toArray();
+        console.log(`Encontrados ${produtos.length} produtos na tabelaProdutos`);
         res.json(produtos);
     } catch (error) {
         console.error('Erro ao buscar produtos:', error);
@@ -284,9 +397,11 @@ app.get('/api/produtos', async (req, res) => {
 });
 
 // Rota para buscar todos os produtos da tabelaTotalDeProdutos
-app.get('/api/produtos-total', async (req, res) => {
+app.get('/api/produtos-total', checkDatabaseConnection, async (req, res) => {
     try {
+        console.log('Buscando todos os produtos da tabelaTotalDeProdutos');
         const produtos = await db.collection('tabelaTotalDeProdutos').find({}).toArray();
+        console.log(`Encontrados ${produtos.length} produtos na tabelaTotalDeProdutos`);
         res.json(produtos);
     } catch (error) {
         console.error('Erro ao buscar produtos totais:', error);
@@ -295,16 +410,24 @@ app.get('/api/produtos-total', async (req, res) => {
 });
 
 // Rota para remover produto da tabelaProdutos
-app.delete('/api/produto/:id', async (req, res) => {
+app.delete('/api/produto/:id', checkDatabaseConnection, async (req, res) => {
     try {
         const { id } = req.params;
         const { ObjectId } = require('mongodb');
         
+        console.log(`Removendo produto com ID: ${id}`);
+        
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'ID inválido' });
+        }
+        
         const resultado = await db.collection('tabelaProdutos').deleteOne({ _id: new ObjectId(id) });
         
         if (resultado.deletedCount === 1) {
+            console.log(`Produto removido com sucesso: ${id}`);
             res.json({ success: true, message: 'Produto removido com sucesso' });
         } else {
+            console.log(`Produto não encontrado para remoção: ${id}`);
             res.status(404).json({ error: 'Produto não encontrado' });
         }
     } catch (error) {
@@ -314,11 +437,17 @@ app.delete('/api/produto/:id', async (req, res) => {
 });
 
 // Rota para atualizar localização de um produto
-app.put('/api/produto/:id/localizacao', async (req, res) => {
+app.put('/api/produto/:id/localizacao', checkDatabaseConnection, async (req, res) => {
     try {
         const { id } = req.params;
         const { localizacao } = req.body;
         const { ObjectId } = require('mongodb');
+        
+        console.log(`Atualizando localização do produto ${id} para: ${localizacao}`);
+        
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).json({ error: 'ID inválido' });
+        }
         
         const resultado = await db.collection('tabelaProdutos').updateOne(
             { _id: new ObjectId(id) },
@@ -326,8 +455,10 @@ app.put('/api/produto/:id/localizacao', async (req, res) => {
         );
         
         if (resultado.matchedCount === 1) {
+            console.log(`Localização atualizada com sucesso para produto: ${id}`);
             res.json({ success: true, message: 'Localização atualizada com sucesso' });
         } else {
+            console.log(`Produto não encontrado para atualização: ${id}`);
             res.status(404).json({ error: 'Produto não encontrado' });
         }
     } catch (error) {
@@ -337,15 +468,19 @@ app.put('/api/produto/:id/localizacao', async (req, res) => {
 });
 
 // Rota para buscar produtos por código de barras (múltiplos resultados)
-app.get('/api/buscar/:codigo', async (req, res) => {
+app.get('/api/buscar/:codigo', checkDatabaseConnection, async (req, res) => {
     try {
         const { codigo } = req.params;
+        console.log(`Buscando produto completo com código: ${codigo}`);
         
         // Buscar na tabela de produtos (produtos já adicionados ao estoque)
         const produtosEstoque = await db.collection('tabelaProdutos').find({ codigo }).toArray();
         
         // Buscar na tabela total (informações do produto)
         const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
+        
+        console.log(`Produto total encontrado: ${produtoTotal ? 'Sim' : 'Não'}`);
+        console.log(`Produtos no estoque: ${produtosEstoque.length}`);
         
         res.json({
             produtoTotal,
@@ -359,19 +494,24 @@ app.get('/api/buscar/:codigo', async (req, res) => {
 });
 
 // Rota para buscar produtos por RCT (múltiplos resultados)
-app.get('/api/buscar/rct/:rct', async (req, res) => {
+app.get('/api/buscar/rct/:rct', checkDatabaseConnection, async (req, res) => {
     try {
         const { rct } = req.params;
+        console.log(`Buscando produto completo com RCT: ${rct}`);
         
         // Buscar na tabela total primeiro
         const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ rct });
         
         if (!produtoTotal) {
+            console.log(`Produto não encontrado por RCT: ${rct}`);
             return res.status(404).json({ error: 'Produto não encontrado' });
         }
         
         // Buscar na tabela de produtos usando o código
         const produtosEstoque = await db.collection('tabelaProdutos').find({ codigo: produtoTotal.codigo }).toArray();
+        
+        console.log(`Produto encontrado por RCT: ${produtoTotal.codigo}`);
+        console.log(`Produtos no estoque: ${produtosEstoque.length}`);
         
         res.json({
             produtoTotal,
@@ -402,7 +542,10 @@ app.get('/:filename', (req, res) => {
 // Middleware de tratamento de erros
 app.use((error, req, res, next) => {
     console.error('Erro não tratado:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    res.status(500).json({ 
+        error: 'Erro interno do servidor',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
 });
 
 // Iniciar servidor
@@ -434,3 +577,4 @@ process.on('SIGTERM', async () => {
 });
 
 startServer().catch(console.error);
+

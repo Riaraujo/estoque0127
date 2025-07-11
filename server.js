@@ -268,18 +268,21 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         }
         
         if (!Array.isArray(produtos)) {
-            console.error('Campo "produtos" não é um array:', typeof produtos);
-            return res.status(400).json({ error: 'Campo "produtos" deve ser um array' });
+            console.error("Campo \"produtos\" não é um array:", typeof produtos);
+            return res.status(400).json({ error: "Campo \"produtos\" deve ser um array" });
         }
         
+        // Se a lista de produtos a adicionar estiver vazia, significa que a intenção é esvaziar a prateleira.
+        // Já removemos os produtos acima, então podemos retornar sucesso.
         if (produtos.length === 0) {
-            console.error('Array de produtos está vazio');
-            return res.status(400).json({ error: 'Lista de produtos não pode estar vazia' });
-        }
-        
-        if (!localizacao) {
-            console.error('Campo "localizacao" não fornecido');
-            return res.status(400).json({ error: 'Campo "localizacao" é obrigatório' });
+            console.log(`Nenhum produto para adicionar. Prateleira ${localizacao} esvaziada.`);
+            return res.json({
+                success: true,
+                produtosAdicionados: 0,
+                produtosRemovidos: deleteResult.deletedCount,
+                localizacao: localizacao.trim(),
+                message: `Prateleira ${localizacao.trim()} esvaziada com sucesso.`
+            });
         }
         
         if (typeof localizacao !== 'string' || localizacao.trim() === '') {
@@ -290,11 +293,23 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         console.log(`Processando ${produtos.length} produtos para localização: ${localizacao}`);
         
         // Primeiro, remover todos os produtos da localização especificada
-        // CORREÇÃO: Não falhar se não houver produtos para remover (prateleira vazia)
         console.log(`Removendo produtos existentes da localização: ${localizacao}`);
-        const deleteResult = await db.collection('tabelaProdutos').deleteMany({ localizacao: localizacao.trim() });
+        const deleteResult = await db.collection("tabelaProdutos").deleteMany({ localizacao: localizacao.trim() });
         console.log(`Produtos removidos: ${deleteResult.deletedCount}`);
         
+        // Se a lista de produtos a adicionar estiver vazia, significa que a intenção é esvaziar a prateleira.
+        // Já removemos os produtos acima, então podemos retornar sucesso.
+        if (produtos.length === 0) {
+            console.log(`Nenhum produto para adicionar. Prateleira ${localizacao} esvaziada.`);
+            return res.json({
+                success: true,
+                produtosAdicionados: 0,
+                produtosRemovidos: deleteResult.deletedCount,
+                localizacao: localizacao.trim(),
+                message: `Prateleira ${localizacao.trim()} esvaziada com sucesso.`
+            });
+        }
+
         // Verificar se todos os produtos existem na tabela total e preparar para inserção
         const produtosParaAdicionar = [];
         const produtosNaoEncontrados = [];
@@ -577,4 +592,5 @@ process.on('SIGTERM', async () => {
 });
 
 startServer().catch(console.error);
+
 

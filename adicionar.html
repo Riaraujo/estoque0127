@@ -1196,7 +1196,7 @@
             manualBarcodeInput.focus();
         }
 
-        // Função para adicionar um produto escaneado/digitado
+        // Função para adicionar um produto escaneado/digitado - CORRIGIDA PARA MÚLTIPLOS PRODUTOS
         async function addScannedProduct(code) {
             // Verificação do comprimento do código
             if (code.length < 12) {
@@ -1218,7 +1218,7 @@
             cameraFeedback.style.opacity = '1';
             cameraFeedback.classList.add('checkmark-animation');
             
-            // Adiciona apenas 1 item
+            // CORREÇÃO: Adiciona o produto à lista sem sobrescrever os anteriores
             scannedProducts.push({
                 code: code,
                 timestamp: new Date().toLocaleTimeString()
@@ -1326,59 +1326,77 @@
             scanButton.classList.remove('hidden');
         }
 
-        // Função para salvar produtos no armário
+        // Função para salvar produtos no armário - CORRIGIDA
         async function saveProductsToCabinet() {
-            if (!selectedCabinet || !selectedShelf || scannedProducts.length === 0) return;
+            if (!selectedCabinet || !selectedShelf || scannedProducts.length === 0) {
+                alert('Selecione um armário, prateleira e escaneie pelo menos um produto');
+                return;
+            }
             
             try {
-                const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
+                const shelfNumber = selectedShelf.split('-')[1];
+                const localizacao = `${selectedCabinet.id}-${shelfNumber}`;
+                const codigosProdutos = scannedProducts.map(product => product.code);
                 
-                if (cabinet) {
-                    // Preparar dados para a nova API
-                    const shelfNumber = selectedShelf.split('-')[1];
-                    const localizacao = `${cabinet.id}-${shelfNumber}`;
-                    const codigosProdutos = scannedProducts.map(product => product.code);
-                    
-                    // Usar a nova API para substituir produtos da prateleira
-                    const response = await fetch(`${API_BASE_URL}/api/substituir-produtos-prateleira`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            produtos: codigosProdutos,
-                            localizacao: localizacao
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const result = await response.json();
-                        
-                        // Atualizar armário local - limpar prateleira e adicionar novos produtos
-                        cabinet.products[selectedShelf] = [];
-                        
-                        scannedProducts.forEach(product => {
-                            cabinet.products[selectedShelf].push({
-                                code: product.code,
-                                name: `Produto ${product.code.substring(0, 4)}`,
-                                addedAt: new Date().toISOString()
-                            });
-                        });
-                        
-                        showCabinetDetails(cabinet);
-                        scannedProducts = [];
-                        updateScannedProductsList();
-                        saveBtn.disabled = true;
-                        alert(`${result.produtosAdicionados} produtos adicionados com sucesso! Todos os produtos anteriores da prateleira foram substituídos.`);
-                    } else {
-                        const error = await response.json();
-                        console.error('Erro ao salvar produtos:', error);
-                        alert('Erro ao salvar produtos: ' + error.error);
-                    }
+                console.log('Salvando produtos:', {
+                    produtos: codigosProdutos,
+                    localizacao: localizacao,
+                    quantidade: codigosProdutos.length
+                });
+                
+                // Mostrar loading
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+                
+                const response = await fetch(`${API_BASE_URL}/api/substituir-produtos-prateleira`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        produtos: codigosProdutos,
+                        localizacao: localizacao
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Erro ao salvar produtos');
                 }
+                
+                const result = await response.json();
+                console.log('Resposta do servidor:', result);
+                
+                // Atualizar interface
+                const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
+                if (cabinet) {
+                    if (!cabinet.products) cabinet.products = {};
+                    cabinet.products[selectedShelf] = scannedProducts.map(product => ({
+                        code: product.code,
+                        name: `Produto ${product.code.substring(0, 4)}`,
+                        addedAt: new Date().toISOString()
+                    }));
+                    
+                    showCabinetDetails(cabinet);
+                    
+                    // Limpar a lista de produtos escaneados após salvar com sucesso
+                    scannedProducts = [];
+                    updateScannedProductsList();
+                    checkAddButton();
+                    
+                    // Fechar o modal da câmera
+                    stopBarcodeScanner();
+                    
+                    alert(result.message || `${result.produtosAdicionados} produtos salvos com sucesso na localização ${localizacao}!`);
+                }
+                
             } catch (error) {
                 console.error('Erro ao salvar produtos:', error);
-                alert('Erro ao salvar produtos. Tente novamente.');
+                alert('Erro ao salvar produtos: ' + error.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar';
+                checkAddButton();
             }
         }
 
@@ -1468,3 +1486,4 @@
     </script>
 </body>
 </html>
+

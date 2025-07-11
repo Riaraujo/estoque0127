@@ -207,14 +207,23 @@ app.get('/api/produto/rct/:rct', checkDatabaseConnection, async (req, res) => {
     }
 });
 
-// Rota para adicionar produto à tabelaProdutos
+// Rota para adicionar produto à tabelaProdutos - CORRIGIDA
 app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => {
     try {
         const { codigo, localizacao } = req.body;
         console.log(`Adicionando produto: ${codigo} na localização: ${localizacao}`);
         
+        // Validações de entrada
+        if (!codigo || typeof codigo !== 'string' || codigo.trim() === '') {
+            return res.status(400).json({ error: 'Código do produto é obrigatório e deve ser uma string válida' });
+        }
+        
+        if (!localizacao || typeof localizacao !== 'string' || localizacao.trim() === '') {
+            return res.status(400).json({ error: 'Localização é obrigatória e deve ser uma string válida' });
+        }
+        
         // Buscar produto na tabela total
-        const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
+        const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo: codigo.trim() });
         
         if (!produtoTotal) {
             console.log(`Produto não encontrado na tabela total: ${codigo}`);
@@ -224,7 +233,7 @@ app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => 
         // Criar novo produto para a tabela de produtos
         const novoProduto = {
             ...produtoTotal,
-            localizacao,
+            localizacao: localizacao.trim(),
             dataAdicao: new Date()
         };
         
@@ -235,15 +244,16 @@ app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => 
         res.json({ 
             success: true, 
             id: resultado.insertedId,
-            produto: novoProduto 
+            produto: novoProduto,
+            message: 'Produto adicionado com sucesso'
         });
     } catch (error) {
         console.error('Erro ao adicionar produto:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+        res.status(500).json({ error: 'Erro interno do servidor: ' + error.message });
     }
 });
 
-// Rota para substituir todos os produtos de uma prateleira - CORRIGIDA
+// Rota para substituir todos os produtos de uma prateleira - CORRIGIDA PARA PRATELEIRAS VAZIAS
 app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (req, res) => {
     try {
         console.log('=== INÍCIO DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
@@ -364,7 +374,6 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         });
     }
 });
-
 
 // Rota para buscar produtos por localização
 app.get('/api/produtos/localizacao/:localizacao', checkDatabaseConnection, async (req, res) => {

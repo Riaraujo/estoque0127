@@ -246,123 +246,54 @@ app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => 
 // Rota para substituir todos os produtos de uma prateleira - CORRIGIDA
 app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (req, res) => {
     try {
-        console.log('=== INÍCIO DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
-        console.log('Body recebido:', JSON.stringify(req.body, null, 2));
-        
+        console.log("[DEBUG] Body recebido:", req.body); // Verifique se o body está correto
+
         const { produtos, localizacao } = req.body;
         
-        // Validações mais detalhadas
-        if (!produtos) {
-            console.error('Campo "produtos" não fornecido');
-            return res.status(400).json({ error: 'Campo "produtos" é obrigatório' });
+        if (!produtos || !Array.isArray(produtos)) {
+            return res.status(400).json({ error: "Formato de produtos inválido." });
         }
-        
-        if (!Array.isArray(produtos)) {
-            console.error('Campo "produtos" não é um array:', typeof produtos);
-            return res.status(400).json({ error: 'Campo "produtos" deve ser um array' });
-        }
-        
-        if (produtos.length === 0) {
-            console.error('Array de produtos está vazio');
-            return res.status(400).json({ error: 'Lista de produtos não pode estar vazia' });
-        }
-        
-        if (!localizacao) {
-            console.error('Campo "localizacao" não fornecido');
-            return res.status(400).json({ error: 'Campo "localizacao" é obrigatório' });
-        }
-        
-        if (typeof localizacao !== 'string' || localizacao.trim() === '') {
-            console.error('Campo "localizacao" inválido:', localizacao);
-            return res.status(400).json({ error: 'Campo "localizacao" deve ser uma string não vazia' });
-        }
-        
-        console.log(`Processando ${produtos.length} produtos para localização: ${localizacao}`);
-        
-        // Verificar se já existem produtos nessa localização
+
+        console.log(`[DEBUG] Processando prateleira: ${localizacao} | Produtos: ${produtos.join(", ")}`);
+
+        // Verifica se a prateleira já tem produtos
         const produtosExistentes = await db.collection('tabelaProdutos').find({ localizacao }).toArray();
-        let produtosRemovidos = 0;
+        console.log(`[DEBUG] Produtos existentes na prateleira ${localizacao}: ${produtosExistentes.length}`);
 
         if (produtosExistentes.length > 0) {
-            console.log(`Localização ${localizacao} já possui ${produtosExistentes.length} produto(s). Removendo...`);
-            const deleteResult = await db.collection('tabelaProdutos').deleteMany({ localizacao });
-            produtosRemovidos = deleteResult.deletedCount;
-            console.log(`Produtos removidos: ${produtosRemovidos}`);
-        } else {
-            console.log(`Localização ${localizacao} está vazia. Nenhum produto foi removido.`);
+            console.log(`[DEBUG] Removendo produtos antigos...`);
+            await db.collection('tabelaProdutos').deleteMany({ localizacao });
         }
 
-        // Verificar se todos os produtos existem na tabela total e preparar para inserção
-        const produtosParaAdicionar = [];
-        const produtosNaoEncontrados = [];
-        
-        for (let i = 0; i < produtos.length; i++) {
-            const codigo = produtos[i];
-            console.log(`Verificando produto ${i + 1}/${produtos.length}: ${codigo}`);
-            
-            if (!codigo || typeof codigo !== 'string') {
-                console.error(`Código inválido no índice ${i}:`, codigo);
-                return res.status(400).json({ error: `Código inválido no índice ${i}: deve ser uma string não vazia` });
-            }
-            
+        // Verifica cada produto na tabelaTotal antes de inserir
+        const produtosParaInserir = [];
+        for (const codigo of produtos) {
             const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
-            
             if (!produtoTotal) {
-                console.log(`Produto não encontrado na tabela total: ${codigo}`);
-                produtosNaoEncontrados.push(codigo);
-            } else {
-                console.log(`Produto encontrado: ${codigo} - ${produtoTotal.rct}`);
-                produtosParaAdicionar.push({
-                    ...produtoTotal,
-                    localizacao,
-                    dataAdicao: new Date()
-                });
+                console.error(`[ERRO] Produto não encontrado na tabelaTotal: ${codigo}`);
+                return res.status(404).json({ error: `Produto ${codigo} não encontrado.` });
             }
-        }
-        
-        // Se algum produto não foi encontrado, retornar erro
-        if (produtosNaoEncontrados.length > 0) {
-            console.error(`Produtos não encontrados: ${produtosNaoEncontrados.join(', ')}`);
-            return res.status(404).json({ 
-                error: `Produtos não encontrados na tabela total: ${produtosNaoEncontrados.join(', ')}` 
+            produtosParaInserir.push({
+                ...produtoTotal,
+                localizacao,
+                dataAdicao: new Date()
             });
         }
-        
-        // Inserir todos os novos produtos
-        console.log(`Inserindo ${produtosParaAdicionar.length} produtos na tabelaProdutos`);
-        const resultado = await db.collection('tabelaProdutos').insertMany(produtosParaAdicionar);
-        console.log(`Produtos inseridos com sucesso: ${resultado.insertedCount}`);
-        
-        const response = { 
-            success: true, 
-            produtosAdicionados: resultado.insertedCount,
-            produtosRemovidos: produtosRemovidos,
-            localizacao: localizacao,
-            produtos: produtosParaAdicionar.map(p => ({
-                codigo: p.codigo,
-                rct: p.rct,
-                dataAdicao: p.dataAdicao
-            }))
-        };
-        
-        console.log('Resposta de sucesso:', JSON.stringify(response, null, 2));
-        console.log('=== FIM DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
-        
-        res.json(response);
-        
-    } catch (error) {
-        console.error('=== ERRO NA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
-        console.error('Erro completo:', error);
-        console.error('Stack trace:', error.stack);
-        console.error('=== FIM DO ERRO ===');
-        
-        res.status(500).json({ 
-            error: 'Erro interno do servidor',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+
+        console.log(`[DEBUG] Inserindo ${produtosParaInserir.length} novos produtos...`);
+        const resultado = await db.collection('tabelaProdutos').insertMany(produtosParaInserir);
+
+        res.json({
+            success: true,
+            produtosInseridos: resultado.insertedCount,
+            localizacao
         });
+
+    } catch (error) {
+        console.error("[ERRO CRÍTICO] Falha ao substituir produtos:", error);
+        res.status(500).json({ error: "Erro interno. Verifique os logs do servidor." });
     }
 });
-
 
 // Rota para buscar produtos por localização
 app.get('/api/produtos/localizacao/:localizacao', checkDatabaseConnection, async (req, res) => {

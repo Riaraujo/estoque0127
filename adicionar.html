@@ -1448,6 +1448,7 @@
                 const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
                 if (cabinet) {
                     if (!cabinet.products) cabinet.products = {};
+                    if (!cabinet.products[selectedShelf]) cabinet.products[selectedShelf] = [];
                     cabinet.products[selectedShelf] = scannedProducts.map(product => ({
                         code: product.code,
                         name: `Produto ${product.code.substring(0, 4)}`,

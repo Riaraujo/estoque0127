@@ -243,10 +243,10 @@ app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => 
     }
 });
 
-// Rota para substituir todos os produtos de uma prateleira - CORRIGIDA
+// Rota para substituir/adicionar produtos na prateleira - LÓGICA AJUSTADA
 app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (req, res) => {
     try {
-        console.log('=== INÍCIO DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
+        console.log('=== INÍCIO DA REQUISIÇÃO SUBSTITUIR/ADICIONAR PRODUTOS ===');
         console.log('Body recebido:', JSON.stringify(req.body, null, 2));
         
         const { produtos, localizacao } = req.body;
@@ -279,10 +279,24 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         
         console.log(`Processando ${produtos.length} produtos para localização: ${localizacao}`);
         
-        // Primeiro, remover todos os produtos da localização especificada
-        console.log(`Removendo produtos existentes da localização: ${localizacao}`);
-        const deleteResult = await db.collection('tabelaProdutos').deleteMany({ localizacao });
-        console.log(`Produtos removidos: ${deleteResult.deletedCount}`);
+        // NOVA LÓGICA: Verificar se a prateleira está vazia ou tem produtos
+        console.log(`Verificando se a prateleira ${localizacao} está vazia...`);
+        const produtosExistentes = await db.collection('tabelaProdutos').find({ localizacao }).toArray();
+        const prateleiraTinhaProdutos = produtosExistentes.length > 0;
+        
+        console.log(`Prateleira ${localizacao} ${prateleiraTinhaProdutos ? 'tinha produtos' : 'estava vazia'} (${produtosExistentes.length} produtos encontrados)`);
+        
+        let produtosRemovidos = 0;
+        
+        // Se a prateleira tinha produtos, removê-los (substituição)
+        if (prateleiraTinhaProdutos) {
+            console.log(`Removendo ${produtosExistentes.length} produtos existentes da localização: ${localizacao}`);
+            const deleteResult = await db.collection('tabelaProdutos').deleteMany({ localizacao });
+            produtosRemovidos = deleteResult.deletedCount;
+            console.log(`Produtos removidos: ${produtosRemovidos}`);
+        } else {
+            console.log(`Prateleira vazia - apenas adicionando produtos sem remoção`);
+        }
         
         // Verificar se todos os produtos existem na tabela total e preparar para inserção
         const produtosParaAdicionar = [];
@@ -325,11 +339,14 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         const resultado = await db.collection('tabelaProdutos').insertMany(produtosParaAdicionar);
         console.log(`Produtos inseridos com sucesso: ${resultado.insertedCount}`);
         
+        const operacao = prateleiraTinhaProdutos ? 'substituição' : 'adição';
         const response = { 
             success: true, 
+            operacao: operacao,
             produtosAdicionados: resultado.insertedCount,
-            produtosRemovidos: deleteResult.deletedCount,
+            produtosRemovidos: produtosRemovidos,
             localizacao: localizacao,
+            prateleiraTinhaProdutos: prateleiraTinhaProdutos,
             produtos: produtosParaAdicionar.map(p => ({
                 codigo: p.codigo,
                 rct: p.rct,
@@ -338,12 +355,12 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         };
         
         console.log('Resposta de sucesso:', JSON.stringify(response, null, 2));
-        console.log('=== FIM DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
+        console.log('=== FIM DA REQUISIÇÃO SUBSTITUIR/ADICIONAR PRODUTOS ===');
         
         res.json(response);
         
     } catch (error) {
-        console.error('=== ERRO NA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
+        console.error('=== ERRO NA REQUISIÇÃO SUBSTITUIR/ADICIONAR PRODUTOS ===');
         console.error('Erro completo:', error);
         console.error('Stack trace:', error.stack);
         console.error('=== FIM DO ERRO ===');

@@ -246,54 +246,125 @@ app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => 
 // Rota para substituir todos os produtos de uma prateleira - CORRIGIDA
 app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (req, res) => {
     try {
-        console.log("[DEBUG] Body recebido:", req.body); // Verifique se o body está correto
-
+        console.log('=== INÍCIO DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
+        console.log('Body recebido:', JSON.stringify(req.body, null, 2));
+        
         const { produtos, localizacao } = req.body;
         
-        if (!produtos || !Array.isArray(produtos)) {
-            return res.status(400).json({ error: "Formato de produtos inválido." });
+        // Validações
+        if (!produtos) {
+            console.error('Campo "produtos" não fornecido');
+            return res.status(400).json({ error: 'Campo "produtos" é obrigatório' });
         }
-
-        console.log(`[DEBUG] Processando prateleira: ${localizacao} | Produtos: ${produtos.join(", ")}`);
-
-        // Verifica se a prateleira já tem produtos
+        
+        if (!Array.isArray(produtos)) {
+            console.error('Campo "produtos" não é um array:', typeof produtos);
+            return res.status(400).json({ error: 'Campo "produtos" deve ser um array' });
+        }
+        
+        if (produtos.length === 0) {
+            console.error('Array de produtos está vazio');
+            return res.status(400).json({ error: 'Lista de produtos não pode estar vazia' });
+        }
+        
+        if (!localizacao) {
+            console.error('Campo "localização" não fornecido');
+            return res.status(400).json({ error: 'Campo "localização" é obrigatório' });
+        }
+        
+        console.log(`Processando ${produtos.length} produtos para localização: ${localizacao}`);
+        
+        // Verificar e remover produtos existentes
         const produtosExistentes = await db.collection('tabelaProdutos').find({ localizacao }).toArray();
-        console.log(`[DEBUG] Produtos existentes na prateleira ${localizacao}: ${produtosExistentes.length}`);
+        let produtosRemovidos = 0;
 
         if (produtosExistentes.length > 0) {
-            console.log(`[DEBUG] Removendo produtos antigos...`);
-            await db.collection('tabelaProdutos').deleteMany({ localizacao });
+            console.log(`Removendo ${produtosExistentes.length} produtos existentes...`);
+            const deleteResult = await db.collection('tabelaProdutos').deleteMany({ localizacao });
+            produtosRemovidos = deleteResult.deletedCount;
+            console.log(`Produtos removidos: ${produtosRemovidos}`);
         }
 
-        // Verifica cada produto na tabelaTotal antes de inserir
+        // Preparar novos produtos para inserção
         const produtosParaInserir = [];
+        const produtosNaoEncontrados = [];
+        
         for (const codigo of produtos) {
+            console.log(`Processando produto: ${codigo}`);
+            
             const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
+            
             if (!produtoTotal) {
-                console.error(`[ERRO] Produto não encontrado na tabelaTotal: ${codigo}`);
-                return res.status(404).json({ error: `Produto ${codigo} não encontrado.` });
+                console.error(`Produto não encontrado: ${codigo}`);
+                produtosNaoEncontrados.push(codigo);
+                continue;
             }
-            produtosParaInserir.push({
-                ...produtoTotal,
+            
+            // Criar novo objeto sem o _id original
+            const { _id, ...produtoSemId } = produtoTotal;
+            const novoProduto = {
+                ...produtoSemId,
                 localizacao,
                 dataAdicao: new Date()
+            };
+            
+            produtosParaInserir.push(novoProduto);
+        }
+        
+        // Verificar se todos os produtos foram encontrados
+        if (produtosNaoEncontrados.length > 0) {
+            console.error('Produtos não encontrados:', produtosNaoEncontrados);
+            return res.status(404).json({
+                error: 'Alguns produtos não foram encontrados',
+                produtosNaoEncontrados
             });
         }
-
-        console.log(`[DEBUG] Inserindo ${produtosParaInserir.length} novos produtos...`);
+        
+        // Inserir novos produtos
+        console.log(`Inserindo ${produtosParaInserir.length} novos produtos...`);
         const resultado = await db.collection('tabelaProdutos').insertMany(produtosParaInserir);
-
-        res.json({
+        console.log(`Produtos inseridos com sucesso: ${resultado.insertedCount}`);
+        
+        // Resposta de sucesso
+        const response = {
             success: true,
-            produtosInseridos: resultado.insertedCount,
-            localizacao
-        });
-
+            produtosAdicionados: resultado.insertedCount,
+            produtosRemovidos,
+            localizacao,
+            produtos: produtosParaInserir.map(p => ({
+                codigo: p.codigo,
+                rct: p.rct,
+                localizacao: p.localizacao,
+                dataAdicao: p.dataAdicao
+            }))
+        };
+        
+        console.log('=== OPERAÇÃO CONCLUÍDA COM SUCESSO ===');
+        console.log(JSON.stringify(response, null, 2));
+        
+        return res.json(response);
+        
     } catch (error) {
-        console.error("[ERRO CRÍTICO] Falha ao substituir produtos:", error);
-        res.status(500).json({ error: "Erro interno. Verifique os logs do servidor." });
+        console.error('=== ERRO NA OPERAÇÃO ===');
+        console.error('Tipo de erro:', error.name);
+        console.error('Mensagem:', error.message);
+        console.error('Stack trace:', error.stack);
+        
+        if (error.code === 11000) {
+            console.error('Erro de duplicação detectado');
+            return res.status(409).json({
+                error: 'Conflito de dados',
+                message: 'Foi detectada uma tentativa de inserir dados duplicados'
+            });
+        }
+        
+        return res.status(500).json({
+            error: 'Erro interno do servidor',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
+
 
 // Rota para buscar produtos por localização
 app.get('/api/produtos/localizacao/:localizacao', checkDatabaseConnection, async (req, res) => {

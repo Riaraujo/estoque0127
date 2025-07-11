@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
@@ -207,7 +207,7 @@ app.get('/api/produto/rct/:rct', checkDatabaseConnection, async (req, res) => {
     }
 });
 
-// Rota para adicionar produto à tabelaProdutos - CORRIGIDA
+// Rota para adicionar produto à tabelaProdutos
 app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => {
     try {
         const { codigo, localizacao } = req.body;
@@ -253,7 +253,7 @@ app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => 
     }
 });
 
-// Rota para substituir todos os produtos de uma prateleira - CORRIGIDA PARA PRATELEIRAS VAZIAS
+// Rota para substituir todos os produtos de uma prateleira - VERSÃO CORRIGIDA
 app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (req, res) => {
     try {
         console.log('=== INÍCIO DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
@@ -262,6 +262,11 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         const { produtos, localizacao } = req.body;
         
         // Validações mais detalhadas
+        if (!localizacao || typeof localizacao !== 'string' || localizacao.trim() === '') {
+            console.error('Campo "localizacao" inválido:', localizacao);
+            return res.status(400).json({ error: 'Campo "localizacao" deve ser uma string não vazia' });
+        }
+        
         if (!produtos) {
             console.error('Campo "produtos" não fornecido');
             return res.status(400).json({ error: 'Campo "produtos" é obrigatório' });
@@ -272,102 +277,148 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
             return res.status(400).json({ error: "Campo \"produtos\" deve ser um array" });
         }
         
-        // Se a lista de produtos a adicionar estiver vazia, significa que a intenção é esvaziar a prateleira.
-        // Já removemos os produtos acima, então podemos retornar sucesso.
-        if (produtos.length === 0) {
-            console.log(`Nenhum produto para adicionar. Prateleira ${localizacao} esvaziada.`);
-            return res.json({
-                success: true,
-                produtosAdicionados: 0,
-                produtosRemovidos: deleteResult.deletedCount,
-                localizacao: localizacao.trim(),
-                message: `Prateleira ${localizacao.trim()} esvaziada com sucesso.`
-            });
-        }
+        const localizacaoTratada = localizacao.trim();
+        console.log(`Processando requisição para localização: ${localizacaoTratada}`);
         
-        if (typeof localizacao !== 'string' || localizacao.trim() === '') {
-            console.error('Campo "localizacao" inválido:', localizacao);
-            return res.status(400).json({ error: 'Campo "localizacao" deve ser uma string não vazia' });
-        }
+        // Verificar se a prateleira já tem produtos
+        const produtosAtuais = await db.collection('tabelaProdutos').find({ localizacao: localizacaoTratada }).toArray();
+        const prateleiraTemProdutos = produtosAtuais.length > 0;
         
-        console.log(`Processando ${produtos.length} produtos para localização: ${localizacao}`);
+        console.log(`Prateleira ${localizacaoTratada} tem ${produtosAtuais.length} produtos atualmente`);
         
-        // Primeiro, remover todos os produtos da localização especificada
-        console.log(`Removendo produtos existentes da localização: ${localizacao}`);
-        const deleteResult = await db.collection("tabelaProdutos").deleteMany({ localizacao: localizacao.trim() });
-        console.log(`Produtos removidos: ${deleteResult.deletedCount}`);
-        
-        // Se a lista de produtos a adicionar estiver vazia, significa que a intenção é esvaziar a prateleira.
-        // Já removemos os produtos acima, então podemos retornar sucesso.
-        if (produtos.length === 0) {
-            console.log(`Nenhum produto para adicionar. Prateleira ${localizacao} esvaziada.`);
-            return res.json({
-                success: true,
-                produtosAdicionados: 0,
-                produtosRemovidos: deleteResult.deletedCount,
-                localizacao: localizacao.trim(),
-                message: `Prateleira ${localizacao.trim()} esvaziada com sucesso.`
-            });
-        }
-
-        // Verificar se todos os produtos existem na tabela total e preparar para inserção
-        const produtosParaAdicionar = [];
-        const produtosNaoEncontrados = [];
-        
-        for (let i = 0; i < produtos.length; i++) {
-            const codigo = produtos[i];
-            console.log(`Verificando produto ${i + 1}/${produtos.length}: ${codigo}`);
+        // Caso 1: Prateleira vazia e queremos adicionar produtos
+        if (!prateleiraTemProdutos && produtos.length > 0) {
+            console.log('Caso 1: Adicionando produtos a prateleira vazia');
             
-            if (!codigo || typeof codigo !== 'string' || codigo.trim() === '') {
-                console.error(`Código inválido no índice ${i}:`, codigo);
-                return res.status(400).json({ error: `Código inválido no índice ${i}: deve ser uma string não vazia` });
+            const produtosParaAdicionar = [];
+            const produtosNaoEncontrados = [];
+            
+            for (const codigo of produtos) {
+                if (!codigo || typeof codigo !== 'string' || codigo.trim() === '') {
+                    console.error('Código inválido:', codigo);
+                    return res.status(400).json({ error: 'Todos os códigos devem ser strings não vazias' });
+                }
+                
+                const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo: codigo.trim() });
+                
+                if (!produtoTotal) {
+                    console.log(`Produto não encontrado na tabela total: ${codigo}`);
+                    produtosNaoEncontrados.push(codigo);
+                } else {
+                    console.log(`Produto encontrado: ${codigo} - ${produtoTotal.rct}`);
+                    produtosParaAdicionar.push({
+                        ...produtoTotal,
+                        localizacao: localizacaoTratada,
+                        dataAdicao: new Date()
+                    });
+                }
             }
             
-            const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo: codigo.trim() });
-            
-            if (!produtoTotal) {
-                console.log(`Produto não encontrado na tabela total: ${codigo}`);
-                produtosNaoEncontrados.push(codigo);
-            } else {
-                console.log(`Produto encontrado: ${codigo} - ${produtoTotal.rct}`);
-                produtosParaAdicionar.push({
-                    ...produtoTotal,
-                    localizacao: localizacao.trim(),
-                    dataAdicao: new Date()
+            if (produtosNaoEncontrados.length > 0) {
+                console.error(`Produtos não encontrados: ${produtosNaoEncontrados.join(', ')}`);
+                return res.status(404).json({ 
+                    error: `Produtos não encontrados na tabela total: ${produtosNaoEncontrados.join(', ')}` 
                 });
             }
-        }
-        
-        // Se algum produto não foi encontrado, retornar erro
-        if (produtosNaoEncontrados.length > 0) {
-            console.error(`Produtos não encontrados: ${produtosNaoEncontrados.join(', ')}`);
-            return res.status(404).json({ 
-                error: `Produtos não encontrados na tabela total: ${produtosNaoEncontrados.join(', ')}` 
+            
+            // Inserir todos os novos produtos
+            console.log(`Inserindo ${produtosParaAdicionar.length} produtos na tabelaProdutos`);
+            const resultado = await db.collection('tabelaProdutos').insertMany(produtosParaAdicionar);
+            
+            return res.json({ 
+                success: true, 
+                produtosAdicionados: resultado.insertedCount,
+                produtosRemovidos: 0,
+                localizacao: localizacaoTratada,
+                message: `${resultado.insertedCount} produtos adicionados com sucesso na localização ${localizacaoTratada}`,
+                produtos: produtosParaAdicionar
             });
         }
         
-        // Inserir todos os novos produtos
-        console.log(`Inserindo ${produtosParaAdicionar.length} produtos na tabelaProdutos`);
-        const resultado = await db.collection('tabelaProdutos').insertMany(produtosParaAdicionar);
-        console.log(`Produtos inseridos com sucesso: ${resultado.insertedCount}`);
+        // Caso 2: Prateleira com produtos e queremos substituir
+        if (prateleiraTemProdutos && produtos.length > 0) {
+            console.log('Caso 2: Substituindo produtos em prateleira existente');
+            
+            // Primeiro, remover todos os produtos da localização especificada
+            console.log(`Removendo produtos existentes da localização: ${localizacaoTratada}`);
+            const deleteResult = await db.collection("tabelaProdutos").deleteMany({ localizacao: localizacaoTratada });
+            console.log(`Produtos removidos: ${deleteResult.deletedCount}`);
+            
+            // Preparar novos produtos para adicionar
+            const produtosParaAdicionar = [];
+            const produtosNaoEncontrados = [];
+            
+            for (const codigo of produtos) {
+                if (!codigo || typeof codigo !== 'string' || codigo.trim() === '') {
+                    console.error('Código inválido:', codigo);
+                    return res.status(400).json({ error: 'Todos os códigos devem ser strings não vazias' });
+                }
+                
+                const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo: codigo.trim() });
+                
+                if (!produtoTotal) {
+                    console.log(`Produto não encontrado na tabela total: ${codigo}`);
+                    produtosNaoEncontrados.push(codigo);
+                } else {
+                    console.log(`Produto encontrado: ${codigo} - ${produtoTotal.rct}`);
+                    produtosParaAdicionar.push({
+                        ...produtoTotal,
+                        localizacao: localizacaoTratada,
+                        dataAdicao: new Date()
+                    });
+                }
+            }
+            
+            if (produtosNaoEncontrados.length > 0) {
+                console.error(`Produtos não encontrados: ${produtosNaoEncontrados.join(', ')}`);
+                return res.status(404).json({ 
+                    error: `Produtos não encontrados na tabela total: ${produtosNaoEncontrados.join(', ')}` 
+                });
+            }
+            
+            // Inserir todos os novos produtos
+            console.log(`Inserindo ${produtosParaAdicionar.length} produtos na tabelaProdutos`);
+            const insertResult = await db.collection('tabelaProdutos').insertMany(produtosParaAdicionar);
+            
+            return res.json({ 
+                success: true, 
+                produtosAdicionados: insertResult.insertedCount,
+                produtosRemovidos: deleteResult.deletedCount,
+                localizacao: localizacaoTratada,
+                message: `${deleteResult.deletedCount} produtos removidos e ${insertResult.insertedCount} produtos adicionados com sucesso na localização ${localizacaoTratada}`,
+                produtos: produtosParaAdicionar
+            });
+        }
         
-        const response = { 
-            success: true, 
-            produtosAdicionados: resultado.insertedCount,
-            produtosRemovidos: deleteResult.deletedCount,
-            localizacao: localizacao.trim(),
-            message: `${resultado.insertedCount} produtos adicionados com sucesso na localização ${localizacao.trim()}`,
-            produtos: produtosParaAdicionar.map(p => ({
-                codigo: p.codigo,
-                rct: p.rct,
-                dataAdicao: p.dataAdicao
-            }))
-        };
+        // Caso 3: Esvaziar prateleira (produtos.length === 0)
+        if (prateleiraTemProdutos && produtos.length === 0) {
+            console.log('Caso 3: Esvaziando prateleira existente');
+            
+            // Remover todos os produtos da localização especificada
+            console.log(`Removendo produtos existentes da localização: ${localizacaoTratada}`);
+            const deleteResult = await db.collection("tabelaProdutos").deleteMany({ localizacao: localizacaoTratada });
+            console.log(`Produtos removidos: ${deleteResult.deletedCount}`);
+            
+            return res.json({ 
+                success: true, 
+                produtosAdicionados: 0,
+                produtosRemovidos: deleteResult.deletedCount,
+                localizacao: localizacaoTratada,
+                message: `Prateleira ${localizacaoTratada} esvaziada com sucesso (${deleteResult.deletedCount} produtos removidos)`
+            });
+        }
         
-        console.log('Resposta de sucesso:', JSON.stringify(response, null, 2));
-        console.log('=== FIM DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
-        
-        res.json(response);
+        // Caso 4: Prateleira vazia e produtos vazios (nada a fazer)
+        if (!prateleiraTemProdutos && produtos.length === 0) {
+            console.log('Caso 4: Prateleira já está vazia e não há produtos para adicionar');
+            return res.json({ 
+                success: true, 
+                produtosAdicionados: 0,
+                produtosRemovidos: 0,
+                localizacao: localizacaoTratada,
+                message: `Prateleira ${localizacaoTratada} já está vazia`
+            });
+        }
         
     } catch (error) {
         console.error('=== ERRO NA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
@@ -428,7 +479,6 @@ app.get('/api/produtos-total', checkDatabaseConnection, async (req, res) => {
 app.delete('/api/produto/:id', checkDatabaseConnection, async (req, res) => {
     try {
         const { id } = req.params;
-        const { ObjectId } = require('mongodb');
         
         console.log(`Removendo produto com ID: ${id}`);
         
@@ -456,7 +506,6 @@ app.put('/api/produto/:id/localizacao', checkDatabaseConnection, async (req, res
     try {
         const { id } = req.params;
         const { localizacao } = req.body;
-        const { ObjectId } = require('mongodb');
         
         console.log(`Atualizando localização do produto ${id} para: ${localizacao}`);
         
@@ -592,5 +641,3 @@ process.on('SIGTERM', async () => {
 });
 
 startServer().catch(console.error);
-
-

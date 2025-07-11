@@ -23,6 +23,8 @@
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
             --background-color: #f8f9fa;
             --text-color: #2c3e50;
         }
@@ -155,7 +157,7 @@
         .cabinet-static.pequeno {
             width: 40px;
             height: 60px;
-            background-color: #27ae60;
+            background-color: var(--success-color);
         }
 
         .cabinet-display {
@@ -296,6 +298,13 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .add-btn {
@@ -303,16 +312,16 @@
             color: white;
         }
 
-        .add-btn:hover {
+        .add-btn:hover:not(:disabled) {
             background-color: #2980b9;
         }
 
         .save-btn {
-            background-color: #27ae60;
+            background-color: var(--success-color);
             color: white;
         }
 
-        .save-btn:hover {
+        .save-btn:hover:not(:disabled) {
             background-color: #219653;
         }
 
@@ -374,7 +383,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 100px;
-            color: #2ecc71;
+            color: var(--success-color);
             opacity: 0;
             transition: opacity 0.3s;
             z-index: 1001;
@@ -399,6 +408,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: white;
         }
 
         .manual-input-container {
@@ -419,7 +429,7 @@
 
         .manual-add-btn {
             padding: 10px 20px;
-            background-color: #3498db;
+            background-color: var(--secondary-color);
             color: white;
             border: none;
             border-radius: 5px;
@@ -453,7 +463,6 @@
             z-index: 1001;
         }
 
-        /* Estilos para o botão de bipagem */
         .scan-button-container {
             position: fixed;
             bottom: 30px;
@@ -495,7 +504,6 @@
             font-size: 30px;
         }
 
-        /* Estilo para o botão de remoção */
         .remove-btn {
             background: none;
             border: none;
@@ -509,7 +517,6 @@
             color: var(--accent-color);
         }
 
-        /* Indicador de status da conexão */
         .connection-status {
             position: fixed;
             top: 10px;
@@ -523,7 +530,7 @@
         }
 
         .connection-status.online {
-            background-color: #27ae60;
+            background-color: var(--success-color);
             color: white;
         }
 
@@ -533,8 +540,37 @@
         }
 
         .connection-status.testing {
-            background-color: #f39c12;
+            background-color: var(--warning-color);
             color: white;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--accent-color);
+        }
+
+        .notification.warning {
+            background-color: var(--warning-color);
         }
 
         @media (max-width: 1400px) {
@@ -630,6 +666,9 @@
         <i class="fas fa-circle"></i> Testando conexão...
     </div>
 
+    <!-- Notificações -->
+    <div class="notification" id="notification"></div>
+
     <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -674,7 +713,7 @@
                 </div>
                 <div class="form-group">
                     <label for="shelfSelect">Selecione a Prateleira:</label>
-                    <select id="shelfSelect">
+                    <select id="shelfSelect" disabled>
                         <option value="">-- Selecione --</option>
                         <option value="shelf-7">Prateleira 7</option>
                         <option value="shelf-6">Prateleira 6</option>
@@ -690,7 +729,7 @@
                         <i class="fas fa-barcode"></i> Adicionar Produtos
                     </button>
                     <button id="saveBtn" class="btn save-btn" disabled>
-                        <i class="fas fa-save"></i> Salvar
+                        <i class="fas fa-save"></i> Salvar (<span id="productCount">0</span>)
                     </button>
                 </div>
             </div>
@@ -751,7 +790,7 @@
         </div>
         
         <div class="scanned-products" id="scannedProducts">
-            <h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>
+            <h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados (<span id="scannedCount">0</span>)</h3>
             <!-- Produtos escaneados aparecerão aqui -->
         </div>
 
@@ -764,9 +803,8 @@
     </div>
 
     <script>
-        // Configuração da API - SUBSTITUA PELA URL PÚBLICA DO SEU SERVIDOR NO RAILWAY
-        // Exemplo: const API_BASE_URL = 'https://estoque0127-production.up.railway.app';
-        const API_BASE_URL = 'https://estoque0127-production.up.railway.app'; // ALTERE ESTA URL PARA SUA URL PÚBLICA DO RAILWAY
+        // Configuração da API
+        const API_BASE_URL = 'https://estoque0127-production.up.railway.app';
 
         // Objeto estoque127 com o layout criado
         const estoque127 = {
@@ -826,7 +864,7 @@
             ]
         };
 
-        // Variáveis globais
+        // Variáveis globais do sistema
         let selectedCabinet = null;
         let selectedShelf = null;
         let scannedProducts = [];
@@ -855,6 +893,22 @@
         const qualityIndicator = document.getElementById('qualityIndicator');
         const scanButton = document.getElementById('scanButton');
         const connectionStatus = document.getElementById('connectionStatus');
+        const notification = document.getElementById('notification');
+        const productCount = document.getElementById('productCount');
+        const scannedCount = document.getElementById('scannedCount');
+
+        // ===== FUNÇÕES DE UTILIDADE =====
+
+        // Função para mostrar notificações
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
 
         // Função para testar conexão com o servidor
         async function testConnection() {
@@ -907,17 +961,38 @@
         function initAudio() {
             try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                beepSound = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                beepSound.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                beepSound.type = 'sine';
-                beepSound.frequency.value = 800;
-                gainNode.gain.value = 0.1;
             } catch (e) {
                 console.error("Erro ao inicializar áudio:", e);
             }
         }
+
+        // Função para reproduzir som de bip
+        function playBeepSound() {
+            try {
+                if (!audioContext) {
+                    initAudio();
+                }
+                
+                if (audioContext) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = 800;
+                    gainNode.gain.value = 0.1;
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                }
+            } catch (e) {
+                console.error("Erro ao reproduzir som:", e);
+            }
+        }
+
+        // ===== FUNÇÕES DE INTERFACE =====
 
         // Função para renderizar o estoque estático
         function renderStaticStock() {
@@ -966,7 +1041,7 @@
             showCabinetDetails(cabinet);
             
             // Verificar se pode habilitar o botão de adicionar
-            checkAddButton();
+            updateButtonStates();
         }
 
         // Função para mostrar detalhes do armário
@@ -1002,11 +1077,15 @@
             }
         }
 
-        // Função para verificar se o botão de adicionar pode ser habilitado
-        function checkAddButton() {
+        // Função para atualizar estados dos botões
+        function updateButtonStates() {
             addBtn.disabled = !(selectedCabinet && selectedShelf);
             saveBtn.disabled = scannedProducts.length === 0;
+            productCount.textContent = scannedProducts.length;
+            scannedCount.textContent = scannedProducts.length;
         }
+
+        // ===== FUNÇÕES DE SCANNER =====
 
         // Função para alternar entre modo câmera e entrada manual
         function toggleInputMode() {
@@ -1119,7 +1198,7 @@
                 }, function(err) {
                     if (err) {
                         console.error("Erro de inicialização:", err);
-                        alert("Erro ao iniciar scanner: " + err.message);
+                        showNotification("Erro ao iniciar scanner: " + err.message, 'error');
                         return;
                     }
                     Quagga.start();
@@ -1151,7 +1230,7 @@
                     scanButton.classList.add('hidden');
                     isScanButtonPressed = false;
                     
-                    // Adicionar o produto (apenas 1 por vez)
+                    // Adicionar o produto
                     await addScannedProduct(code);
                     
                     // Reativar o botão após 500ms
@@ -1163,7 +1242,7 @@
 
             } catch (err) {
                 console.error("Erro de acesso à câmera:", err);
-                alert("Não foi possível acessar a câmera. Verifique as permissões!");
+                showNotification("Não foi possível acessar a câmera. Verifique as permissões!", 'error');
                 manualInputFallback();
             }
         }
@@ -1196,78 +1275,73 @@
             manualBarcodeInput.focus();
         }
 
-        // Função para adicionar um produto escaneado/digitado
-        async function addScannedProduct(code) {
-            // Verificação do comprimento do código
-            if (code.length < 12) {
-                alert(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`);
-                return;
-            }
-            
-            // Verificar se o produto existe na API
-            const produtoEncontrado = await findProductByCode(code);
-            if (!produtoEncontrado) {
-                alert(`Produto com código ${code} não encontrado no catálogo.`);
-                return;
-            }
-            
-            // Garantir que o som seja reproduzido
-            playBeepSound();
-            
-            // Feedback visual
-            cameraFeedback.style.opacity = '1';
-            cameraFeedback.classList.add('checkmark-animation');
-            
-            // Adiciona apenas 1 item
-            scannedProducts.push({
-                code: code,
-                timestamp: new Date().toLocaleTimeString()
-            });
-            
-            updateScannedProductsList();
-            checkAddButton();
-            
-            // Resetar feedback
-            setTimeout(() => {
-                cameraFeedback.style.opacity = '0';
-                cameraFeedback.classList.remove('checkmark-animation');
-            }, 1000);
-            
-            // Limpar o input manual se estiver nesse modo
-            if (isManualInputMode) {
-                manualBarcodeInput.value = '';
-            }
-        }
+        // ===== FUNÇÕES DE PRODUTOS =====
 
-        // Função para reproduzir som de bip
-        function playBeepSound() {
+        // Função para adicionar um produto escaneado/digitado - REFATORADA
+        async function addScannedProduct(code) {
             try {
-                if (!audioContext) {
-                    initAudio();
+                // Verificação do comprimento do código
+                if (code.length < 12) {
+                    showNotification(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`, 'error');
+                    return false;
                 }
                 
-                if (beepSound) {
-                    beepSound.start();
-                    setTimeout(() => {
-                        beepSound.stop();
-                        // Recriar o oscilador para poder tocar novamente
-                        beepSound = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        beepSound.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        beepSound.type = 'sine';
-                        beepSound.frequency.value = 800;
-                        gainNode.gain.value = 0.1;
-                    }, 200);
+                // Verificar se o produto existe na API
+                const produtoEncontrado = await findProductByCode(code);
+                if (!produtoEncontrado) {
+                    showNotification(`Produto com código ${code} não encontrado no catálogo.`, 'error');
+                    return false;
                 }
-            } catch (e) {
-                console.error("Erro ao reproduzir som:", e);
+                
+                // Verificar se o produto já foi escaneado
+                const jaEscaneado = scannedProducts.find(p => p.code === code);
+                if (jaEscaneado) {
+                    showNotification(`Produto ${code} já foi escaneado!`, 'warning');
+                    return false;
+                }
+                
+                // Garantir que o som seja reproduzido
+                playBeepSound();
+                
+                // Feedback visual
+                cameraFeedback.style.opacity = '1';
+                cameraFeedback.classList.add('checkmark-animation');
+                
+                // Adicionar o produto à lista
+                scannedProducts.push({
+                    code: code,
+                    rct: produtoEncontrado.rct,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
+                updateScannedProductsList();
+                updateButtonStates();
+                
+                showNotification(`Produto ${code} adicionado com sucesso!`, 'success');
+                
+                // Resetar feedback
+                setTimeout(() => {
+                    cameraFeedback.style.opacity = '0';
+                    cameraFeedback.classList.remove('checkmark-animation');
+                }, 1000);
+                
+                // Limpar o input manual se estiver nesse modo
+                if (isManualInputMode) {
+                    manualBarcodeInput.value = '';
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Erro ao adicionar produto:', error);
+                showNotification('Erro ao adicionar produto: ' + error.message, 'error');
+                return false;
             }
         }
 
         // Função para atualizar a lista de produtos escaneados
         function updateScannedProductsList() {
-            scannedProductsContainer.innerHTML = '<h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados</h3>';
+            scannedProductsContainer.innerHTML = `<h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados (${scannedProducts.length})</h3>`;
             
             if (scannedProducts.length === 0) {
                 const emptyMsg = document.createElement('p');
@@ -1282,8 +1356,10 @@
                 const productElement = document.createElement('div');
                 productElement.className = 'scanned-product';
                 productElement.innerHTML = `
-                    <span>${product.code}</span>
-                    <span>${product.timestamp}</span>
+                    <div>
+                        <div><strong>${product.code}</strong></div>
+                        <div style="font-size: 12px; opacity: 0.8;">${product.rct} - ${product.timestamp}</div>
+                    </div>
                     <button class="remove-btn" data-index="${index}">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -1295,9 +1371,10 @@
             document.querySelectorAll('.remove-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
-                    scannedProducts.splice(index, 1);
+                    const removedProduct = scannedProducts.splice(index, 1)[0];
                     updateScannedProductsList();
-                    checkAddButton();
+                    updateButtonStates();
+                    showNotification(`Produto ${removedProduct.code} removido da lista.`, 'warning');
                 });
             });
         }
@@ -1326,10 +1403,10 @@
             scanButton.classList.remove('hidden');
         }
 
-        // Função para salvar produtos no armário
-       async function saveProductsToCabinet() {
-    if (!selectedCabinet || !selectedShelf || scannedProducts.length === 0) {
-        alert('Selecione um armário, prateleira e escaneie pelo menos um produto');
+        // Função para salvar produtos no armário - REFATORADA COMPLETAMENTE
+        async function saveProductsToCabinet() {
+    if (!selectedCabinet || !selectedShelf) {
+        showNotification('Selecione um armário e uma prateleira', 'error');
         return;
     }
     
@@ -1337,6 +1414,12 @@
         const shelfNumber = selectedShelf.split('-')[1];
         const localizacao = `${selectedCabinet.id}-${shelfNumber}`;
         const codigosProdutos = scannedProducts.map(product => product.code);
+        
+        console.log('Salvando produtos:', {
+            produtos: codigosProdutos,
+            localizacao: localizacao,
+            quantidade: codigosProdutos.length
+        });
         
         // Mostrar loading
         saveBtn.disabled = true;
@@ -1359,6 +1442,7 @@
         }
         
         const result = await response.json();
+        console.log('Resposta do servidor:', result);
         
         // Atualizar interface
         const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
@@ -1371,28 +1455,37 @@
             }));
             
             showCabinetDetails(cabinet);
-            scannedProducts = [];
-            updateScannedProductsList();
-            alert(result.message || 'Produtos salvos com sucesso!');
         }
+        
+        // Limpar a lista de produtos escaneados após salvar com sucesso
+        scannedProducts = [];
+        updateScannedProductsList();
+        updateButtonStates();
+        
+        // Fechar o modal da câmera
+        stopBarcodeScanner();
+        
+        showNotification(result.message || `${result.produtosAdicionados} produtos salvos com sucesso na localização ${localizacao}!`, 'success');
         
     } catch (error) {
         console.error('Erro ao salvar produtos:', error);
-        alert('Erro ao salvar produtos: ' + error.message);
+        showNotification('Erro ao salvar produtos: ' + error.message, 'error');
     } finally {
         saveBtn.disabled = false;
-        saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar';
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar (<span id="productCount">0</span>)';
+        updateButtonStates();
     }
 }
 
-        // Event Listeners
+        // ===== EVENT LISTENERS =====
+
         cabinetSelect.addEventListener('change', function() {
             const cabinetId = this.value;
             if (!cabinetId) {
                 selectedCabinet = null;
                 shelfSelect.disabled = true;
                 shelfSelect.value = '';
-                checkAddButton();
+                updateButtonStates();
                 return;
             }
             
@@ -1404,7 +1497,7 @@
 
         shelfSelect.addEventListener('change', function() {
             selectedShelf = this.value;
-            checkAddButton();
+            updateButtonStates();
         });
 
         addBtn.addEventListener('click', async function() {
@@ -1415,12 +1508,11 @@
                 }
                 
                 cameraModal.style.display = 'flex';
-                scannedProducts = [];
                 updateScannedProductsList();
                 await startScanner();
             } catch (err) {
                 console.error("Erro ao iniciar câmera:", err);
-                alert("Erro ao acessar câmera: " + err.message);
+                showNotification("Erro ao acessar câmera: " + err.message, 'error');
                 manualInputFallback();
             }
         });
@@ -1454,7 +1546,7 @@
             }
         });
 
-        // Inicialização
+        // ===== INICIALIZAÇÃO =====
         window.onload = function() {
             initAudio();
             renderStaticStock();
@@ -1471,3 +1563,4 @@
     </script>
 </body>
 </html>
+

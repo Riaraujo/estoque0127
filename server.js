@@ -279,11 +279,19 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         
         console.log(`Processando ${produtos.length} produtos para localização: ${localizacao}`);
         
-        // Primeiro, remover todos os produtos da localização especificada
-        console.log(`Removendo produtos existentes da localização: ${localizacao}`);
-        const deleteResult = await db.collection('tabelaProdutos').deleteMany({ localizacao });
-        console.log(`Produtos removidos: ${deleteResult.deletedCount}`);
-        
+        // Verificar se já existem produtos nessa localização
+        const produtosExistentes = await db.collection('tabelaProdutos').find({ localizacao }).toArray();
+        let produtosRemovidos = 0;
+
+        if (produtosExistentes.length > 0) {
+            console.log(`Localização ${localizacao} já possui ${produtosExistentes.length} produto(s). Removendo...`);
+            const deleteResult = await db.collection('tabelaProdutos').deleteMany({ localizacao });
+            produtosRemovidos = deleteResult.deletedCount;
+            console.log(`Produtos removidos: ${produtosRemovidos}`);
+        } else {
+            console.log(`Localização ${localizacao} está vazia. Nenhum produto foi removido.`);
+        }
+
         // Verificar se todos os produtos existem na tabela total e preparar para inserção
         const produtosParaAdicionar = [];
         const produtosNaoEncontrados = [];
@@ -328,7 +336,7 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         const response = { 
             success: true, 
             produtosAdicionados: resultado.insertedCount,
-            produtosRemovidos: deleteResult.deletedCount,
+            produtosRemovidos: produtosRemovidos,
             localizacao: localizacao,
             produtos: produtosParaAdicionar.map(p => ({
                 codigo: p.codigo,
@@ -354,6 +362,7 @@ app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (
         });
     }
 });
+
 
 // Rota para buscar produtos por localização
 app.get('/api/produtos/localizacao/:localizacao', checkDatabaseConnection, async (req, res) => {

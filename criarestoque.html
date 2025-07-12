@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Layout de Estoque</title>
+    
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            background-color: var(--background-color);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 285px;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .logo-placeholder {
+            display: inline-block;
+            width: 150px;
+            height: 50px;
+            background-color: #ddd;
+            color: #777;
+            line-height: 50px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        /* Estilos para o editor de planta */
+        .plant-editor {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .editor-controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .plant-container {
+            position: relative;
+            width: 680px;
+            min-height: 2500px;
+            background-image: 
+                linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+
+        .cabinet {
+            position: absolute;
+            cursor: move;
+            transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+            user-select: none;
+        }
+
+        .cabinet.grande {
+            width: 100px;
+            height: 60px;
+            background-color: var(--secondary-color);
+        }
+
+        .cabinet.pequeno {
+            width: 40px;
+            height: 60px;
+            background-color: #27ae60;
+        }
+
+        .context-menu {
+            position: absolute;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        .context-menu-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .context-menu-item:hover {
+            background: var(--background-color);
+        }
+
+        .rotation-control {
+            position: absolute;
+            top: -25px;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* Modal para exibir o objeto do estoque */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--accent-color);
+        }
+
+        .code-block {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+        }
+
+        .copy-btn {
+            margin-top: 15px;
+            padding: 8px 15px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar, .main-content {
+                width: 100%;
+            }
+
+            .editor-controls {
+                flex-direction: column;
+            }
+            
+            .plant-container {
+                width: 100%;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <img src="d7f55c03-70f4-42be-9805-393122158e69___c038bed40f3763fc3be4ff844f7483ec.png" alt="Logo">
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        <span>Busca de Produtos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="criarestoque.html" class="nav-link active">
+                        <i class="fas fa-warehouse"></i>
+                        <span>Criar Estoque</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="adicionar.html" class="nav-link ">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Adicionar Produtos</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Criar Layout de Estoque</h1>
+                <button onclick="saveLayout()" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Salvar Layout
+                </button>
+            </div>
+
+            <div class="plant-editor">
+                <div class="editor-controls">
+                    <button onclick="addCabinet('grande')" class="btn btn-primary">
+                        <i class="fas fa-archive"></i> Armário Grande
+                    </button>
+                    <button onclick="addCabinet('pequeno')" class="btn btn-primary">
+                        <i class="fas fa-cube"></i> Armário Pequeno
+                    </button>
+                </div>
+                
+                <div id="plantContainer" class="plant-container">
+                    <!-- Armários serão adicionados aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para exibir o objeto do estoque -->
+    <div id="estoqueModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Objeto do Estoque</h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <p>Copie este objeto e cole no código da página principal:</p>
+            <div id="estoqueCode" class="code-block"></div>
+            <button class="copy-btn" onclick="copyToClipboard()">
+                <i class="fas fa-copy"></i> Copiar para Área de Transferência
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais para o editor
+        let currentCabinetId = 1;
+        let cabinets = [];
+        let selectedCabinet = null;
+        let dragData = {}; // Objeto para armazenar dados de arrasto
+
+        function addCabinet(type) {
+            const container = document.getElementById('plantContainer');
+            const containerRect = container.getBoundingClientRect();
+            const cabinet = document.createElement('div');
+            const id = `cabinet-${currentCabinetId++}`;
+            
+            cabinet.className = `cabinet ${type}`;
+            cabinet.id = id;
+            cabinet.innerHTML = `
+                <div class="rotation-control" onclick="rotateCabinet('${id}')">
+                    <i class="fas fa-redo"></i>
+                </div>
+                ${id}
+            `;
+
+            // Posição inicial centralizada
+            const left = (containerRect.width / 2) - (type === 'grande' ? 50 : 20);
+            const top = (containerRect.height / 2) - 30;
+            
+            cabinet.style.left = `${left}px`;
+            cabinet.style.top = `${top}px`;
+            
+            // Configuração do arrasto
+            cabinet.addEventListener('mousedown', function(e) {
+                dragStart(e, this);
+            });
+
+            // Menu de contexto
+            cabinet.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showContextMenu(e, id);
+            });
+
+            container.appendChild(cabinet);
+            cabinets.push({
+                id,
+                type,
+                x: left,
+                y: top,
+                rotation: 0,
+                products: {}
+            });
+        }
+
+        function dragStart(e, element) {
+            const rect = element.getBoundingClientRect();
+            const containerRect = document.getElementById('plantContainer').getBoundingClientRect();
+            
+            dragData = {
+                isDragging: true,
+                element: element,
+                offsetX: e.clientX - rect.left + containerRect.left,
+                offsetY: e.clientY - rect.top + containerRect.top,
+                startX: e.clientX,
+                startY: e.clientY
+            };
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+        }
+
+        function drag(e) {
+            if (dragData.isDragging) {
+                e.preventDefault();
+                const container = document.getElementById('plantContainer');
+                const containerRect = container.getBoundingClientRect();
+                
+                // Calcula nova posição relativa ao container
+                let newX = e.clientX - dragData.offsetX;
+                let newY = e.clientY - dragData.offsetY;
+                
+                // Mantém dentro dos limites
+                newX = Math.max(-40, Math.min(newX, containerRect.width - dragData.element.offsetWidth));
+                newY = Math.max(0, Math.min(newY, containerRect.height - dragData.element.offsetHeight));
+                
+                // Aplica nova posição
+                dragData.element.style.left = `${newX}px`;
+                dragData.element.style.top = `${newY}px`;
+                
+                // Atualiza dados do armário
+                const cabinetId = dragData.element.id;
+                const cabinetIndex = cabinets.findIndex(c => c.id === cabinetId);
+                if (cabinetIndex !== -1) {
+                    cabinets[cabinetIndex].x = newX;
+                    cabinets[cabinetIndex].y = newY;
+                }
+            }
+        }
+
+        function dragEnd() {
+            dragData.isDragging = false;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', dragEnd);
+        }
+
+        function rotateCabinet(id) {
+            const cabinet = document.getElementById(id);
+            const cabData = cabinets.find(c => c.id === id);
+            if (cabData) {
+                cabData.rotation = (cabData.rotation + 90) % 360;
+                cabinet.style.transform = `rotate(${cabData.rotation}deg)`;
+            }
+        }
+
+        function showContextMenu(e, id) {
+            // Remove menu existente
+            const existingMenu = document.querySelector('.context-menu');
+            if (existingMenu) existingMenu.remove();
+
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            menu.style.left = `${e.clientX}px`;
+            menu.style.top = `${e.clientY}px`;
+            
+            menu.innerHTML = `
+                <div class="context-menu-item" onclick="removeCabinet('${id}')">
+                    <i class="fas fa-trash"></i> Remover
+                </div>
+            `;
+            
+            document.body.appendChild(menu);
+            
+            // Remove o menu ao clicar em outro lugar
+            setTimeout(() => {
+                const removeMenu = () => {
+                    menu.remove();
+                    document.removeEventListener('click', removeMenu);
+                };
+                document.addEventListener('click', removeMenu);
+            }, 10);
+        }
+
+        function removeCabinet(id) {
+            const cabinet = document.getElementById(id);
+            if (cabinet) {
+                cabinet.remove();
+                cabinets = cabinets.filter(c => c.id !== id);
+            }
+        }
+
+        function showModal() {
+            document.getElementById('estoqueModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('estoqueModal').style.display = 'none';
+        }
+
+        function copyToClipboard() {
+            const code = document.getElementById('estoqueCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Objeto copiado para a área de transferência!');
+            }).catch(err => {
+                console.error('Erro ao copiar: ', err);
+                alert('Erro ao copiar o objeto');
+            });
+        }
+
+        function saveLayout() {
+            const container = document.getElementById('plantContainer');
+            const layoutData = {
+                dimensions: {
+                    width: container.offsetWidth,
+                    height: container.offsetHeight
+                },
+                cabinets: cabinets.map(cab => ({
+                    id: cab.id,
+                    type: cab.type,
+                    x: cab.x,
+                    y: cab.y,
+                    rotation: cab.rotation,
+                    products: cab.products
+                }))
+            };
+            
+            // Formata o objeto para exibição
+            const formattedData = JSON.stringify(layoutData, null, 2);
+            
+            // Cria o código para ser usado na página principal
+            const estoqueCode = `const estoque127 = ${formattedData};\n\n// Para usar na página principal, cole este código`;
+            
+            // Exibe no modal
+            document.getElementById('estoqueCode').textContent = estoqueCode;
+            showModal();
+            
+            // Opcional: também exibe no console
+            console.log('Layout salvo:', layoutData);
+        }
+    </script>
+</body>
+</html>

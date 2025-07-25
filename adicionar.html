@@ -1206,39 +1206,29 @@
                 });
 
                 Quagga.onDetected(async function(result) {
-                    // Só processa se o botão foi pressionado e solto
-                    if (!isScanButtonPressed || isButtonDisabled) return;
-                    
-                    const code = result.codeResult.code;
-                    
-                    // Validação do código - mínimo 12 caracteres, máximo 13
-                    if (!code || code.length < 12 || code.length > 13) {
-                        console.log("Código inválido - tamanho incorreto:", code);
-                        updateQualityIndicator(0, "Código inválido (deve ter 12-13 caracteres)");
-                        return;
-                    }
-                    
-                    // Verifica se contém apenas números
-                    if (!/^\d+$/.test(code)) {
-                        console.log("Código inválido - contém caracteres não numéricos:", code);
-                        updateQualityIndicator(0, "Código deve conter apenas números");
-                        return;
-                    }
-                    
-                    // Desativar temporariamente o botão
-                    isButtonDisabled = true;
-                    scanButton.classList.add('hidden');
-                    isScanButtonPressed = false;
-                    
-                    // Adicionar o produto
-                    await addScannedProduct(code);
-                    
-                    // Reativar o botão após 500ms
-                    setTimeout(() => {
-                        isButtonDisabled = false;
-                        scanButton.classList.remove('hidden');
-                    }, 500);
-                });
+    if (!isScanButtonPressed || isButtonDisabled) return;
+    
+    const rawCode = result.codeResult.code; // Pega o código exatamente como foi lido
+    
+    // Apenas verifica se existe (não altera o formato)
+    if (!rawCode) {
+        updateQualityIndicator(0, "Código inválido");
+        return;
+    }
+    
+    // Desativa temporariamente para evitar duplicações
+    isButtonDisabled = true;
+    scanButton.classList.add('hidden');
+    
+    // Adiciona o código RAW sem modificações
+    await addScannedProduct(rawCode);
+    
+    // Reativa após um breve delay
+    setTimeout(() => {
+        isButtonDisabled = false;
+        scanButton.classList.remove('hidden');
+    }, 500);
+});
 
             } catch (err) {
                 console.error("Erro de acesso à câmera:", err);
@@ -1278,66 +1268,51 @@
         // ===== FUNÇÕES DE PRODUTOS =====
 
         // Função para adicionar um produto escaneado/digitado - REFATORADA
-        async function addScannedProduct(code) {
-            try {
-                // Verificação do comprimento do código
-                if (code.length < 12) {
-                    showNotification(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`, 'error');
-                    return false;
-                }
-                
-                // Verificar se o produto existe na API
-                const produtoEncontrado = await findProductByCode(code);
-                if (!produtoEncontrado) {
-                    showNotification(`Produto com código ${code} não encontrado no catálogo.`, 'error');
-                    return false;
-                }
-                
-                // Verificar se o produto já foi escaneado
-                const jaEscaneado = scannedProducts.find(p => p.code === code);
-                if (jaEscaneado) {
-                    showNotification(`Produto ${code} já foi escaneado!`, 'warning');
-                    return false;
-                }
-                
-                // Garantir que o som seja reproduzido
-                playBeepSound();
-                
-                // Feedback visual
-                cameraFeedback.style.opacity = '1';
-                cameraFeedback.classList.add('checkmark-animation');
-                
-                // Adicionar o produto à lista
-                scannedProducts.push({
-                    code: code,
-                    rct: produtoEncontrado.rct,
-                    timestamp: new Date().toLocaleTimeString()
-                });
-                
-                updateScannedProductsList();
-                updateButtonStates();
-                
-                showNotification(`Produto ${code} adicionado com sucesso!`, 'success');
-                
-                // Resetar feedback
-                setTimeout(() => {
-                    cameraFeedback.style.opacity = '0';
-                    cameraFeedback.classList.remove('checkmark-animation');
-                }, 1000);
-                
-                // Limpar o input manual se estiver nesse modo
-                if (isManualInputMode) {
-                    manualBarcodeInput.value = '';
-                }
-                
-                return true;
-                
-            } catch (error) {
-                console.error('Erro ao adicionar produto:', error);
-                showNotification('Erro ao adicionar produto: ' + error.message, 'error');
-                return false;
-            }
+       async function addScannedProduct(code) {
+    try {
+        // Remove qualquer tratamento de zeros que possa existir
+        const rawCode = code.toString(); // Garante que é string, sem modificações
+
+        // Verificação mínima - apenas se está vazio (opcional)
+        if (!rawCode || rawCode.trim() === '') {
+            showNotification("Código vazio não é válido", "error");
+            return false;
         }
+
+        // Verifica se o produto existe na API - usa o código RAW
+        const produtoEncontrado = await findProductByCode(rawCode);
+        if (!produtoEncontrado) {
+            showNotification(`Produto com código ${rawCode} não encontrado`, "error");
+            return false;
+        }
+
+        // Verifica se já foi escaneado (comparação exata)
+        const jaEscaneado = scannedProducts.some(p => p.code === rawCode);
+        if (jaEscaneado) {
+            showNotification(`Produto ${rawCode} já escaneado!`, "warning");
+            return false;
+        }
+
+        // Adiciona o produto EXATAMENTE como foi lido
+        scannedProducts.push({
+            code: rawCode,  // Sem modificações
+            rct: produtoEncontrado.rct,
+            timestamp: new Date().toLocaleTimeString()
+        });
+
+        // Resto da função permanece igual...
+        updateScannedProductsList();
+        updateButtonStates();
+        playBeepSound();
+        showNotification(`Produto ${rawCode} adicionado!`, "success");
+        return true;
+
+    } catch (error) {
+        console.error('Erro ao adicionar produto:', error);
+        showNotification('Erro: ' + error.message, "error");
+        return false;
+    }
+}
 
         // Função para atualizar a lista de produtos escaneados
         function updateScannedProductsList() {

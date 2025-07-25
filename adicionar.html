@@ -1154,50 +1154,56 @@
                 scanButton.addEventListener('mouseleave', handleScanEnd);
 
                 Quagga.init({
-    inputStream: {
-        name: "Live",
-        type: "LiveStream",
-        target: cameraVideo,
-        constraints: {
-            width: { min: 640 },
-            height: { min: 480 },
-            aspectRatio: { ideal: 1.333333 }
-        }
-    },
-    decoder: {
-        readers: ["code_128_reader"], // APENAS Code 128
-        multiple: false
-    },
-    locator: {
-        halfSample: true,
-        patchSize: "large",
-        debug: {
-            showCanvas: true,
-            showPatches: true,
-            showFoundPatches: true,
-            showSkeleton: true,
-            showLabels: true,
-            showPatchLabels: true,
-            showRemainingPatchLabels: true,
-            boxFromPatches: {
-                showTransformed: true,
-                showTransformedBox: true,
-                showBB: true
-            }
-        }
-    },
-    numOfWorkers: 4,
-    frequency: 10,
-    debug: false
-}, function(err) {
-    if (err) {
-        console.error("Erro de inicialização:", err);
-        showNotification("Erro ao iniciar scanner: " + err.message, 'error');
-        return;
-    }
-    Quagga.start();
-    isScannerActive = true;
-});
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: cameraVideo,
+                        constraints: {
+                            width: { min: 640 },
+                            height: { min: 480 },
+                            aspectRatio: { ideal: 1.333333 }
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader", 
+                            "code_39_reader",
+                            "upc_reader"
+                        ],
+                        multiple: false
+                    },
+                    locator: {
+                        halfSample: true,
+                        patchSize: "large",
+                        debug: {
+                            showCanvas: true,
+                            showPatches: true,
+                            showFoundPatches: true,
+                            showSkeleton: true,
+                            showLabels: true,
+                            showPatchLabels: true,
+                            showRemainingPatchLabels: true,
+                            boxFromPatches: {
+                                showTransformed: true,
+                                showTransformedBox: true,
+                                showBB: true
+                            }
+                        }
+                    },
+                    numOfWorkers: 4,
+                    frequency: 10,
+                    debug: false
+                }, function(err) {
+                    if (err) {
+                        console.error("Erro de inicialização:", err);
+                        showNotification("Erro ao iniciar scanner: " + err.message, 'error');
+                        return;
+                    }
+                    Quagga.start();
+                    isScannerActive = true;
+                });
 
                 Quagga.onDetected(async function(result) {
                     // Só processa se o botão foi pressionado e solto
@@ -1206,7 +1212,7 @@
                     const code = result.codeResult.code;
                     
                     // Validação do código - mínimo 12 caracteres, máximo 13
-                    if (!code || code.length < 11 || code.length > 13) {
+                    if (!code || code.length < 12 || code.length > 13) {
                         console.log("Código inválido - tamanho incorreto:", code);
                         updateQualityIndicator(0, "Código inválido (deve ter 12-13 caracteres)");
                         return;
@@ -1557,4 +1563,3 @@
     </script>
 </body>
 </html>
-

@@ -1166,7 +1166,10 @@
                     },
                     decoder: {
                         readers: [
+                            "code_128_reader",
                             "ean_reader",
+                            "ean_8_reader", 
+                            "code_39_reader",
                             "upc_reader"
                         ],
                         multiple: false
@@ -1278,8 +1281,8 @@
         async function addScannedProduct(code) {
             try {
                 // Verificação do comprimento do código
-                if (code.length !== 12 && code.length !== 13) {
-                    showNotification(`Código inválido: ${code} (${code.length} dígitos). O código deve ter 12 ou 13 caracteres.`, 'error');
+                if (code.length < 12) {
+                    showNotification(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`, 'error');
                     return false;
                 }
                 

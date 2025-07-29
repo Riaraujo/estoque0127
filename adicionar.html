@@ -1278,66 +1278,62 @@
         // ===== FUNÇÕES DE PRODUTOS =====
 
         // Função para adicionar um produto escaneado/digitado - REFATORADA
-        async function addScannedProduct(code) {
-            try {
-                // Verificação do comprimento do código
-                if (code.length < 12) {
-                    showNotification(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`, 'error');
-                    return false;
-                }
-                
-                // Verificar se o produto existe na API
-                const produtoEncontrado = await findProductByCode(code);
-                if (!produtoEncontrado) {
-                    showNotification(`Produto com código ${code} não encontrado no catálogo.`, 'error');
-                    return false;
-                }
-                
-                // Verificar se o produto já foi escaneado
-                const jaEscaneado = scannedProducts.find(p => p.code === code);
-                if (jaEscaneado) {
-                    showNotification(`Produto ${code} já foi escaneado!`, 'warning');
-                    return false;
-                }
-                
-                // Garantir que o som seja reproduzido
-                playBeepSound();
-                
-                // Feedback visual
-                cameraFeedback.style.opacity = '1';
-                cameraFeedback.classList.add('checkmark-animation');
-                
-                // Adicionar o produto à lista
-                scannedProducts.push({
-                    code: code,
-                    rct: produtoEncontrado.rct,
-                    timestamp: new Date().toLocaleTimeString()
-                });
-                
-                updateScannedProductsList();
-                updateButtonStates();
-                
-                showNotification(`Produto ${code} adicionado com sucesso!`, 'success');
-                
-                // Resetar feedback
-                setTimeout(() => {
-                    cameraFeedback.style.opacity = '0';
-                    cameraFeedback.classList.remove('checkmark-animation');
-                }, 1000);
-                
-                // Limpar o input manual se estiver nesse modo
-                if (isManualInputMode) {
-                    manualBarcodeInput.value = '';
-                }
-                
-                return true;
-                
-            } catch (error) {
-                console.error('Erro ao adicionar produto:', error);
-                showNotification('Erro ao adicionar produto: ' + error.message, 'error');
-                return false;
-            }
+        // Função para adicionar um produto escaneado/digitado - SEM VERIFICAÇÃO DE REPETIÇÃO
+async function addScannedProduct(code) {
+    try {
+        // Verificação do comprimento do código
+        if (code.length < 12) {
+            showNotification(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`, 'error');
+            return false;
         }
+        
+        // Verificar se o produto existe na API (opcional, pode remover se quiser)
+        const produtoEncontrado = await findProductByCode(code);
+        if (!produtoEncontrado) {
+            showNotification(`Produto com código ${code} não encontrado no catálogo.`, 'error');
+            return false;
+        }
+        
+        // REMOVIDA A VERIFICAÇÃO DE PRODUTO JÁ ESCANEADO
+        
+        // Garantir que o som seja reproduzido
+        playBeepSound();
+        
+        // Feedback visual
+        cameraFeedback.style.opacity = '1';
+        cameraFeedback.classList.add('checkmark-animation');
+        
+        // Adicionar o produto à lista
+        scannedProducts.push({
+            code: code,
+            rct: produtoEncontrado.rct,
+            timestamp: new Date().toLocaleTimeString()
+        });
+        
+        updateScannedProductsList();
+        updateButtonStates();
+        
+        showNotification(`Produto ${code} adicionado com sucesso!`, 'success');
+        
+        // Resetar feedback
+        setTimeout(() => {
+            cameraFeedback.style.opacity = '0';
+            cameraFeedback.classList.remove('checkmark-animation');
+        }, 1000);
+        
+        // Limpar o input manual se estiver nesse modo
+        if (isManualInputMode) {
+            manualBarcodeInput.value = '';
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('Erro ao adicionar produto:', error);
+        showNotification('Erro ao adicionar produto: ' + error.message, 'error');
+        return false;
+    }
+}
 
         // Função para atualizar a lista de produtos escaneados
         function updateScannedProductsList() {

@@ -573,7 +573,6 @@
             background-color: var(--warning-color);
         }
 
-        /* OTIMIZAÇÕES PARA MOBILE */
         @media (max-width: 1400px) {
             .content-wrapper {
                 flex-direction: column;
@@ -588,11 +587,6 @@
             
             .plant-container-static {
                 width: 100%;
-            }
-            
-            .stock-view {
-                margin-left: 0;
-                margin-right: 0;
             }
         }
 
@@ -616,61 +610,11 @@
                 width: 100%;
                 position: relative;
                 height: auto;
-                padding: 10px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            }
-
-            .logo {
-                padding: 10px 0;
-                margin-bottom: 15px;
-            }
-
-            .nav-menu {
-                display: flex;
-                gap: 5px;
-                overflow-x: auto;
-                padding: 5px 0;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-            }
-
-            .nav-menu::-webkit-scrollbar {
-                display: none;
-            }
-
-            .nav-item {
-                margin-bottom: 0;
-                flex-shrink: 0;
-            }
-
-            .nav-link {
-                white-space: nowrap;
-                padding: 8px 12px;
-                font-size: 12px;
-                border-radius: 20px;
-                min-width: 120px;
-                text-align: center;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 4px;
-            }
-
-            .nav-link i {
-                font-size: 16px;
-            }
-
-            .nav-link span {
-                font-size: 10px;
             }
 
             .main-content {
                 width: 100%;
                 margin-left: 0;
-                padding: 15px;
-            }
-
-            .add-form {
                 padding: 15px;
             }
 
@@ -688,125 +632,11 @@
 
             .manual-input-container {
                 flex-direction: column;
-                width: 95%;
             }
 
             .scan-button {
                 width: 70px;
                 height: 70px;
-            }
-
-            .scan-button i {
-                font-size: 24px;
-            }
-
-            .scanned-products {
-                width: 95%;
-                max-height: 150px;
-            }
-
-            .camera-controls {
-                flex-direction: column;
-                gap: 10px;
-                width: 95%;
-            }
-
-            .cabinet-display {
-                padding: 15px;
-            }
-
-            .cabinet-view.pequeno {
-                width: 80px;
-                height: 500px;
-            }
-
-            .notification {
-                right: 10px;
-                left: 10px;
-                transform: translateY(-100px);
-            }
-
-            .notification.show {
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 480px) {
-            .main-content {
-                padding: 10px;
-            }
-
-            .add-form {
-                padding: 10px;
-            }
-
-            .plant-container-static {
-                height: 300px;
-            }
-
-            .cabinet-display {
-                padding: 10px;
-            }
-
-            .cabinet-view.grande {
-                height: 600px;
-            }
-
-            .cabinet-view.pequeno {
-                width: 60px;
-                height: 400px;
-            }
-
-            .scan-button {
-                width: 60px;
-                height: 60px;
-            }
-
-            .scan-button i {
-                font-size: 20px;
-            }
-
-            .camera-container {
-                height: calc(40vh - 60px);
-            }
-
-            .scanned-products {
-                max-height: 120px;
-            }
-
-            .btn {
-                padding: 10px 15px;
-                font-size: 12px;
-            }
-        }
-
-        /* Melhorias para touch */
-        @media (hover: none) and (pointer: coarse) {
-            .cabinet-static:hover {
-                transform: none;
-            }
-
-            .cabinet-static:active {
-                transform: scale(1.05);
-                box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            }
-
-            .btn:hover {
-                background-color: inherit;
-            }
-
-            .btn:active {
-                transform: scale(0.98);
-            }
-
-            .nav-link:hover {
-                background-color: inherit;
-                color: inherit;
-            }
-
-            .nav-link:active {
-                background-color: var(--secondary-color);
-                color: white;
             }
         }
 
@@ -1447,7 +1277,7 @@
 
         // ===== FUNÇÕES DE PRODUTOS =====
 
-        // Função para adicionar um produto escaneado/digitado
+        // Função para adicionar um produto escaneado/digitado - REFATORADA
         async function addScannedProduct(code) {
             try {
                 // Verificação do comprimento do código
@@ -1463,7 +1293,12 @@
                     return false;
                 }
                 
-                // REMOVIDA A VERIFICAÇÃO DE CÓDIGOS DUPLICADOS - PERMITE ADICIONAR O MESMO CÓDIGO MÚLTIPLAS VEZES
+                // Verificar se o produto já foi escaneado
+                const jaEscaneado = scannedProducts.find(p => p.code === code);
+                if (jaEscaneado) {
+                    showNotification(`Produto ${code} já foi escaneado!`, 'warning');
+                    return false;
+                }
                 
                 // Garantir que o som seja reproduzido
                 playBeepSound();
@@ -1565,86 +1400,98 @@
             // Resetar estados do botão
             isButtonDisabled = false;
             isScanButtonPressed = false;
-            scanButton.classList.remove('hidden', 'active');
+            scanButton.classList.remove('hidden');
         }
 
-        // ===== FUNÇÕES DE SALVAMENTO =====
-
-        // Função para salvar produtos no servidor
-        async function saveProducts() {
-            if (scannedProducts.length === 0) {
-                showNotification('Nenhum produto para salvar!', 'warning');
-                return;
-            }
-
-            if (!selectedCabinet || !selectedShelf) {
-                showNotification('Selecione um armário e prateleira!', 'error');
-                return;
-            }
-
-            try {
-                const productData = {
-                    cabinet_id: selectedCabinet.id,
-                    shelf: selectedShelf,
-                    products: scannedProducts.map(p => ({
-                        code: p.code,
-                        rct: p.rct
-                    }))
-                };
-
-                const response = await fetch(`${API_BASE_URL}/api/adicionar-produtos`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(productData)
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    showNotification(`${scannedProducts.length} produtos salvos com sucesso!`, 'success');
-                    
-                    // Atualizar o estoque local
-                    if (!selectedCabinet.products[selectedShelf]) {
-                        selectedCabinet.products[selectedShelf] = [];
-                    }
-                    selectedCabinet.products[selectedShelf].push(...scannedProducts);
-                    
-                    // Limpar lista de produtos escaneados
-                    scannedProducts = [];
-                    updateScannedProductsList();
-                    updateButtonStates();
-                    showCabinetDetails(selectedCabinet);
-                    
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Erro ao salvar produtos');
-                }
-            } catch (error) {
-                console.error('Erro ao salvar produtos:', error);
-                showNotification('Erro ao salvar produtos: ' + error.message, 'error');
-            }
+        // Função para salvar produtos no armário - REFATORADA COMPLETAMENTE
+        async function saveProductsToCabinet() {
+    if (!selectedCabinet || !selectedShelf) {
+        showNotification('Selecione um armário e uma prateleira', 'error');
+        return;
+    }
+    
+    try {
+        const shelfNumber = selectedShelf.split('-')[1];
+        const localizacao = `${selectedCabinet.id}-${shelfNumber}`;
+        const codigosProdutos = scannedProducts.map(product => product.code);
+        
+        console.log('Salvando produtos:', {
+            produtos: codigosProdutos,
+            localizacao: localizacao,
+            quantidade: codigosProdutos.length
+        });
+        
+        // Mostrar loading
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        
+        const response = await fetch(`${API_BASE_URL}/api/substituir-produtos-prateleira`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                produtos: codigosProdutos,
+                localizacao: localizacao
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Erro ao salvar produtos');
         }
+        
+        const result = await response.json();
+        console.log('Resposta do servidor:', result);
+        
+        // Atualizar interface
+        const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
+        if (cabinet) {
+            if (!cabinet.products) cabinet.products = {};
+            cabinet.products[selectedShelf] = scannedProducts.map(product => ({
+                code: product.code,
+                name: `Produto ${product.code.substring(0, 4)}`,
+                addedAt: new Date().toISOString()
+            }));
+            
+            showCabinetDetails(cabinet);
+        }
+        
+        // Limpar a lista de produtos escaneados após salvar com sucesso
+        scannedProducts = [];
+        updateScannedProductsList();
+        updateButtonStates();
+        
+        // Fechar o modal da câmera
+        stopBarcodeScanner();
+        
+        showNotification(result.message || `${result.produtosAdicionados} produtos salvos com sucesso na localização ${localizacao}!`, 'success');
+        
+    } catch (error) {
+        console.error('Erro ao salvar produtos:', error);
+        showNotification('Erro ao salvar produtos: ' + error.message, 'error');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar (<span id="productCount">0</span>)';
+        updateButtonStates();
+    }
+}
 
         // ===== EVENT LISTENERS =====
 
-        // Event listeners para dropdowns
         cabinetSelect.addEventListener('change', function() {
             const cabinetId = this.value;
-            if (cabinetId) {
-                const cabinet = estoque127.cabinets.find(c => c.id === cabinetId);
-                selectCabinet(cabinet);
-            } else {
+            if (!cabinetId) {
                 selectedCabinet = null;
                 shelfSelect.disabled = true;
                 shelfSelect.value = '';
-                selectedShelf = null;
                 updateButtonStates();
-                
-                const cabinetInfo = document.getElementById('cabinetDisplayInfo');
-                const cabinetView = document.getElementById('cabinetView');
-                cabinetInfo.innerHTML = '<p>Selecione um armário para visualizar detalhes</p>';
-                cabinetView.innerHTML = '';
+                return;
+            }
+            
+            const cabinet = estoque127.cabinets.find(cab => cab.id === cabinetId);
+            if (cabinet) {
+                selectCabinet(cabinet);
             }
         });
 
@@ -1653,19 +1500,29 @@
             updateButtonStates();
         });
 
-        // Event listeners para botões
-        addBtn.addEventListener('click', function() {
-            cameraModal.style.display = 'flex';
-            startScanner();
+        addBtn.addEventListener('click', async function() {
+            try {
+                // Verificar se o dispositivo suporta acesso à câmera
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error("Navegador não suporta acesso à câmera");
+                }
+                
+                cameraModal.style.display = 'flex';
+                updateScannedProductsList();
+                await startScanner();
+            } catch (err) {
+                console.error("Erro ao iniciar câmera:", err);
+                showNotification("Erro ao acessar câmera: " + err.message, 'error');
+                manualInputFallback();
+            }
         });
-
-        saveBtn.addEventListener('click', saveProducts);
 
         backBtn.addEventListener('click', stopBarcodeScanner);
 
+        saveBtn.addEventListener('click', saveProductsToCabinet);
+
         toggleInputBtn.addEventListener('click', toggleInputMode);
 
-        // Event listener para entrada manual
         manualAddBtn.addEventListener('click', async function() {
             const code = manualBarcodeInput.value.trim();
             if (code) {
@@ -1673,39 +1530,36 @@
             }
         });
 
-        // Event listener para Enter no input manual
         manualBarcodeInput.addEventListener('keypress', async function(e) {
             if (e.key === 'Enter') {
-                const code = this.value.trim();
+                const code = manualBarcodeInput.value.trim();
                 if (code) {
                     await addScannedProduct(code);
                 }
             }
         });
 
-        // ===== INICIALIZAÇÃO =====
+        // Fechar o modal ao pressionar Esc
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && cameraModal.style.display === 'flex') {
+                stopBarcodeScanner();
+            }
+        });
 
-        // Inicializar a aplicação
-        document.addEventListener('DOMContentLoaded', function() {
+        // ===== INICIALIZAÇÃO =====
+        window.onload = function() {
+            initAudio();
             renderStaticStock();
             testConnection();
             
-            // Testar conexão periodicamente
+            // Testar conexão a cada 30 segundos
             setInterval(testConnection, 30000);
-        });
-
-        // Prevenir zoom no iOS
-        document.addEventListener('gesturestart', function (e) {
-            e.preventDefault();
-        });
-
-        // Prevenir scroll quando modal estiver aberto
-        document.addEventListener('touchmove', function(e) {
-            if (cameraModal.style.display === 'flex') {
-                e.preventDefault();
+            
+            if (estoque127.cabinets.length > 0) {
+                // Mostrar o primeiro armário por padrão
+                showCabinetDetails(estoque127.cabinets[0]);
             }
-        }, { passive: false });
+        };
     </script>
 </body>
 </html>
-

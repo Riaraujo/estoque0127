@@ -1447,7 +1447,7 @@
 
         // ===== FUNÇÕES DE PRODUTOS =====
 
-        // Função para adicionar um produto escaneado/digitado - CORRIGIDA PARA PERMITIR DUPLICADOS
+        // Função para adicionar um produto escaneado/digitado
         async function addScannedProduct(code) {
             try {
                 // Verificação do comprimento do código
@@ -1463,7 +1463,7 @@
                     return false;
                 }
                 
-                // REMOVIDA A VERIFICAÇÃO DE CÓDIGOS DUPLICADOS - AGORA PERMITE ADICIONAR O MESMO CÓDIGO MÚLTIPLAS VEZES
+                // REMOVIDA A VERIFICAÇÃO DE CÓDIGOS DUPLICADOS - PERMITE ADICIONAR O MESMO CÓDIGO MÚLTIPLAS VEZES
                 
                 // Garantir que o som seja reproduzido
                 playBeepSound();
@@ -1472,7 +1472,7 @@
                 cameraFeedback.style.opacity = '1';
                 cameraFeedback.classList.add('checkmark-animation');
                 
-                // Adicionar o produto à lista (sempre adiciona, mesmo se já existir)
+                // Adicionar o produto à lista
                 scannedProducts.push({
                     code: code,
                     rct: produtoEncontrado.rct,

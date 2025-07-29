@@ -1,540 +1,1565 @@
-const express = require('express');
-const { MongoClient } = require('mongodb');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Configuração de CORS mais permissiva para GitHub Pages
-const corsOptions = {
-    origin: [
-        'https://riaraujo.github.io',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'http://localhost:5500',
-        'http://127.0.0.1:5500'
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-};
-
-// Middleware
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Configuração do MongoDB
-const MONGO_URI = process.env.MONGO_URL || process.env.MONGO_PUBLIC_URL;
-const DB_NAME = 'estoque_db';
-
-let db;
-let client;
-
-// Conectar ao MongoDB
-async function connectToMongoDB() {
-    try {
-        client = new MongoClient(MONGO_URI);
-        await client.connect();
-        db = client.db(DB_NAME);
-        console.log('Conectado ao MongoDB com sucesso!');
-        
-        // Inicializar dados se necessário
-        await initializeData();
-    } catch (error) {
-        console.error('Erro ao conectar ao MongoDB:', error);
-        process.exit(1);
-    }
-}
-
-// Inicializar dados padrão
-async function initializeData() {
-    try {
-        const tabelaTotalCollection = db.collection('tabelaTotalDeProdutos');
-        const count = await tabelaTotalCollection.countDocuments();
-        
-        if (count === 0) {
-            const produtosPadrao = [
-                {
-                    codigo: "4066756633288",
-                    rct: "002760MWTPPT44",
-                    precoPromocao: 100.00,
-                    precoTabela: 349.99,
-                    saldo: 5,
-                    localizacao: ""
-                },
-                {
-                    codigo: "0054871712258",
-                    rct: "002240WFSHPT39",
-                    precoPromocao: 0.00,
-                    precoTabela: 499.99,
-                    saldo: null,
-                    localizacao: ""
-                }
-            ];
-            
-            await tabelaTotalCollection.insertMany(produtosPadrao);
-            console.log('Dados iniciais inseridos na tabelaTotalDeProdutos');
-        }
-    } catch (error) {
-        console.error('Erro ao inicializar dados:', error);
-    }
-}
-
-// Middleware para log de requisições
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.get('Origin')}`);
-    next();
-});
-
-// Middleware para verificar conexão com o banco
-async function checkDatabaseConnection(req, res, next) {
-    try {
-        if (!db) {
-            console.error('Conexão com o banco de dados não estabelecida');
-            return res.status(500).json({ error: 'Erro de conexão com o banco de dados' });
-        }
-        
-        // Testar a conexão fazendo um ping
-        await db.admin().ping();
-        next();
-    } catch (error) {
-        console.error('Erro de conexão com o banco:', error);
-        return res.status(500).json({ error: 'Erro de conexão com o banco de dados' });
-    }
-}
-
-// Rotas da API
-
-// Rota de teste para verificar se o servidor está funcionando
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        message: 'Servidor funcionando corretamente'
-    });
-});
-
-// Rota para buscar produto por código na tabela total
-app.get('/api/produto/:codigo', checkDatabaseConnection, async (req, res) => {
-    try {
-        const { codigo } = req.params;
-        console.log(`Buscando produto com código: ${codigo}`);
-        
-        const produto = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
-        
-        if (produto) {
-            console.log(`Produto encontrado: ${produto.rct}`);
-            res.json(produto);
-        } else {
-            console.log(`Produto não encontrado: ${codigo}`);
-            res.status(404).json({ error: 'Produto não encontrado' });
-        }
-    } catch (error) {
-        console.error('Erro ao buscar produto:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Rota para buscar produto por RCT na tabela total
-app.get('/api/produto/rct/:rct', checkDatabaseConnection, async (req, res) => {
-    try {
-        const { rct } = req.params;
-        console.log(`Buscando produto com RCT: ${rct}`);
-        
-        const produto = await db.collection('tabelaTotalDeProdutos').findOne({ rct });
-        
-        if (produto) {
-            console.log(`Produto encontrado por RCT: ${produto.codigo}`);
-            res.json(produto);
-        } else {
-            console.log(`Produto não encontrado por RCT: ${rct}`);
-            res.status(404).json({ error: 'Produto não encontrado' });
-        }
-    } catch (error) {
-        console.error('Erro ao buscar produto por RCT:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Rota para adicionar produto à tabelaProdutos - CORRIGIDA
-app.post('/api/adicionar-produto', checkDatabaseConnection, async (req, res) => {
-    try {
-        const { codigo, localizacao } = req.body;
-        console.log(`Adicionando produto: ${codigo} na localização: ${localizacao}`);
-        
-        // Validações de entrada
-        if (!codigo || typeof codigo !== 'string' || codigo.trim() === '') {
-            return res.status(400).json({ error: 'Código do produto é obrigatório e deve ser uma string válida' });
-        }
-        
-        if (!localizacao || typeof localizacao !== 'string' || localizacao.trim() === '') {
-            return res.status(400).json({ error: 'Localização é obrigatória e deve ser uma string válida' });
-        }
-        
-        // Buscar produto na tabela total
-        const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo: codigo.trim() });
-        
-        if (!produtoTotal) {
-            console.log(`Produto não encontrado na tabela total: ${codigo}`);
-            return res.status(404).json({ error: 'Produto não encontrado na tabela total' });
-        }
-        
-        // Criar novo produto para a tabela de produtos
-        const novoProduto = {
-            ...produtoTotal,
-            localizacao: localizacao.trim(),
-            dataAdicao: new Date()
-        };
-        
-        // Inserir na tabelaProdutos
-        const resultado = await db.collection('tabelaProdutos').insertOne(novoProduto);
-        console.log(`Produto adicionado com sucesso: ${resultado.insertedId}`);
-        
-        res.json({ 
-            success: true, 
-            id: resultado.insertedId,
-            produto: novoProduto,
-            message: 'Produto adicionado com sucesso'
-        });
-    } catch (error) {
-        console.error('Erro ao adicionar produto:', error);
-        res.status(500).json({ error: 'Erro interno do servidor: ' + error.message });
-    }
-});
-
-// Rota para substituir todos os produtos de uma prateleira - CORRIGIDA PARA PRATELEIRAS VAZIAS
-app.post('/api/substituir-produtos-prateleira', checkDatabaseConnection, async (req, res) => {
-    try {
-        console.log('=== INÍCIO DA REQUISIÇÃO SUBSTITUIR PRODUTOS ===');
-        console.log('Body recebido:', JSON.stringify(req.body, null, 2));
-        
-        const { produtos, localizacao } = req.body;
-        
-        // Validações
-        if (!produtos) {
-            console.error('Campo "produtos" não fornecido');
-            return res.status(400).json({ error: 'Campo "produtos" é obrigatório' });
-        }
-        
-        if (!Array.isArray(produtos)) {
-            console.error('Campo "produtos" não é um array:', typeof produtos);
-            return res.status(400).json({ error: 'Campo "produtos" deve ser um array' });
-        }
-        
-        if (produtos.length === 0) {
-            console.error('Array de produtos está vazio');
-            return res.status(400).json({ error: 'Lista de produtos não pode estar vazia' });
-        }
-        
-        if (!localizacao) {
-            console.error('Campo "localização" não fornecido');
-            return res.status(400).json({ error: 'Campo "localização" é obrigatório' });
-        }
-        
-        console.log(`Processando ${produtos.length} produtos para localização: ${localizacao}`);
-        
-        // Verificar e remover produtos existentes
-        const produtosExistentes = await db.collection('tabelaProdutos').find({ localizacao }).toArray();
-        let produtosRemovidos = 0;
-
-        if (produtosExistentes.length > 0) {
-            console.log(`Removendo ${produtosExistentes.length} produtos existentes...`);
-            const deleteResult = await db.collection('tabelaProdutos').deleteMany({ localizacao });
-            produtosRemovidos = deleteResult.deletedCount;
-            console.log(`Produtos removidos: ${produtosRemovidos}`);
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Adicionar Produtos</title>
+    
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- QuaggaJS para leitura de código de barras -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
         }
 
-        // Preparar novos produtos para inserção
-        const produtosParaInserir = [];
-        const produtosNaoEncontrados = [];
-        
-        for (const codigo of produtos) {
-            console.log(`Processando produto: ${codigo}`);
-            
-            const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
-            
-            if (!produtoTotal) {
-                console.error(`Produto não encontrado: ${codigo}`);
-                produtosNaoEncontrados.push(codigo);
-                continue;
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --background-color: #f8f9fa;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            background-color: var(--background-color);
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 15%;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 auto;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            margin-left: 15%;
+        }
+
+        .content-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .stock-view {
+            margin-left: 80px;
+            margin-right: 50px;
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+        }
+
+        .plant-container-static {
+            position: relative;
+            width: 650px;
+            height: 650px;
+            background-image: 
+                linear-gradient(rgba(200, 200, 200, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.3) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-color: white;
+            border: 1px solid #ddd;
+            overflow: hidden;
+        }
+
+        .cabinet-static {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            user-select: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cabinet-static:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .cabinet-static.grande {
+            width: 100px;
+            height: 60px;
+            background-color: var(--secondary-color);
+        }
+
+        .cabinet-static.pequeno {
+            width: 40px;
+            height: 60px;
+            background-color: var(--success-color);
+        }
+
+        .cabinet-display {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 30px;
+        }
+
+        .cabinet-display-title {
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cabinet-view {
+            position: relative;
+            width: 100%;
+            border: 2px solid var(--primary-color);
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            overflow: hidden;
+        }
+
+        .cabinet-view.grande {
+            height: 780px;
+        }
+
+        .cabinet-view.pequeno {
+            height: 650px;
+            width: 100px;
+        }
+
+        .shelf {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-color);
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        .shelf.grande {
+            width: 90%;
+            height: 100px;
+        }
+
+        .shelf.pequeno {
+            width: 90%;
+            height: 80px;
+        }
+
+        .shelf-label {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .product-display {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 5px;
+            display: inline-block;
+            font-size: 11px;
+        }
+
+        .shelf-7 { top: 10px; }
+        .shelf-6 { top: 120px; }
+        .shelf-5 { top: 230px; }
+        .shelf-4 { top: 340px; }
+        .shelf-3 { top: 450px; }
+        .shelf-2 { top: 560px; }
+        .shelf-1 { top: 670px; }
+
+        .shelf-7.pequeno { top: 10px; }
+        .shelf-6.pequeno { top: 100px; }
+        .shelf-5.pequeno { top: 190px; }
+        .shelf-4.pequeno { top: 280px; }
+        .shelf-3.pequeno { top: 370px; }
+        .shelf-2.pequeno { top: 460px; }
+        .shelf-1.pequeno { top: 550px; }
+
+        .add-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .add-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .add-btn:hover:not(:disabled) {
+            background-color: #2980b9;
+        }
+
+        .save-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .save-btn:hover:not(:disabled) {
+            background-color: #219653;
+        }
+
+        .back-btn {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .back-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .camera-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-container {
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            height: calc(60vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: black;
+        }
+
+        #scannerCanvas {
+            display: none;
+        }
+
+        .camera-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .camera-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            color: var(--success-color);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1001;
+        }
+
+        .scanned-products {
+            margin-top: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .scanned-product {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .manual-input-container {
+            margin-top: 20px;
+            width: 80%;
+            max-width: 800px;
+            display: none;
+            gap: 10px;
+        }
+
+        .manual-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+        }
+
+        .manual-add-btn {
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .manual-add-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .switch-input-mode {
+            margin-top: 15px;
+            background: none;
+            border: none;
+            color: white;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .scan-quality-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 1001;
+        }
+
+        .scan-button-container {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            z-index: 1002;
+        }
+
+        .scan-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: rgba(52, 152, 219, 0.8);
+            border: 4px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .scan-button:active {
+            transform: scale(0.95);
+            background-color: rgba(41, 128, 185, 0.9);
+        }
+
+        .scan-button.hidden {
+            display: none;
+        }
+
+        .scan-button i {
+            font-size: 30px;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 5px;
+        }
+
+        .remove-btn:hover {
+            color: var(--accent-color);
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .connection-status.online {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .connection-status.offline {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .connection-status.testing {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--accent-color);
+        }
+
+        .notification.warning {
+            background-color: var(--warning-color);
+        }
+
+        @media (max-width: 1400px) {
+            .content-wrapper {
+                flex-direction: column;
             }
             
-            // Criar novo objeto sem o _id original
-            const { _id, ...produtoSemId } = produtoTotal;
-            const novoProduto = {
-                ...produtoSemId,
-                localizacao,
-                dataAdicao: new Date()
-            };
+            .cabinet-display {
+                width: 100%;
+                max-width: 800px;
+                position: relative;
+                top: auto;
+            }
             
-            produtosParaInserir.push(novoProduto);
+            .plant-container-static {
+                width: 100%;
+            }
         }
-        
-        // Verificar se todos os produtos foram encontrados
-        if (produtosNaoEncontrados.length > 0) {
-            console.error('Produtos não encontrados:', produtosNaoEncontrados);
-            return res.status(404).json({
-                error: 'Alguns produtos não foram encontrados',
-                produtosNaoEncontrados
-            });
+
+        @media (max-width: 1200px) {
+            .stock-view {
+                flex-direction: column;
+            }
+            
+            .plant-container-static {
+                width: 100%;
+                height: 500px;
+            }
         }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .main-content {
+                width: 100%;
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .plant-container-static {
+                height: 400px;
+            }
+
+            .camera-container {
+                height: calc(50vh - 80px);
+            }
+
+            .manual-input-container {
+                flex-direction: column;
+            }
+
+            .scan-button {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes checkmark {
+            0% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1.5); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+
+        .checkmark-animation {
+            animation: checkmark 1s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Indicador de status da conexão -->
+    <div class="connection-status testing" id="connectionStatus">
+        <i class="fas fa-circle"></i> Testando conexão...
+    </div>
+
+    <!-- Notificações -->
+    <div class="notification" id="notification"></div>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo2548">
+                    <img src="777777.png" alt="">
+                </div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        <span>Busca de Produtos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="criarestoque.html" class="nav-link">
+                        <i class="fas fa-warehouse"></i>
+                        <span>Criar Estoque</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="adicionar.html" class="nav-link active">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Adicionar Produtos</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Formulário de Adição -->
+            <div class="add-form">
+                <h2><i class="fas fa-box-open"></i> Adicionar Produtos</h2>
+                <div class="form-group">
+                    <label for="cabinetSelect">Selecione o Armário:</label>
+                    <select id="cabinetSelect">
+                        <option value="">-- Selecione --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="shelfSelect">Selecione a Prateleira:</label>
+                    <select id="shelfSelect" disabled>
+                        <option value="">-- Selecione --</option>
+                        <option value="shelf-7">Prateleira 7</option>
+                        <option value="shelf-6">Prateleira 6</option>
+                        <option value="shelf-5">Prateleira 5</option>
+                        <option value="shelf-4">Prateleira 4</option>
+                        <option value="shelf-3">Prateleira 3</option>
+                        <option value="shelf-2">Prateleira 2</option>
+                        <option value="shelf-1">Prateleira 1</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button id="addBtn" class="btn add-btn" disabled>
+                        <i class="fas fa-barcode"></i> Adicionar Produtos
+                    </button>
+                    <button id="saveBtn" class="btn save-btn" disabled>
+                        <i class="fas fa-save"></i> Salvar (<span id="productCount">0</span>)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Container para estoque + visualização do armário -->
+            <div class="content-wrapper">
+                <!-- Visualização do estoque -->
+                <div class="stock-view">
+                    <div class="plant-container-static" id="plantContainerStatic">
+                        <!-- Armários serão renderizados aqui -->
+                    </div>
+                </div>
+                
+                <!-- Visualização do armário -->
+                <div class="cabinet-display">
+                    <h2 class="cabinet-display-title">
+                        <i class="fas fa-archive"></i> Visualização do Armário
+                    </h2>
+                    <div id="cabinetDisplayInfo">
+                        <p>Selecione um armário para visualizar detalhes</p>
+                    </div>
+                    <div id="cabinetView" class="cabinet-view">
+                        <!-- Prateleiras serão renderizadas aqui -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal da Câmera -->
+    <div class="camera-modal" id="cameraModal">
+        <div class="camera-container">
+            <div class="scan-quality-indicator" id="qualityIndicator">
+                Qualidade da leitura: Aguardando...
+            </div>
+            <video id="cameraVideo" autoplay playsinline></video>
+            <canvas id="scannerCanvas"></canvas>
+            <div class="camera-feedback" id="cameraFeedback">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
         
-        // Inserir novos produtos
-        console.log(`Inserindo ${produtosParaInserir.length} novos produtos...`);
-        const resultado = await db.collection('tabelaProdutos').insertMany(produtosParaInserir);
-        console.log(`Produtos inseridos com sucesso: ${resultado.insertedCount}`);
+        <!-- Container para entrada manual -->
+        <div class="manual-input-container" id="manualInputContainer">
+            <input type="text" id="manualBarcodeInput" class="manual-input" placeholder="Digite o código de barras">
+            <button id="manualAddBtn" class="manual-add-btn">
+                <i class="fas fa-plus"></i> Adicionar
+            </button>
+        </div>
         
-        // Resposta de sucesso
-        const response = {
-            success: true,
-            produtosAdicionados: resultado.insertedCount,
-            produtosRemovidos,
-            localizacao,
-            produtos: produtosParaInserir.map(p => ({
-                codigo: p.codigo,
-                rct: p.rct,
-                localizacao: p.localizacao,
-                dataAdicao: p.dataAdicao
-            }))
+        <div class="camera-controls">
+            <button id="backBtn" class="btn back-btn">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </button>
+            <button id="toggleInputBtn" class="switch-input-mode">
+                <i class="fas fa-keyboard"></i> Inserir manualmente
+            </button>
+        </div>
+        
+        <div class="scanned-products" id="scannedProducts">
+            <h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados (<span id="scannedCount">0</span>)</h3>
+            <!-- Produtos escaneados aparecerão aqui -->
+        </div>
+
+        <!-- Botão de bipagem -->
+        <div class="scan-button-container">
+            <div class="scan-button" id="scanButton">
+                <i class="fas fa-barcode"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração da API
+        const API_BASE_URL = 'https://estoque0127-production.up.railway.app';
+
+        // Objeto estoque127 com o layout criado
+        const estoque127 = {
+            "dimensions": {
+                "width": 548,
+                "height": 1700
+            },
+            "cabinets": [
+                {
+                    "id": "1",
+                    "type": "grande",
+                    "x": -19,
+                    "y": 629,
+                    "rotation": 270,
+                    "products": {}
+                },
+                {
+                    "id": "2",
+                    "type": "grande",
+                    "x": 100,
+                    "y": 629,
+                    "rotation": 270,
+                    "products": {}
+                },
+                {
+                    "id": "3",
+                    "type": "grande",
+                    "x": 219,
+                    "y": 629,
+                    "rotation": 270,
+                    "products": {}
+                },
+                {
+                    "id": "4",
+                    "type": "pequeno",
+                    "x": 338,
+                    "y": 629,
+                    "rotation": 270,
+                    "products": {}
+                },
+                {
+                    "id": "5",
+                    "type": "pequeno",
+                    "x": 378,
+                    "y": 629,
+                    "rotation": 270,
+                    "products": {}
+                },
+                {
+                    "id": "6",
+                    "type": "pequeno",
+                    "x": 418,
+                    "y": 629,
+                    "rotation": 270,
+                    "products": {}
+                }
+            ]
         };
-        
-        console.log('=== OPERAÇÃO CONCLUÍDA COM SUCESSO ===');
-        console.log(JSON.stringify(response, null, 2));
-        
-        return res.json(response);
-        
-    } catch (error) {
-        console.error('=== ERRO NA OPERAÇÃO ===');
-        console.error('Tipo de erro:', error.name);
-        console.error('Mensagem:', error.message);
-        console.error('Stack trace:', error.stack);
-        
-        if (error.code === 11000) {
-            console.error('Erro de duplicação detectado');
-            return res.status(409).json({
-                error: 'Conflito de dados',
-                message: 'Foi detectada uma tentativa de inserir dados duplicados'
+
+        // Variáveis globais do sistema
+        let selectedCabinet = null;
+        let selectedShelf = null;
+        let scannedProducts = [];
+        let isScannerActive = false;
+        let isManualInputMode = false;
+        let cameraStream = null;
+        let isScanButtonPressed = false;
+        let audioContext = null;
+        let beepSound = null;
+        let isButtonDisabled = false;
+
+        // Elementos do DOM
+        const cabinetSelect = document.getElementById('cabinetSelect');
+        const shelfSelect = document.getElementById('shelfSelect');
+        const addBtn = document.getElementById('addBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const backBtn = document.getElementById('backBtn');
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraFeedback = document.getElementById('cameraFeedback');
+        const scannedProductsContainer = document.getElementById('scannedProducts');
+        const manualInputContainer = document.getElementById('manualInputContainer');
+        const manualBarcodeInput = document.getElementById('manualBarcodeInput');
+        const manualAddBtn = document.getElementById('manualAddBtn');
+        const toggleInputBtn = document.getElementById('toggleInputBtn');
+        const qualityIndicator = document.getElementById('qualityIndicator');
+        const scanButton = document.getElementById('scanButton');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const notification = document.getElementById('notification');
+        const productCount = document.getElementById('productCount');
+        const scannedCount = document.getElementById('scannedCount');
+
+        // ===== FUNÇÕES DE UTILIDADE =====
+
+        // Função para mostrar notificações
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Função para testar conexão com o servidor
+        async function testConnection() {
+            try {
+                connectionStatus.className = 'connection-status testing';
+                connectionStatus.innerHTML = '<i class="fas fa-circle"></i> Testando conexão...';
+                
+                const response = await fetch(`${API_BASE_URL}/api/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    connectionStatus.className = 'connection-status online';
+                    connectionStatus.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
+                    return true;
+                } else {
+                    throw new Error('Servidor não respondeu corretamente');
+                }
+            } catch (error) {
+                console.error('Erro de conexão:', error);
+                connectionStatus.className = 'connection-status offline';
+                connectionStatus.innerHTML = '<i class="fas fa-times-circle"></i> Desconectado';
+                return false;
+            }
+        }
+
+        // Função para buscar produto na API
+        async function findProductByCode(code) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/produto/${code}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    return await response.json();
+                }
+                return null;
+            } catch (error) {
+                console.error('Erro ao buscar produto:', error);
+                return null;
+            }
+        }
+
+        // Inicializar o contexto de áudio
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.error("Erro ao inicializar áudio:", e);
+            }
+        }
+
+        // Função para reproduzir som de bip
+        function playBeepSound() {
+            try {
+                if (!audioContext) {
+                    initAudio();
+                }
+                
+                if (audioContext) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = 800;
+                    gainNode.gain.value = 0.1;
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                }
+            } catch (e) {
+                console.error("Erro ao reproduzir som:", e);
+            }
+        }
+
+        // ===== FUNÇÕES DE INTERFACE =====
+
+        // Função para renderizar o estoque estático
+        function renderStaticStock() {
+            const container = document.getElementById('plantContainerStatic');
+            
+            container.style.width = `${estoque127.dimensions.width}px`;
+            container.style.height = `${estoque127.dimensions.height}px`;
+            
+            // Preencher o dropdown de armários
+            cabinetSelect.innerHTML = '<option value="">-- Selecione --</option>';
+            
+            estoque127.cabinets.forEach(cab => {
+                const cabinet = document.createElement('div');
+                cabinet.className = `cabinet-static ${cab.type}`;
+                cabinet.id = cab.id;
+                cabinet.style.left = `${cab.x}px`;
+                cabinet.style.top = `${cab.y}px`;
+                cabinet.style.transform = `rotate(${cab.rotation}deg)`;
+                cabinet.textContent = cab.id;
+                
+                cabinet.addEventListener('click', function() {
+                    selectCabinet(cab);
+                });
+                
+                container.appendChild(cabinet);
+                
+                // Adicionar ao dropdown
+                const option = document.createElement('option');
+                option.value = cab.id;
+                option.textContent = `Armário ${cab.id} (${cab.type === 'grande' ? 'Grande' : 'Pequeno'})`;
+                cabinetSelect.appendChild(option);
             });
         }
-        
-        return res.status(500).json({
-            error: 'Erro interno do servidor',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
-    }
-});
 
-// Rota para buscar produtos por localização
-app.get('/api/produtos/localizacao/:localizacao', checkDatabaseConnection, async (req, res) => {
-    try {
-        const { localizacao } = req.params;
-        console.log(`Buscando produtos na localização: ${localizacao}`);
-        
-        const produtos = await db.collection('tabelaProdutos').find({ localizacao }).toArray();
-        console.log(`Encontrados ${produtos.length} produtos na localização ${localizacao}`);
-        
-        res.json(produtos);
-    } catch (error) {
-        console.error('Erro ao buscar produtos por localização:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Rota para buscar todos os produtos da tabelaProdutos
-app.get('/api/produtos', checkDatabaseConnection, async (req, res) => {
-    try {
-        console.log('Buscando todos os produtos da tabelaProdutos');
-        const produtos = await db.collection('tabelaProdutos').find({}).toArray();
-        console.log(`Encontrados ${produtos.length} produtos na tabelaProdutos`);
-        res.json(produtos);
-    } catch (error) {
-        console.error('Erro ao buscar produtos:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Rota para buscar todos os produtos da tabelaTotalDeProdutos
-app.get('/api/produtos-total', checkDatabaseConnection, async (req, res) => {
-    try {
-        console.log('Buscando todos os produtos da tabelaTotalDeProdutos');
-        const produtos = await db.collection('tabelaTotalDeProdutos').find({}).toArray();
-        console.log(`Encontrados ${produtos.length} produtos na tabelaTotalDeProdutos`);
-        res.json(produtos);
-    } catch (error) {
-        console.error('Erro ao buscar produtos totais:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Rota para remover produto da tabelaProdutos
-app.delete('/api/produto/:id', checkDatabaseConnection, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { ObjectId } = require('mongodb');
-        
-        console.log(`Removendo produto com ID: ${id}`);
-        
-        if (!ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'ID inválido' });
+        // Função para selecionar um armário
+        function selectCabinet(cabinet) {
+            selectedCabinet = cabinet;
+            
+            // Atualizar o dropdown
+            cabinetSelect.value = cabinet.id;
+            
+            // Habilitar seleção de prateleira
+            shelfSelect.disabled = false;
+            
+            // Mostrar detalhes do armário
+            showCabinetDetails(cabinet);
+            
+            // Verificar se pode habilitar o botão de adicionar
+            updateButtonStates();
         }
-        
-        const resultado = await db.collection('tabelaProdutos').deleteOne({ _id: new ObjectId(id) });
-        
-        if (resultado.deletedCount === 1) {
-            console.log(`Produto removido com sucesso: ${id}`);
-            res.json({ success: true, message: 'Produto removido com sucesso' });
-        } else {
-            console.log(`Produto não encontrado para remoção: ${id}`);
-            res.status(404).json({ error: 'Produto não encontrado' });
+
+        // Função para mostrar detalhes do armário
+        function showCabinetDetails(cabinet) {
+            const cabinetInfo = document.getElementById('cabinetDisplayInfo');
+            const cabinetView = document.getElementById('cabinetView');
+            
+            cabinetView.innerHTML = '';
+            cabinetView.className = 'cabinet-view ' + cabinet.type;
+            
+            cabinetInfo.innerHTML = `
+                <p><strong>ID:</strong> ${cabinet.id}</p>
+                <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
+                <p><strong>Produtos:</strong> ${Object.keys(cabinet.products).reduce((acc, shelf) => acc + (cabinet.products[shelf] ? cabinet.products[shelf].length : 0), 0)}</p>
+            `;
+            
+            // Criar prateleiras com numeração atualizada (7, 6, 5, 4, 3, 2, 1)
+            for (let i = 7; i >= 1; i--) {
+                const shelf = document.createElement('div');
+                shelf.className = `shelf ${cabinet.type} shelf-${i}${cabinet.type === 'pequeno' ? ' pequeno' : ''}`;
+                shelf.innerHTML = `<span class="shelf-label">Prateleira ${i}</span>`;
+                
+                if (cabinet.products && cabinet.products[`shelf-${i}`]) {
+                    cabinet.products[`shelf-${i}`].forEach(product => {
+                        const productElement = document.createElement('div');
+                        productElement.className = 'product-display';
+                        productElement.textContent = product.code;
+                        shelf.appendChild(productElement);
+                    });
+                }
+                
+                cabinetView.appendChild(shelf);
+            }
         }
-    } catch (error) {
-        console.error('Erro ao remover produto:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
 
-// Rota para atualizar localização de um produto
-app.put('/api/produto/:id/localizacao', checkDatabaseConnection, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { localizacao } = req.body;
-        const { ObjectId } = require('mongodb');
-        
-        console.log(`Atualizando localização do produto ${id} para: ${localizacao}`);
-        
-        if (!ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'ID inválido' });
+        // Função para atualizar estados dos botões
+        function updateButtonStates() {
+            addBtn.disabled = !(selectedCabinet && selectedShelf);
+            saveBtn.disabled = scannedProducts.length === 0;
+            productCount.textContent = scannedProducts.length;
+            scannedCount.textContent = scannedProducts.length;
         }
-        
-        const resultado = await db.collection('tabelaProdutos').updateOne(
-            { _id: new ObjectId(id) },
-            { $set: { localizacao, dataAtualizacao: new Date() } }
-        );
-        
-        if (resultado.matchedCount === 1) {
-            console.log(`Localização atualizada com sucesso para produto: ${id}`);
-            res.json({ success: true, message: 'Localização atualizada com sucesso' });
-        } else {
-            console.log(`Produto não encontrado para atualização: ${id}`);
-            res.status(404).json({ error: 'Produto não encontrado' });
+
+        // ===== FUNÇÕES DE SCANNER =====
+
+        // Função para alternar entre modo câmera e entrada manual
+        function toggleInputMode() {
+            isManualInputMode = !isManualInputMode;
+            
+            if (isManualInputMode) {
+                // Parar o scanner
+                if (isScannerActive) {
+                    Quagga.stop();
+                    isScannerActive = false;
+                }
+                
+                // Mostrar entrada manual
+                manualInputContainer.style.display = 'flex';
+                cameraVideo.style.display = 'none';
+                toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
+                
+                // Focar no input
+                manualBarcodeInput.focus();
+            } else {
+                // Esconder entrada manual
+                manualInputContainer.style.display = 'none';
+                cameraVideo.style.display = 'block';
+                toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
+                
+                // Reiniciar o scanner
+                startScanner();
+            }
         }
-    } catch (error) {
-        console.error('Erro ao atualizar localização:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
 
-// Rota para buscar produtos por código de barras (múltiplos resultados)
-app.get('/api/buscar/:codigo', checkDatabaseConnection, async (req, res) => {
-    try {
-        const { codigo } = req.params;
-        console.log(`Buscando produto completo com código: ${codigo}`);
-        
-        // Buscar na tabela de produtos (produtos já adicionados ao estoque)
-        const produtosEstoque = await db.collection('tabelaProdutos').find({ codigo }).toArray();
-        
-        // Buscar na tabela total (informações do produto)
-        const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ codigo });
-        
-        console.log(`Produto total encontrado: ${produtoTotal ? 'Sim' : 'Não'}`);
-        console.log(`Produtos no estoque: ${produtosEstoque.length}`);
-        
-        res.json({
-            produtoTotal,
-            produtosEstoque,
-            quantidadeEstoque: produtosEstoque.length
-        });
-    } catch (error) {
-        console.error('Erro ao buscar produto:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-});
-
-// Rota para buscar produtos por RCT (múltiplos resultados)
-app.get('/api/buscar/rct/:rct', checkDatabaseConnection, async (req, res) => {
-    try {
-        const { rct } = req.params;
-        console.log(`Buscando produto completo com RCT: ${rct}`);
-        
-        // Buscar na tabela total primeiro
-        const produtoTotal = await db.collection('tabelaTotalDeProdutos').findOne({ rct });
-        
-        if (!produtoTotal) {
-            console.log(`Produto não encontrado por RCT: ${rct}`);
-            return res.status(404).json({ error: 'Produto não encontrado' });
+        // Funções para controle do botão de bipagem
+        function handleScanStart(e) {
+            e.preventDefault();
+            if (isButtonDisabled) return;
+            scanButton.classList.add('active');
         }
-        
-        // Buscar na tabela de produtos usando o código
-        const produtosEstoque = await db.collection('tabelaProdutos').find({ codigo: produtoTotal.codigo }).toArray();
-        
-        console.log(`Produto encontrado por RCT: ${produtoTotal.codigo}`);
-        console.log(`Produtos no estoque: ${produtosEstoque.length}`);
-        
-        res.json({
-            produtoTotal,
-            produtosEstoque,
-            quantidadeEstoque: produtosEstoque.length
-        });
-    } catch (error) {
-        console.error('Erro ao buscar produto por RCT:', error);
-        res.status(500).json({ error: 'Erro interno do servidor' });
+
+        function handleScanEnd(e) {
+            e.preventDefault();
+            if (isButtonDisabled) return;
+            
+            scanButton.classList.remove('active');
+            isScanButtonPressed = true;
+        }
+
+        // Função para iniciar o scanner
+        async function startScanner() {
+            try {
+                // Solicitar permissão de câmera primeiro
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+
+                cameraVideo.srcObject = cameraStream;
+                await cameraVideo.play();
+
+                // Configurar eventos do botão de bipagem
+                scanButton.addEventListener('mousedown', handleScanStart);
+                scanButton.addEventListener('touchstart', handleScanStart);
+                scanButton.addEventListener('mouseup', handleScanEnd);
+                scanButton.addEventListener('touchend', handleScanEnd);
+                scanButton.addEventListener('mouseleave', handleScanEnd);
+
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: cameraVideo,
+                        constraints: {
+                            width: { min: 640 },
+                            height: { min: 480 },
+                            aspectRatio: { ideal: 1.333333 }
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader", 
+                            "code_39_reader",
+                            "upc_reader"
+                        ],
+                        multiple: false
+                    },
+                    locator: {
+                        halfSample: true,
+                        patchSize: "large",
+                        debug: {
+                            showCanvas: true,
+                            showPatches: true,
+                            showFoundPatches: true,
+                            showSkeleton: true,
+                            showLabels: true,
+                            showPatchLabels: true,
+                            showRemainingPatchLabels: true,
+                            boxFromPatches: {
+                                showTransformed: true,
+                                showTransformedBox: true,
+                                showBB: true
+                            }
+                        }
+                    },
+                    numOfWorkers: 4,
+                    frequency: 10,
+                    debug: false
+                }, function(err) {
+                    if (err) {
+                        console.error("Erro de inicialização:", err);
+                        showNotification("Erro ao iniciar scanner: " + err.message, 'error');
+                        return;
+                    }
+                    Quagga.start();
+                    isScannerActive = true;
+                });
+
+                Quagga.onDetected(async function(result) {
+                    // Só processa se o botão foi pressionado e solto
+                    if (!isScanButtonPressed || isButtonDisabled) return;
+                    
+                    const code = result.codeResult.code;
+                    
+                    // Validação do código - mínimo 12 caracteres, máximo 13
+                    if (!code || code.length < 12 || code.length > 13) {
+                        console.log("Código inválido - tamanho incorreto:", code);
+                        updateQualityIndicator(0, "Código inválido (deve ter 12-13 caracteres)");
+                        return;
+                    }
+                    
+                    // Verifica se contém apenas números
+                    if (!/^\d+$/.test(code)) {
+                        console.log("Código inválido - contém caracteres não numéricos:", code);
+                        updateQualityIndicator(0, "Código deve conter apenas números");
+                        return;
+                    }
+                    
+                    // Desativar temporariamente o botão
+                    isButtonDisabled = true;
+                    scanButton.classList.add('hidden');
+                    isScanButtonPressed = false;
+                    
+                    // Adicionar o produto
+                    await addScannedProduct(code);
+                    
+                    // Reativar o botão após 500ms
+                    setTimeout(() => {
+                        isButtonDisabled = false;
+                        scanButton.classList.remove('hidden');
+                    }, 500);
+                });
+
+            } catch (err) {
+                console.error("Erro de acesso à câmera:", err);
+                showNotification("Não foi possível acessar a câmera. Verifique as permissões!", 'error');
+                manualInputFallback();
+            }
+        }
+
+        // Função para atualizar o indicador de qualidade
+        function updateQualityIndicator(count, errorMessage = null) {
+            let qualityText, qualityColor;
+            
+            if (errorMessage) {
+                qualityText = errorMessage;
+                qualityColor = "red";
+            } else if (count === 0) {
+                qualityText = "Aguardando leitura...";
+                qualityColor = "gray";
+            } else {
+                qualityText = "Leitura confirmada!";
+                qualityColor = "green";
+            }
+            
+            qualityIndicator.textContent = `Qualidade: ${qualityText}`;
+            qualityIndicator.style.color = qualityColor;
+        }
+
+        // Função de fallback para entrada manual
+        function manualInputFallback() {
+            isManualInputMode = true;
+            manualInputContainer.style.display = 'flex';
+            cameraVideo.style.display = 'none';
+            toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
+            manualBarcodeInput.focus();
+        }
+
+        // ===== FUNÇÕES DE PRODUTOS =====
+
+        // Função para adicionar um produto escaneado/digitado - REFATORADA
+        async function addScannedProduct(code) {
+            try {
+                // Verificação do comprimento do código
+                if (code.length < 12) {
+                    showNotification(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`, 'error');
+                    return false;
+                }
+                
+                // Verificar se o produto existe na API
+                const produtoEncontrado = await findProductByCode(code);
+                if (!produtoEncontrado) {
+                    showNotification(`Produto com código ${code} não encontrado no catálogo.`, 'error');
+                    return false;
+                }
+                
+                // Verificar se o produto já foi escaneado
+                const jaEscaneado = scannedProducts.find(p => p.code === code);
+                if (jaEscaneado) {
+                    showNotification(`Produto ${code} já foi escaneado!`, 'warning');
+                    return false;
+                }
+                
+                // Garantir que o som seja reproduzido
+                playBeepSound();
+                
+                // Feedback visual
+                cameraFeedback.style.opacity = '1';
+                cameraFeedback.classList.add('checkmark-animation');
+                
+                // Adicionar o produto à lista
+                scannedProducts.push({
+                    code: code,
+                    rct: produtoEncontrado.rct,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                
+                updateScannedProductsList();
+                updateButtonStates();
+                
+                showNotification(`Produto ${code} adicionado com sucesso!`, 'success');
+                
+                // Resetar feedback
+                setTimeout(() => {
+                    cameraFeedback.style.opacity = '0';
+                    cameraFeedback.classList.remove('checkmark-animation');
+                }, 1000);
+                
+                // Limpar o input manual se estiver nesse modo
+                if (isManualInputMode) {
+                    manualBarcodeInput.value = '';
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Erro ao adicionar produto:', error);
+                showNotification('Erro ao adicionar produto: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // Função para atualizar a lista de produtos escaneados
+        function updateScannedProductsList() {
+            scannedProductsContainer.innerHTML = `<h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados (${scannedProducts.length})</h3>`;
+            
+            if (scannedProducts.length === 0) {
+                const emptyMsg = document.createElement('p');
+                emptyMsg.style.color = 'white';
+                emptyMsg.style.textAlign = 'center';
+                emptyMsg.textContent = 'Nenhum produto escaneado ainda. Aponte para um código de barras.';
+                scannedProductsContainer.appendChild(emptyMsg);
+                return;
+            }
+            
+            scannedProducts.forEach((product, index) => {
+                const productElement = document.createElement('div');
+                productElement.className = 'scanned-product';
+                productElement.innerHTML = `
+                    <div>
+                        <div><strong>${product.code}</strong></div>
+                        <div style="font-size: 12px; opacity: 0.8;">${product.rct} - ${product.timestamp}</div>
+                    </div>
+                    <button class="remove-btn" data-index="${index}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                scannedProductsContainer.appendChild(productElement);
+            });
+
+            // Adicionar event listeners para os botões de remoção
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const removedProduct = scannedProducts.splice(index, 1)[0];
+                    updateScannedProductsList();
+                    updateButtonStates();
+                    showNotification(`Produto ${removedProduct.code} removido da lista.`, 'warning');
+                });
+            });
+        }
+
+        // Função para parar o scanner
+        function stopBarcodeScanner() {
+            if (isScannerActive) {
+                Quagga.stop();
+                isScannerActive = false;
+            }
+            
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            
+            cameraModal.style.display = 'none';
+            isManualInputMode = false;
+            manualInputContainer.style.display = 'none';
+            cameraVideo.style.display = 'block';
+            toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
+            
+            // Resetar estados do botão
+            isButtonDisabled = false;
+            isScanButtonPressed = false;
+            scanButton.classList.remove('hidden');
+        }
+
+        // Função para salvar produtos no armário - REFATORADA COMPLETAMENTE
+        async function saveProductsToCabinet() {
+    if (!selectedCabinet || !selectedShelf) {
+        showNotification('Selecione um armário e uma prateleira', 'error');
+        return;
     }
-});
-
-// Rota para servir o arquivo HTML principal
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Rota para servir arquivos estáticos
-app.get('/:filename', (req, res) => {
-    const filename = req.params.filename;
-    if (filename.endsWith('.html') || filename.endsWith('.css') || filename.endsWith('.js') || filename.endsWith('.png') || filename.endsWith('.jpg') || filename.endsWith('.jpeg')) {
-        res.sendFile(path.join(__dirname, filename));
-    } else {
-        res.status(404).send('Arquivo não encontrado');
-    }
-});
-
-// Middleware de tratamento de erros
-app.use((error, req, res, next) => {
-    console.error('Erro não tratado:', error);
-    res.status(500).json({ 
-        error: 'Erro interno do servidor',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-});
-
-// Iniciar servidor
-async function startServer() {
-    await connectToMongoDB();
     
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`Servidor rodando na porta ${PORT}`);
-        console.log(`Acesse: http://localhost:${PORT}`);
-        console.log(`CORS configurado para GitHub Pages: https://riaraujo.github.io`);
-    });
+    try {
+        const shelfNumber = selectedShelf.split('-')[1];
+        const localizacao = `${selectedCabinet.id}-${shelfNumber}`;
+        const codigosProdutos = scannedProducts.map(product => product.code);
+        
+        console.log('Salvando produtos:', {
+            produtos: codigosProdutos,
+            localizacao: localizacao,
+            quantidade: codigosProdutos.length
+        });
+        
+        // Mostrar loading
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        
+        const response = await fetch(`${API_BASE_URL}/api/substituir-produtos-prateleira`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                produtos: codigosProdutos,
+                localizacao: localizacao
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Erro ao salvar produtos');
+        }
+        
+        const result = await response.json();
+        console.log('Resposta do servidor:', result);
+        
+        // Atualizar interface
+        const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
+        if (cabinet) {
+            if (!cabinet.products) cabinet.products = {};
+            cabinet.products[selectedShelf] = scannedProducts.map(product => ({
+                code: product.code,
+                name: `Produto ${product.code.substring(0, 4)}`,
+                addedAt: new Date().toISOString()
+            }));
+            
+            showCabinetDetails(cabinet);
+        }
+        
+        // Limpar a lista de produtos escaneados após salvar com sucesso
+        scannedProducts = [];
+        updateScannedProductsList();
+        updateButtonStates();
+        
+        // Fechar o modal da câmera
+        stopBarcodeScanner();
+        
+        showNotification(result.message || `${result.produtosAdicionados} produtos salvos com sucesso na localização ${localizacao}!`, 'success');
+        
+    } catch (error) {
+        console.error('Erro ao salvar produtos:', error);
+        showNotification('Erro ao salvar produtos: ' + error.message, 'error');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar (<span id="productCount">0</span>)';
+        updateButtonStates();
+    }
 }
 
-// Tratamento de encerramento gracioso
-process.on('SIGINT', async () => {
-    console.log('Encerrando servidor...');
-    if (client) {
-        await client.close();
-    }
-    process.exit(0);
-});
+        // ===== EVENT LISTENERS =====
 
-process.on('SIGTERM', async () => {
-    console.log('Encerrando servidor...');
-    if (client) {
-        await client.close();
-    }
-    process.exit(0);
-});
+        cabinetSelect.addEventListener('change', function() {
+            const cabinetId = this.value;
+            if (!cabinetId) {
+                selectedCabinet = null;
+                shelfSelect.disabled = true;
+                shelfSelect.value = '';
+                updateButtonStates();
+                return;
+            }
+            
+            const cabinet = estoque127.cabinets.find(cab => cab.id === cabinetId);
+            if (cabinet) {
+                selectCabinet(cabinet);
+            }
+        });
 
-startServer().catch(console.error);
+        shelfSelect.addEventListener('change', function() {
+            selectedShelf = this.value;
+            updateButtonStates();
+        });
 
+        addBtn.addEventListener('click', async function() {
+            try {
+                // Verificar se o dispositivo suporta acesso à câmera
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error("Navegador não suporta acesso à câmera");
+                }
+                
+                cameraModal.style.display = 'flex';
+                updateScannedProductsList();
+                await startScanner();
+            } catch (err) {
+                console.error("Erro ao iniciar câmera:", err);
+                showNotification("Erro ao acessar câmera: " + err.message, 'error');
+                manualInputFallback();
+            }
+        });
+
+        backBtn.addEventListener('click', stopBarcodeScanner);
+
+        saveBtn.addEventListener('click', saveProductsToCabinet);
+
+        toggleInputBtn.addEventListener('click', toggleInputMode);
+
+        manualAddBtn.addEventListener('click', async function() {
+            const code = manualBarcodeInput.value.trim();
+            if (code) {
+                await addScannedProduct(code);
+            }
+        });
+
+        manualBarcodeInput.addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                const code = manualBarcodeInput.value.trim();
+                if (code) {
+                    await addScannedProduct(code);
+                }
+            }
+        });
+
+        // Fechar o modal ao pressionar Esc
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && cameraModal.style.display === 'flex') {
+                stopBarcodeScanner();
+            }
+        });
+
+        // ===== INICIALIZAÇÃO =====
+        window.onload = function() {
+            initAudio();
+            renderStaticStock();
+            testConnection();
+            
+            // Testar conexão a cada 30 segundos
+            setInterval(testConnection, 30000);
+            
+            if (estoque127.cabinets.length > 0) {
+                // Mostrar o primeiro armário por padrão
+                showCabinetDetails(estoque127.cabinets[0]);
+            }
+        };
+    </script>
+</body>
+</html>

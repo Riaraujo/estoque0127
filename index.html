@@ -228,7 +228,7 @@
             overflow: hidden;
         }
 
-        .cabinet-static {
+        .armario-static {
             position: absolute;
             display: flex;
             align-items: center;
@@ -240,24 +240,24 @@
             transition: all 0.2s ease;
         }
 
-        .cabinet-static:hover {
+        .armario-static:hover {
             transform: scale(1.05);
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
 
-        .cabinet-static.grande {
+        .armario-static.grande {
             width: 100px;
             height: 60px;
             background-color: var(--secondary-color);
         }
 
-        .cabinet-static.pequeno {
+        .armario-static.pequeno {
             width: 40px;
             height: 60px;
             background-color: #27ae60;
         }
 
-        .cabinet-display {
+        .armario-display {
             width: 350px;
             background: white;
             padding: 20px;
@@ -267,7 +267,7 @@
             top: 30px;
         }
 
-        .cabinet-display-title {
+        .armario-display-title {
             font-size: 18px;
             color: var(--primary-color);
             margin-bottom: 15px;
@@ -276,7 +276,7 @@
             gap: 10px;
         }
 
-        .cabinet-view {
+        .armario-view {
             position: relative;
             width: 100%;
             border: 2px solid var(--primary-color);
@@ -285,11 +285,11 @@
             overflow: hidden;
         }
 
-        .cabinet-view.grande {
+        .armario-view.grande {
             height: 680px;
         }
 
-        .cabinet-view.pequeno {
+        .armario-view.pequeno {
             height: 550px;
             width: 100px;
         }
@@ -356,7 +356,7 @@
                 flex-direction: column;
             }
             
-            .cabinet-display {
+            .armario-display {
                 width: 100%;
                 max-width: 800px;
                 position: relative;
@@ -441,7 +441,7 @@
             z-index: 10;
         }
 
-        .cabinet-marker {
+        .armario-marker {
             top: 5px;
             right: 5px;
         }
@@ -538,14 +538,14 @@
                 </div>
                 
                 <!-- Visualização do armário -->
-                <div class="cabinet-display">
-                    <h2 class="cabinet-display-title">
+                <div class="armario-display">
+                    <h2 class="armario-display-title">
                         <i class="fas fa-archive"></i> Visualização do Armário
                     </h2>
-                    <div id="cabinetDisplayInfo">
+                    <div id="armarioDisplayInfo">
                         <p>Selecione um armário para visualizar detalhes</p>
                     </div>
-                    <div id="cabinetView" class="cabinet-view">
+                    <div id="armarioView" class="armario-view">
                         <!-- Prateleiras serão renderizadas aqui -->
                     </div>
                 </div>
@@ -566,9 +566,9 @@
     "width": 680,
     "height": 2500
   },
-  "cabinets": [
+  "armarios": [
     {
-      "id": "cabinet-1",
+      "id": "armario-1",
       "type": "pequeno",
       "x": 14.90625,
       "y": 1501.9063415527344,
@@ -576,7 +576,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-2",
+      "id": "armario-2",
       "type": "pequeno",
       "x": 15.112499237060547,
       "y": 1461.1313171386719,
@@ -584,7 +584,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-3",
+      "id": "armario-3",
       "type": "pequeno",
       "x": 14.799999237060547,
       "y": 1419.8188247680664,
@@ -592,7 +592,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-4",
+      "id": "armario-4",
       "type": "pequeno",
       "x": 14.924999237060547,
       "y": 1378.9125747680664,
@@ -600,7 +600,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-5",
+      "id": "armario-5",
       "type": "pequeno",
       "x": 14.831249237060547,
       "y": 1337.8188247680664,
@@ -608,7 +608,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-6",
+      "id": "armario-6",
       "type": "pequeno",
       "x": 14.706249237060547,
       "y": 1296.7063217163086,
@@ -616,7 +616,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-7",
+      "id": "armario-7",
       "type": "pequeno",
       "x": 14.706249237060547,
       "y": 1255.7063217163086,
@@ -624,7 +624,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-8",
+      "id": "armario-8",
       "type": "pequeno",
       "x": 15.325004577636719,
       "y": 1214.3438415527344,
@@ -632,7 +632,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-9",
+      "id": "armario-9",
       "type": "pequeno",
       "x": 16.006248474121094,
       "y": 1173.0188293457031,
@@ -640,7 +640,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-10",
+      "id": "armario-10",
       "type": "pequeno",
       "x": 16.012500762939453,
       "y": 1132.0125122070312,
@@ -648,7 +648,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-11",
+      "id": "armario-11",
       "type": "pequeno",
       "x": 16.106250762939453,
       "y": 1091.1312561035156,
@@ -656,7 +656,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-12",
+      "id": "armario-12",
       "type": "pequeno",
       "x": 15.8125,
       "y": 1049.8187713623047,
@@ -664,7 +664,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-13",
+      "id": "armario-13",
       "type": "pequeno",
       "x": 16.15625,
       "y": 1009.1437683105469,
@@ -672,7 +672,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-14",
+      "id": "armario-14",
       "type": "pequeno",
       "x": 15.72500228881836,
       "y": 967.7250213623047,
@@ -680,7 +680,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-15",
+      "id": "armario-15",
       "type": "pequeno",
       "x": 15.785736083984375,
       "y": 926.7768249511719,
@@ -688,7 +688,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-16",
+      "id": "armario-16",
       "type": "pequeno",
       "x": 15.883941650390625,
       "y": 885.8750610351562,
@@ -696,7 +696,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-17",
+      "id": "armario-17",
       "type": "pequeno",
       "x": 15.6785888671875,
       "y": 844.6786193847656,
@@ -704,7 +704,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-18",
+      "id": "armario-18",
       "type": "pequeno",
       "x": 15.77679443359375,
       "y": 802.7857360839844,
@@ -712,7 +712,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-19",
+      "id": "armario-19",
       "type": "pequeno",
       "x": 15.77679443359375,
       "y": 761.7857360839844,
@@ -720,7 +720,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-20",
+      "id": "armario-20",
       "type": "pequeno",
       "x": 15.6785888671875,
       "y": 720.6785888671875,
@@ -728,7 +728,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-21",
+      "id": "armario-21",
       "type": "pequeno",
       "x": 15.89288330078125,
       "y": 678.8928833007812,
@@ -736,7 +736,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-22",
+      "id": "armario-22",
       "type": "grande",
       "x": -13.962493896484375,
       "y": 607,
@@ -744,7 +744,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-23",
+      "id": "armario-23",
       "type": "grande",
       "x": -13.86248779296875,
       "y": 505.1125030517578,
@@ -752,7 +752,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-24",
+      "id": "armario-24",
       "type": "grande",
       "x": -14.975006103515625,
       "y": 402,
@@ -760,7 +760,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-25",
+      "id": "armario-25",
       "type": "grande",
       "x": -15.677093505859375,
       "y": 300.32640075683594,
@@ -768,7 +768,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-26",
+      "id": "armario-26",
       "type": "grande",
       "x": -16.555572509765625,
       "y": 197.43751525878906,
@@ -776,7 +776,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-27",
+      "id": "armario-27",
       "type": "grande",
       "x": -16.66668701171875,
       "y": 95.32640075683594,
@@ -784,7 +784,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-28",
+      "id": "armario-28",
       "type": "pequeno",
       "x": 171.5,
       "y": 1550.5,
@@ -792,7 +792,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-29",
+      "id": "armario-29",
       "type": "pequeno",
       "x": 171.5,
       "y": 1509.5,
@@ -800,7 +800,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-30",
+      "id": "armario-30",
       "type": "pequeno",
       "x": 171.59375,
       "y": 1468.59375,
@@ -808,7 +808,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-31",
+      "id": "armario-31",
       "type": "pequeno",
       "x": 171.609375,
       "y": 1427.609375,
@@ -816,7 +816,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-32",
+      "id": "armario-32",
       "type": "pequeno",
       "x": 171.609375,
       "y": 1386.59375,
@@ -824,7 +824,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-33",
+      "id": "armario-33",
       "type": "pequeno",
       "x": 171.5,
       "y": 1345.5,
@@ -832,7 +832,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-34",
+      "id": "armario-34",
       "type": "pequeno",
       "x": 171.5,
       "y": 1304.5,
@@ -840,7 +840,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-35",
+      "id": "armario-35",
       "type": "pequeno",
       "x": 171.5,
       "y": 1263.5,
@@ -848,7 +848,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-36",
+      "id": "armario-36",
       "type": "pequeno",
       "x": 172.0078125,
       "y": 1223.015625,
@@ -856,7 +856,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-37",
+      "id": "armario-37",
       "type": "pequeno",
       "x": 171.90625,
       "y": 1181.90625,
@@ -864,7 +864,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-38",
+      "id": "armario-38",
       "type": "pequeno",
       "x": 171.703125,
       "y": 1141.703125,
@@ -872,7 +872,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-39",
+      "id": "armario-39",
       "type": "pequeno",
       "x": 170.90625,
       "y": 1099.90625,
@@ -880,7 +880,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-40",
+      "id": "armario-40",
       "type": "pequeno",
       "x": 171.90625,
       "y": 1058.90625,
@@ -888,7 +888,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-41",
+      "id": "armario-41",
       "type": "pequeno",
       "x": 172.6953125,
       "y": 1017.6953125,
@@ -896,7 +896,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-42",
+      "id": "armario-42",
       "type": "pequeno",
       "x": 172.50625610351562,
       "y": 976.5062713623047,
@@ -904,7 +904,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-43",
+      "id": "armario-43",
       "type": "pequeno",
       "x": 172.7062530517578,
       "y": 935.7062606811523,
@@ -912,7 +912,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-44",
+      "id": "armario-44",
       "type": "pequeno",
       "x": 172.8125,
       "y": 894.8187713623047,
@@ -920,7 +920,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-45",
+      "id": "armario-45",
       "type": "pequeno",
       "x": 172.81875610351562,
       "y": 853.8062591552734,
@@ -928,7 +928,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-46",
+      "id": "armario-46",
       "type": "pequeno",
       "x": 172.90625,
       "y": 812.9062805175781,
@@ -936,7 +936,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-47",
+      "id": "armario-47",
       "type": "pequeno",
       "x": 172.80625915527344,
       "y": 771.8125152587891,
@@ -944,7 +944,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-48",
+      "id": "armario-48",
       "type": "pequeno",
       "x": 173.00625610351562,
       "y": 731.0125122070312,
@@ -952,7 +952,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-49",
+      "id": "armario-49",
       "type": "grande",
       "x": 143.88394165039062,
       "y": 628.8928985595703,
@@ -960,7 +960,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-50",
+      "id": "armario-50",
       "type": "grande",
       "x": 143.34823608398438,
       "y": 527.3571624755859,
@@ -968,7 +968,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-51",
+      "id": "armario-51",
       "type": "grande",
       "x": 142.89288330078125,
       "y": 425.8839416503906,
@@ -976,7 +976,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-52",
+      "id": "armario-52",
       "type": "grande",
       "x": 142.77679443359375,
       "y": 323.7857208251953,
@@ -984,7 +984,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-53",
+      "id": "armario-53",
       "type": "grande",
       "x": 142.45538330078125,
       "y": 222.46429061889648,
@@ -992,7 +992,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-54",
+      "id": "armario-54",
       "type": "grande",
       "x": 142.11251831054688,
       "y": 121.11250305175781,
@@ -1000,7 +1000,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-55",
+      "id": "armario-55",
       "type": "pequeno",
       "x": 231.90625,
       "y": 1550.9063415527344,
@@ -1008,7 +1008,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-56",
+      "id": "armario-56",
       "type": "pequeno",
       "x": 232.11874389648438,
       "y": 1510.1250762939453,
@@ -1016,7 +1016,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-57",
+      "id": "armario-57",
       "type": "pequeno",
       "x": 231.90625,
       "y": 1468.9063262939453,
@@ -1024,7 +1024,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-58",
+      "id": "armario-58",
       "type": "pequeno",
       "x": 232.01876831054688,
       "y": 1428.0125732421875,
@@ -1032,7 +1032,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-59",
+      "id": "armario-59",
       "type": "pequeno",
       "x": 232.00625610351562,
       "y": 1387.0125732421875,
@@ -1040,7 +1040,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-60",
+      "id": "armario-60",
       "type": "pequeno",
       "x": 232.00625610351562,
       "y": 1346.0188293457031,
@@ -1048,7 +1048,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-61",
+      "id": "armario-61",
       "type": "pequeno",
       "x": 232.01251220703125,
       "y": 1305.0188293457031,
@@ -1056,7 +1056,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-62",
+      "id": "armario-62",
       "type": "pequeno",
       "x": 232.00625610351562,
       "y": 1264.0188293457031,
@@ -1064,7 +1064,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-63",
+      "id": "armario-63",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1222.9063415527344,
@@ -1072,7 +1072,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-64",
+      "id": "armario-64",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1181.9063262939453,
@@ -1080,7 +1080,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-65",
+      "id": "armario-65",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1140.9063262939453,
@@ -1088,7 +1088,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-66",
+      "id": "armario-66",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1099.906265258789,
@@ -1096,7 +1096,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-67",
+      "id": "armario-67",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1058.9062805175781,
@@ -1104,7 +1104,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-68",
+      "id": "armario-68",
       "type": "pequeno",
       "x": 233.703125,
       "y": 1017.703125,
@@ -1112,7 +1112,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-69",
+      "id": "armario-69",
       "type": "pequeno",
       "x": 232.90625,
       "y": 976.9062652587891,
@@ -1120,7 +1120,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-70",
+      "id": "armario-70",
       "type": "pequeno",
       "x": 232.90625,
       "y": 935.9062652587891,
@@ -1128,7 +1128,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-71",
+      "id": "armario-71",
       "type": "pequeno",
       "x": 234.5,
       "y": 894.5124969482422,
@@ -1136,7 +1136,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-72",
+      "id": "armario-72",
       "type": "pequeno",
       "x": 234.39376831054688,
       "y": 853.4062347412109,
@@ -1144,7 +1144,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-73",
+      "id": "armario-73",
       "type": "pequeno",
       "x": 234.30001831054688,
       "y": 812.2999877929688,
@@ -1152,7 +1152,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-74",
+      "id": "armario-74",
       "type": "pequeno",
       "x": 234.5,
       "y": 771.4999847412109,
@@ -1160,7 +1160,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-75",
+      "id": "armario-75",
       "type": "pequeno",
       "x": 233.80624389648438,
       "y": 730.8062591552734,
@@ -1168,7 +1168,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-76",
+      "id": "armario-76",
       "type": "grande",
       "x": 204.7857666015625,
       "y": 628.7768249511719,
@@ -1176,7 +1176,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-77",
+      "id": "armario-77",
       "type": "grande",
       "x": 204.982177734375,
       "y": 527.9910888671875,
@@ -1184,7 +1184,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-78",
+      "id": "armario-78",
       "type": "grande",
       "x": 203.77679443359375,
       "y": 425.7857360839844,
@@ -1192,7 +1192,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-79",
+      "id": "armario-79",
       "type": "grande",
       "x": 203.77679443359375,
       "y": 324.7857208251953,
@@ -1200,7 +1200,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-80",
+      "id": "armario-80",
       "type": "grande",
       "x": 203.90179443359375,
       "y": 222.88393783569336,
@@ -1208,7 +1208,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-81",
+      "id": "armario-81",
       "type": "grande",
       "x": 203.01251220703125,
       "y": 121.02500915527344,
@@ -1216,7 +1216,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-82",
+      "id": "armario-82",
       "type": "grande",
       "x": 343.25,
       "y": 1086.25,
@@ -1224,7 +1224,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-83",
+      "id": "armario-83",
       "type": "grande",
       "x": 343.25006103515625,
       "y": 984.2500457763672,
@@ -1232,7 +1232,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-84",
+      "id": "armario-84",
       "type": "grande",
       "x": 342.6785888671875,
       "y": 882.6785888671875,
@@ -1240,7 +1240,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-85",
+      "id": "armario-85",
       "type": "grande",
       "x": 342.6785888671875,
       "y": 781.6786193847656,
@@ -1248,7 +1248,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-86",
+      "id": "armario-86",
       "type": "grande",
       "x": 342.7857666015625,
       "y": 626.7768249511719,
@@ -1256,7 +1256,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-87",
+      "id": "armario-87",
       "type": "grande",
       "x": 342.89288330078125,
       "y": 524.8928680419922,
@@ -1264,7 +1264,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-88",
+      "id": "armario-88",
       "type": "grande",
       "x": 342.77679443359375,
       "y": 423.77679443359375,
@@ -1272,7 +1272,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-89",
+      "id": "armario-89",
       "type": "grande",
       "x": 341.88397216796875,
       "y": 322.90179443359375,
@@ -1280,7 +1280,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-90",
+      "id": "armario-90",
       "type": "grande",
       "x": 341.77679443359375,
       "y": 221.78572845458984,
@@ -1288,7 +1288,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-91",
+      "id": "armario-91",
       "type": "grande",
       "x": 340.57501220703125,
       "y": 120.57500457763672,
@@ -1296,7 +1296,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-92",
+      "id": "armario-92",
       "type": "grande",
       "x": 405.671875,
       "y": 1085.671875,
@@ -1304,7 +1304,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-93",
+      "id": "armario-93",
       "type": "grande",
       "x": 405.671875,
       "y": 983.671875,
@@ -1312,7 +1312,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-94",
+      "id": "armario-94",
       "type": "grande",
       "x": 403.6785888671875,
       "y": 882.6785888671875,
@@ -1320,7 +1320,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-95",
+      "id": "armario-95",
       "type": "grande",
       "x": 404.6785888671875,
       "y": 781.6786193847656,
@@ -1328,7 +1328,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-96",
+      "id": "armario-96",
       "type": "grande",
       "x": 403.6785888671875,
       "y": 626.6786193847656,
@@ -1336,7 +1336,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-97",
+      "id": "armario-97",
       "type": "grande",
       "x": 403.7857666015625,
       "y": 525.7857208251953,
@@ -1344,7 +1344,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-98",
+      "id": "armario-98",
       "type": "grande",
       "x": 403.7857666015625,
       "y": 423.7857360839844,
@@ -1352,7 +1352,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-99",
+      "id": "armario-99",
       "type": "grande",
       "x": 403.7857666015625,
       "y": 322.77679443359375,
@@ -1360,7 +1360,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-100",
+      "id": "armario-100",
       "type": "grande",
       "x": 402.77679443359375,
       "y": 221.78572845458984,
@@ -1368,7 +1368,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-101",
+      "id": "armario-101",
       "type": "grande",
       "x": 403.453125,
       "y": 121.453125,
@@ -1376,7 +1376,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-102",
+      "id": "armario-102",
       "type": "grande",
       "x": 527,
       "y": 1073.765625,
@@ -1384,7 +1384,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-103",
+      "id": "armario-103",
       "type": "grande",
       "x": 526,
       "y": 972.875,
@@ -1392,7 +1392,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-104",
+      "id": "armario-104",
       "type": "grande",
       "x": 525,
       "y": 871.09375,
@@ -1400,7 +1400,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-105",
+      "id": "armario-105",
       "type": "grande",
       "x": 525,
       "y": 769.4375,
@@ -1408,7 +1408,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-106",
+      "id": "armario-106",
       "type": "grande",
       "x": 524,
       "y": 667.421875,
@@ -1416,7 +1416,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-107",
+      "id": "armario-107",
       "type": "grande",
       "x": 89.3125,
       "y": 0,
@@ -1424,7 +1424,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-108",
+      "id": "armario-108",
       "type": "grande",
       "x": 191.31594848632812,
       "y": 0,
@@ -1432,7 +1432,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-109",
+      "id": "armario-109",
       "type": "grande",
       "x": 293.5243225097656,
       "y": 0,
@@ -1440,7 +1440,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-110",
+      "id": "armario-110",
       "type": "grande",
       "x": 520.8839721679688,
       "y": 22.883926391601562,
@@ -1448,7 +1448,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-111",
+      "id": "armario-111",
       "type": "grande",
       "x": 521.7857666015625,
       "y": 124.77677917480469,
@@ -1456,7 +1456,7 @@
       "products": {}
     },
     {
-      "id": "cabinet-112",
+      "id": "armario-112",
       "type": "grande",
       "x": 404.02679443359375,
       "y": 1188.0268249511719,
@@ -1567,9 +1567,9 @@
         function limparMarcadores() {
             document.querySelectorAll('.location-marker').forEach(marker => marker.remove());
             
-            const cabinetView = document.getElementById('cabinetView');
-            if (cabinetView) {
-                cabinetView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
+            const armarioView = document.getElementById('armarioView');
+            if (armarioView) {
+                armarioView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
             }
         }
 
@@ -1580,24 +1580,24 @@
 
             produtos.forEach(produto => {
                 if (produto.localizacao) {
-                    const [cabinetId, shelfId] = produto.localizacao.split('-');
+                    const [armarioId, shelfId] = produto.localizacao.split('-');
                     
-                    if (!armarioParaPrateleiras.has(cabinetId)) {
-                        armarioParaPrateleiras.set(cabinetId, []);
+                    if (!armarioParaPrateleiras.has(armarioId)) {
+                        armarioParaPrateleiras.set(armarioId, []);
                     }
-                    if (!armarioParaPrateleiras.get(cabinetId).includes(shelfId)) {
-                        armarioParaPrateleiras.get(cabinetId).push(shelfId);
+                    if (!armarioParaPrateleiras.get(armarioId).includes(shelfId)) {
+                        armarioParaPrateleiras.get(armarioId).push(shelfId);
                     }
 
-                    const cabinetElement = document.getElementById(cabinetId);
-                    if (cabinetElement && !cabinetElement.querySelector('.cabinet-marker')) {
+                    const armarioElement = document.getElementById(armarioId);
+                    if (armarioElement && !armarioElement.querySelector('.armario-marker')) {
                         const marker = document.createElement('div');
-                        marker.className = 'location-marker cabinet-marker';
-                        cabinetElement.appendChild(marker);
+                        marker.className = 'location-marker armario-marker';
+                        armarioElement.appendChild(marker);
 
-                        cabinetElement.addEventListener('click', () => {
+                        armarioElement.addEventListener('click', () => {
                             setTimeout(() => {
-                                const prateleiras = armarioParaPrateleiras.get(cabinetId) || [];
+                                const prateleiras = armarioParaPrateleiras.get(armarioId) || [];
                                 marcarPrateleiras(prateleiras);
                             }, 50);
                         });
@@ -1607,13 +1607,13 @@
         }
 
         function marcarPrateleiras(shelfIds) {
-            const cabinetView = document.getElementById('cabinetView');
-            if (!cabinetView) return;
+            const armarioView = document.getElementById('armarioView');
+            if (!armarioView) return;
 
-            cabinetView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
+            armarioView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
 
             shelfIds.forEach(shelfId => {
-                const shelfElement = cabinetView.querySelector(`.shelf-${shelfId}`);
+                const shelfElement = armarioView.querySelector(`.shelf-${shelfId}`);
                 if (shelfElement) {
                     const marker = document.createElement('div');
                     marker.className = 'location-marker shelf-marker';
@@ -1628,42 +1628,42 @@
             container.style.width = `${estoque127.dimensions.width}px`;
             container.style.height = `${estoque127.dimensions.height}px`;
             
-            estoque127.cabinets.forEach(cab => {
-                const cabinet = document.createElement('div');
-                cabinet.className = `cabinet-static ${cab.type}`;
-                cabinet.id = cab.id;
-                cabinet.style.left = `${cab.x}px`;
-                cabinet.style.top = `${cab.y}px`;
-                cabinet.style.transform = `rotate(${cab.rotation}deg)`;
-                cabinet.textContent = cab.id;
+            estoque127.armarios.forEach(cab => {
+                const armario = document.createElement('div');
+                armario.className = `armario-static ${cab.type}`;
+                armario.id = cab.id;
+                armario.style.left = `${cab.x}px`;
+                armario.style.top = `${cab.y}px`;
+                armario.style.transform = `rotate(${cab.rotation}deg)`;
+                armario.textContent = cab.id;
                 
-                cabinet.addEventListener('click', function() {
-                    showCabinetDetails(cab);
+                armario.addEventListener('click', function() {
+                    showarmarioDetails(cab);
                 });
                 
-                container.appendChild(cabinet);
+                container.appendChild(armario);
             });
         }
 
-        function showCabinetDetails(cabinet) {
-            const cabinetInfo = document.getElementById('cabinetDisplayInfo');
-            const cabinetView = document.getElementById('cabinetView');
+        function showarmarioDetails(armario) {
+            const armarioInfo = document.getElementById('armarioDisplayInfo');
+            const armarioView = document.getElementById('armarioView');
             
-            cabinetView.innerHTML = '';
-            cabinetView.className = 'cabinet-view ' + cabinet.type;
+            armarioView.innerHTML = '';
+            armarioView.className = 'armario-view ' + armario.type;
             
-            cabinetInfo.innerHTML = `
-                <p><strong>ID:</strong> ${cabinet.id}</p>
-                <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
+            armarioInfo.innerHTML = `
+                <p><strong>ID:</strong> ${armario.id}</p>
+                <p><strong>Tipo:</strong> ${armario.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
             `;
             
             for (let i = 1; i <= 6; i++) {
                 const shelf = document.createElement('div');
-                shelf.className = `shelf ${cabinet.type} shelf-${i}${cabinet.type === 'pequeno' ? ' pequeno' : ''}`;
+                shelf.className = `shelf ${armario.type} shelf-${i}${armario.type === 'pequeno' ? ' pequeno' : ''}`;
                 shelf.innerHTML = `<span class="shelf-label">Prateleira ${i}</span>`;
                 
-                if (cabinet.products && cabinet.products[`shelf-${i}`]) {
-                    cabinet.products[`shelf-${i}`].forEach(product => {
+                if (armario.products && armario.products[`shelf-${i}`]) {
+                    armario.products[`shelf-${i}`].forEach(product => {
                         const productElement = document.createElement('div');
                         productElement.className = 'product-display';
                         productElement.textContent = product.name;
@@ -1671,13 +1671,13 @@
                     });
                 }
                 
-                cabinetView.appendChild(shelf);
+                armarioView.appendChild(shelf);
             }
             
             const produtosNoArmario = resultadosAtuais.filter(produto => {
                 if (produto.localizacao) {
                     const [cabId, _] = produto.localizacao.split('-');
-                    return cabId === cabinet.id;
+                    return cabId === armario.id;
                 }
                 return false;
             });
@@ -1693,8 +1693,8 @@
         window.onload = function() {
             renderStaticStock();
             
-            if (estoque127.cabinets.length > 0) {
-                showCabinetDetails(estoque127.cabinets[0]);
+            if (estoque127.armarios.length > 0) {
+                showarmarioDetails(estoque127.armarios[0]);
             }
         };
     </script>
@@ -1775,4 +1775,5 @@
     </script>
 </body>
 </html>
+
 

@@ -2,11 +2,14 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Busca de Produtos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Adicionar Produtos</title>
     
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- QuaggaJS para leitura de código de barras -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     
     <style>
         * {
@@ -20,6 +23,8 @@
             --primary-color: #2c3e50;
             --secondary-color: #3498db;
             --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
             --background-color: #f8f9fa;
             --text-color: #2c3e50;
         }
@@ -96,108 +101,6 @@
             margin-left: 15%;
         }
 
-        .search-container {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .input-group {
-            flex: 1;
-            position: relative;
-        }
-
-        .input-group i {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px 35px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .search-btn {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-
-        .search-btn:hover {
-            background-color: #2980b9;
-        }
-
-        .clear-btn {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 12px;
-        }
-
-        .results-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: var(--secondary-color);
-        }
-
         .content-wrapper {
             display: flex;
             gap: 20px;
@@ -228,7 +131,7 @@
             overflow: hidden;
         }
 
-        .armario-static {
+        .cabinet-static {
             position: absolute;
             display: flex;
             align-items: center;
@@ -240,24 +143,24 @@
             transition: all 0.2s ease;
         }
 
-        .armario-static:hover {
+        .cabinet-static:hover {
             transform: scale(1.05);
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
 
-        .armario-static.grande {
+        .cabinet-static.grande {
             width: 100px;
             height: 60px;
             background-color: var(--secondary-color);
         }
 
-        .armario-static.pequeno {
+        .cabinet-static.pequeno {
             width: 40px;
             height: 60px;
-            background-color: #27ae60;
+            background-color: var(--success-color);
         }
 
-        .armario-display {
+        .cabinet-display {
             width: 350px;
             background: white;
             padding: 20px;
@@ -267,7 +170,7 @@
             top: 30px;
         }
 
-        .armario-display-title {
+        .cabinet-display-title {
             font-size: 18px;
             color: var(--primary-color);
             margin-bottom: 15px;
@@ -276,7 +179,7 @@
             gap: 10px;
         }
 
-        .armario-view {
+        .cabinet-view {
             position: relative;
             width: 100%;
             border: 2px solid var(--primary-color);
@@ -285,12 +188,12 @@
             overflow: hidden;
         }
 
-        .armario-view.grande {
-            height: 680px;
+        .cabinet-view.grande {
+            height: 780px;
         }
 
-        .armario-view.pequeno {
-            height: 550px;
+        .cabinet-view.pequeno {
+            height: 650px;
             width: 100px;
         }
 
@@ -337,35 +240,349 @@
             font-size: 11px;
         }
 
-        .shelf-6 { top: 10px; }
-        .shelf-5 { top: 120px; }
-        .shelf-4 { top: 230px; }
-        .shelf-3 { top: 340px; }
-        .shelf-2 { top: 450px; }
-        .shelf-1 { top: 560px; }
+        .shelf-7 { top: 10px; }
+        .shelf-6 { top: 120px; }
+        .shelf-5 { top: 230px; }
+        .shelf-4 { top: 340px; }
+        .shelf-3 { top: 450px; }
+        .shelf-2 { top: 560px; }
+        .shelf-1 { top: 670px; }
 
-        .shelf-6.pequeno { top: 10px; }
-        .shelf-5.pequeno { top: 100px; }
-        .shelf-4.pequeno { top: 190px; }
-        .shelf-3.pequeno { top: 280px; }
-        .shelf-2.pequeno { top: 370px; }
-        .shelf-1.pequeno { top: 460px; }
+        .shelf-7.pequeno { top: 10px; }
+        .shelf-6.pequeno { top: 100px; }
+        .shelf-5.pequeno { top: 190px; }
+        .shelf-4.pequeno { top: 280px; }
+        .shelf-3.pequeno { top: 370px; }
+        .shelf-2.pequeno { top: 460px; }
+        .shelf-1.pequeno { top: 550px; }
 
-        @media (max-width: 1450px) {
+        .add-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .add-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .add-btn:hover:not(:disabled) {
+            background-color: #2980b9;
+        }
+
+        .save-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .save-btn:hover:not(:disabled) {
+            background-color: #219653;
+        }
+
+        .back-btn {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .back-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .camera-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-container {
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            height: calc(60vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: black;
+        }
+
+        #scannerCanvas {
+            display: none;
+        }
+
+        .camera-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .camera-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            color: var(--success-color);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1001;
+        }
+
+        .scanned-products {
+            margin-top: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .scanned-product {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .manual-input-container {
+            margin-top: 20px;
+            width: 80%;
+            max-width: 800px;
+            display: none;
+            gap: 10px;
+        }
+
+        .manual-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+        }
+
+        .manual-add-btn {
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .manual-add-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .switch-input-mode {
+            margin-top: 15px;
+            background: none;
+            border: none;
+            color: white;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .scan-quality-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 1001;
+        }
+
+        .scan-button-container {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            z-index: 1002;
+        }
+
+        .scan-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: rgba(52, 152, 219, 0.8);
+            border: 4px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .scan-button:active {
+            transform: scale(0.95);
+            background-color: rgba(41, 128, 185, 0.9);
+        }
+
+        .scan-button.hidden {
+            display: none;
+        }
+
+        .scan-button i {
+            font-size: 30px;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 5px;
+        }
+
+        .remove-btn:hover {
+            color: var(--accent-color);
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .connection-status.online {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .connection-status.offline {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .connection-status.testing {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--accent-color);
+        }
+
+        .notification.warning {
+            background-color: var(--warning-color);
+        }
+
+        @media (max-width: 1400px) {
             .content-wrapper {
                 flex-direction: column;
             }
             
-            .armario-display {
+            .cabinet-display {
                 width: 100%;
                 max-width: 800px;
                 position: relative;
                 top: auto;
-            }
-            .stock-view{
-                width:100%;
-                position: relative;
-                height: auto;
             }
             
             .plant-container-static {
@@ -395,29 +612,31 @@
                 height: auto;
             }
 
-            .stock-view{
-                width:100%;
-                position: relative;
-                height: auto;
-            }
-
             .main-content {
                 width: 100%;
                 margin-left: 0;
                 padding: 15px;
             }
 
-            .search-box {
+            .button-group {
                 flex-direction: column;
-            }
-
-            table {
-                overflow-x: auto;
-                display: block;
             }
             
             .plant-container-static {
                 height: 400px;
+            }
+
+            .camera-container {
+                height: calc(50vh - 80px);
+            }
+
+            .manual-input-container {
+                flex-direction: column;
+            }
+
+            .scan-button {
+                width: 70px;
+                height: 70px;
             }
         }
 
@@ -430,41 +649,38 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-        .location-marker {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background-color: #e74c3c;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 0 0 2px #e74c3c;
-            z-index: 10;
+        @keyframes checkmark {
+            0% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1.5); }
+            100% { opacity: 0; transform: scale(1); }
         }
 
-        .armario-marker {
-            top: 5px;
-            right: 5px;
-        }
-
-        .shelf-marker {
-            bottom: 5px;
-            right: 5px;
+        .checkmark-animation {
+            animation: checkmark 1s ease-out;
         }
     </style>
 </head>
 <body>
+    <!-- Indicador de status da conexão -->
+    <div class="connection-status testing" id="connectionStatus">
+        <i class="fas fa-circle"></i> Testando conexão...
+    </div>
+
+    <!-- Notificações -->
+    <div class="notification" id="notification"></div>
+
     <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
-            <div class="logo1">
-                <div class="logo-placeholder1">
+            <div class="logo">
+                <div class="logo2548">
                     <img src="777777.png" alt="">
                 </div>
             </div>
             
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="index.html" class="nav-link active">
+                    <a href="index.html" class="nav-link">
                         <i class="fas fa-search"></i>
                         <span>Busca de Produtos</span>
                     </a>
@@ -476,7 +692,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="adicionar.html" class="nav-link ">
+                    <a href="adicionar.html" class="nav-link active">
                         <i class="fas fa-plus-circle"></i>
                         <span>Adicionar Produtos</span>
                     </a>
@@ -486,46 +702,36 @@
 
         <!-- Conteúdo Principal -->
         <div class="main-content">
-            <!-- Formulário de Busca -->
-            <div class="search-container">
-                <div class="search-box">
-                    <div class="input-group">
-                        <i class="fa fa-barcode"></i>
-                        <input type="text" id="codigo" placeholder="Código do Produto (mín. 4 caracteres)">
-                    </div>
-                    <div class="input-group">
-                        <i class="fa fa-file-invoice"></i>
-                        <input type="text" id="rct" placeholder="RCT (mín. 4 caracteres)">
-                    </div>
-                    <div class="button-group">
-                        <button onclick="realizarBusca()" class="btn search-btn">
-                            <i class="fa fa-search"></i> Buscar
-                        </button>
-                        <button onclick="limparBusca()" class="btn clear-btn">
-                            <i class="fa fa-times"></i>
-                        </button>
-                    </div>
+            <!-- Formulário de Adição -->
+            <div class="add-form">
+                <h2><i class="fas fa-box-open"></i> Adicionar Produtos</h2>
+                <div class="form-group">
+                    <label for="cabinetSelect">Selecione o Armário:</label>
+                    <select id="cabinetSelect">
+                        <option value="">-- Selecione --</option>
+                    </select>
                 </div>
-            </div>
-
-            <!-- Resultados -->
-            <div class="results-container">
-                <div class="loading" id="loading">Carregando...</div>
-                <table id="resultsTable">
-                    <thead>
-                        <tr>
-                            <th>Código de Barras</th>
-                            <th>RCT</th>
-                            <th>Promocional</th>
-                            <th>Valor Tabela</th>
-                            <th>Saldo</th>
-                            <th>Localização</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Resultados serão inseridos aqui via JavaScript -->
-                    </tbody>
-                </table>
+                <div class="form-group">
+                    <label for="shelfSelect">Selecione a Prateleira:</label>
+                    <select id="shelfSelect" disabled>
+                        <option value="">-- Selecione --</option>
+                        <option value="shelf-7">Prateleira 7</option>
+                        <option value="shelf-6">Prateleira 6</option>
+                        <option value="shelf-5">Prateleira 5</option>
+                        <option value="shelf-4">Prateleira 4</option>
+                        <option value="shelf-3">Prateleira 3</option>
+                        <option value="shelf-2">Prateleira 2</option>
+                        <option value="shelf-1">Prateleira 1</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button id="addBtn" class="btn add-btn" disabled>
+                        <i class="fas fa-barcode"></i> Adicionar Produtos
+                    </button>
+                    <button id="saveBtn" class="btn save-btn" disabled>
+                        <i class="fas fa-save"></i> Salvar (<span id="productCount">0</span>)
+                    </button>
+                </div>
             </div>
 
             <!-- Container para estoque + visualização do armário -->
@@ -538,17 +744,60 @@
                 </div>
                 
                 <!-- Visualização do armário -->
-                <div class="armario-display">
-                    <h2 class="armario-display-title">
+                <div class="cabinet-display">
+                    <h2 class="cabinet-display-title">
                         <i class="fas fa-archive"></i> Visualização do Armário
                     </h2>
-                    <div id="armarioDisplayInfo">
+                    <div id="cabinetDisplayInfo">
                         <p>Selecione um armário para visualizar detalhes</p>
                     </div>
-                    <div id="armarioView" class="armario-view">
+                    <div id="cabinetView" class="cabinet-view">
                         <!-- Prateleiras serão renderizadas aqui -->
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal da Câmera -->
+    <div class="camera-modal" id="cameraModal">
+        <div class="camera-container">
+            <div class="scan-quality-indicator" id="qualityIndicator">
+                Qualidade da leitura: Aguardando...
+            </div>
+            <video id="cameraVideo" autoplay playsinline></video>
+            <canvas id="scannerCanvas"></canvas>
+            <div class="camera-feedback" id="cameraFeedback">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+        
+        <!-- Container para entrada manual -->
+        <div class="manual-input-container" id="manualInputContainer">
+            <input type="text" id="manualBarcodeInput" class="manual-input" placeholder="Digite o código de barras">
+            <button id="manualAddBtn" class="manual-add-btn">
+                <i class="fas fa-plus"></i> Adicionar
+            </button>
+        </div>
+        
+        <div class="camera-controls">
+            <button id="backBtn" class="btn back-btn">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </button>
+            <button id="toggleInputBtn" class="switch-input-mode">
+                <i class="fas fa-keyboard"></i> Inserir manualmente
+            </button>
+        </div>
+        
+        <div class="scanned-products" id="scannedProducts">
+            <h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados (<span id="scannedCount">0</span>)</h3>
+            <!-- Produtos escaneados aparecerão aqui -->
+        </div>
+
+        <!-- Botão de bipagem -->
+        <div class="scan-button-container">
+            <div class="scan-button" id="scanButton">
+                <i class="fas fa-barcode"></i>
             </div>
         </div>
     </div>
@@ -557,18 +806,15 @@
         // Configuração da API
         const API_BASE_URL = 'https://estoque0127-production.up.railway.app';
 
-        // Variável para armazenar os resultados atuais
-        let resultadosAtuais = [];
-
         // Objeto estoque127 com o layout criado
-        const estoque127 = {
+       const estoque127 = {
   "dimensions": {
     "width": 680,
     "height": 2500
   },
-  "armarios": [
+  "cabinets": [
     {
-      "id": "armario-1",
+      "id": "cabinet-1",
       "type": "pequeno",
       "x": 14.90625,
       "y": 1501.9063415527344,
@@ -576,7 +822,7 @@
       "products": {}
     },
     {
-      "id": "armario-2",
+      "id": "cabinet-2",
       "type": "pequeno",
       "x": 15.112499237060547,
       "y": 1461.1313171386719,
@@ -584,7 +830,7 @@
       "products": {}
     },
     {
-      "id": "armario-3",
+      "id": "cabinet-3",
       "type": "pequeno",
       "x": 14.799999237060547,
       "y": 1419.8188247680664,
@@ -592,7 +838,7 @@
       "products": {}
     },
     {
-      "id": "armario-4",
+      "id": "cabinet-4",
       "type": "pequeno",
       "x": 14.924999237060547,
       "y": 1378.9125747680664,
@@ -600,7 +846,7 @@
       "products": {}
     },
     {
-      "id": "armario-5",
+      "id": "cabinet-5",
       "type": "pequeno",
       "x": 14.831249237060547,
       "y": 1337.8188247680664,
@@ -608,7 +854,7 @@
       "products": {}
     },
     {
-      "id": "armario-6",
+      "id": "cabinet-6",
       "type": "pequeno",
       "x": 14.706249237060547,
       "y": 1296.7063217163086,
@@ -616,7 +862,7 @@
       "products": {}
     },
     {
-      "id": "armario-7",
+      "id": "cabinet-7",
       "type": "pequeno",
       "x": 14.706249237060547,
       "y": 1255.7063217163086,
@@ -624,7 +870,7 @@
       "products": {}
     },
     {
-      "id": "armario-8",
+      "id": "cabinet-8",
       "type": "pequeno",
       "x": 15.325004577636719,
       "y": 1214.3438415527344,
@@ -632,7 +878,7 @@
       "products": {}
     },
     {
-      "id": "armario-9",
+      "id": "cabinet-9",
       "type": "pequeno",
       "x": 16.006248474121094,
       "y": 1173.0188293457031,
@@ -640,7 +886,7 @@
       "products": {}
     },
     {
-      "id": "armario-10",
+      "id": "cabinet-10",
       "type": "pequeno",
       "x": 16.012500762939453,
       "y": 1132.0125122070312,
@@ -648,7 +894,7 @@
       "products": {}
     },
     {
-      "id": "armario-11",
+      "id": "cabinet-11",
       "type": "pequeno",
       "x": 16.106250762939453,
       "y": 1091.1312561035156,
@@ -656,7 +902,7 @@
       "products": {}
     },
     {
-      "id": "armario-12",
+      "id": "cabinet-12",
       "type": "pequeno",
       "x": 15.8125,
       "y": 1049.8187713623047,
@@ -664,7 +910,7 @@
       "products": {}
     },
     {
-      "id": "armario-13",
+      "id": "cabinet-13",
       "type": "pequeno",
       "x": 16.15625,
       "y": 1009.1437683105469,
@@ -672,7 +918,7 @@
       "products": {}
     },
     {
-      "id": "armario-14",
+      "id": "cabinet-14",
       "type": "pequeno",
       "x": 15.72500228881836,
       "y": 967.7250213623047,
@@ -680,7 +926,7 @@
       "products": {}
     },
     {
-      "id": "armario-15",
+      "id": "cabinet-15",
       "type": "pequeno",
       "x": 15.785736083984375,
       "y": 926.7768249511719,
@@ -688,7 +934,7 @@
       "products": {}
     },
     {
-      "id": "armario-16",
+      "id": "cabinet-16",
       "type": "pequeno",
       "x": 15.883941650390625,
       "y": 885.8750610351562,
@@ -696,7 +942,7 @@
       "products": {}
     },
     {
-      "id": "armario-17",
+      "id": "cabinet-17",
       "type": "pequeno",
       "x": 15.6785888671875,
       "y": 844.6786193847656,
@@ -704,7 +950,7 @@
       "products": {}
     },
     {
-      "id": "armario-18",
+      "id": "cabinet-18",
       "type": "pequeno",
       "x": 15.77679443359375,
       "y": 802.7857360839844,
@@ -712,7 +958,7 @@
       "products": {}
     },
     {
-      "id": "armario-19",
+      "id": "cabinet-19",
       "type": "pequeno",
       "x": 15.77679443359375,
       "y": 761.7857360839844,
@@ -720,7 +966,7 @@
       "products": {}
     },
     {
-      "id": "armario-20",
+      "id": "cabinet-20",
       "type": "pequeno",
       "x": 15.6785888671875,
       "y": 720.6785888671875,
@@ -728,7 +974,7 @@
       "products": {}
     },
     {
-      "id": "armario-21",
+      "id": "cabinet-21",
       "type": "pequeno",
       "x": 15.89288330078125,
       "y": 678.8928833007812,
@@ -736,7 +982,7 @@
       "products": {}
     },
     {
-      "id": "armario-22",
+      "id": "cabinet-22",
       "type": "grande",
       "x": -13.962493896484375,
       "y": 607,
@@ -744,7 +990,7 @@
       "products": {}
     },
     {
-      "id": "armario-23",
+      "id": "cabinet-23",
       "type": "grande",
       "x": -13.86248779296875,
       "y": 505.1125030517578,
@@ -752,7 +998,7 @@
       "products": {}
     },
     {
-      "id": "armario-24",
+      "id": "cabinet-24",
       "type": "grande",
       "x": -14.975006103515625,
       "y": 402,
@@ -760,7 +1006,7 @@
       "products": {}
     },
     {
-      "id": "armario-25",
+      "id": "cabinet-25",
       "type": "grande",
       "x": -15.677093505859375,
       "y": 300.32640075683594,
@@ -768,7 +1014,7 @@
       "products": {}
     },
     {
-      "id": "armario-26",
+      "id": "cabinet-26",
       "type": "grande",
       "x": -16.555572509765625,
       "y": 197.43751525878906,
@@ -776,7 +1022,7 @@
       "products": {}
     },
     {
-      "id": "armario-27",
+      "id": "cabinet-27",
       "type": "grande",
       "x": -16.66668701171875,
       "y": 95.32640075683594,
@@ -784,7 +1030,7 @@
       "products": {}
     },
     {
-      "id": "armario-28",
+      "id": "cabinet-28",
       "type": "pequeno",
       "x": 171.5,
       "y": 1550.5,
@@ -792,7 +1038,7 @@
       "products": {}
     },
     {
-      "id": "armario-29",
+      "id": "cabinet-29",
       "type": "pequeno",
       "x": 171.5,
       "y": 1509.5,
@@ -800,7 +1046,7 @@
       "products": {}
     },
     {
-      "id": "armario-30",
+      "id": "cabinet-30",
       "type": "pequeno",
       "x": 171.59375,
       "y": 1468.59375,
@@ -808,7 +1054,7 @@
       "products": {}
     },
     {
-      "id": "armario-31",
+      "id": "cabinet-31",
       "type": "pequeno",
       "x": 171.609375,
       "y": 1427.609375,
@@ -816,7 +1062,7 @@
       "products": {}
     },
     {
-      "id": "armario-32",
+      "id": "cabinet-32",
       "type": "pequeno",
       "x": 171.609375,
       "y": 1386.59375,
@@ -824,7 +1070,7 @@
       "products": {}
     },
     {
-      "id": "armario-33",
+      "id": "cabinet-33",
       "type": "pequeno",
       "x": 171.5,
       "y": 1345.5,
@@ -832,7 +1078,7 @@
       "products": {}
     },
     {
-      "id": "armario-34",
+      "id": "cabinet-34",
       "type": "pequeno",
       "x": 171.5,
       "y": 1304.5,
@@ -840,7 +1086,7 @@
       "products": {}
     },
     {
-      "id": "armario-35",
+      "id": "cabinet-35",
       "type": "pequeno",
       "x": 171.5,
       "y": 1263.5,
@@ -848,7 +1094,7 @@
       "products": {}
     },
     {
-      "id": "armario-36",
+      "id": "cabinet-36",
       "type": "pequeno",
       "x": 172.0078125,
       "y": 1223.015625,
@@ -856,7 +1102,7 @@
       "products": {}
     },
     {
-      "id": "armario-37",
+      "id": "cabinet-37",
       "type": "pequeno",
       "x": 171.90625,
       "y": 1181.90625,
@@ -864,7 +1110,7 @@
       "products": {}
     },
     {
-      "id": "armario-38",
+      "id": "cabinet-38",
       "type": "pequeno",
       "x": 171.703125,
       "y": 1141.703125,
@@ -872,7 +1118,7 @@
       "products": {}
     },
     {
-      "id": "armario-39",
+      "id": "cabinet-39",
       "type": "pequeno",
       "x": 170.90625,
       "y": 1099.90625,
@@ -880,7 +1126,7 @@
       "products": {}
     },
     {
-      "id": "armario-40",
+      "id": "cabinet-40",
       "type": "pequeno",
       "x": 171.90625,
       "y": 1058.90625,
@@ -888,7 +1134,7 @@
       "products": {}
     },
     {
-      "id": "armario-41",
+      "id": "cabinet-41",
       "type": "pequeno",
       "x": 172.6953125,
       "y": 1017.6953125,
@@ -896,7 +1142,7 @@
       "products": {}
     },
     {
-      "id": "armario-42",
+      "id": "cabinet-42",
       "type": "pequeno",
       "x": 172.50625610351562,
       "y": 976.5062713623047,
@@ -904,7 +1150,7 @@
       "products": {}
     },
     {
-      "id": "armario-43",
+      "id": "cabinet-43",
       "type": "pequeno",
       "x": 172.7062530517578,
       "y": 935.7062606811523,
@@ -912,7 +1158,7 @@
       "products": {}
     },
     {
-      "id": "armario-44",
+      "id": "cabinet-44",
       "type": "pequeno",
       "x": 172.8125,
       "y": 894.8187713623047,
@@ -920,7 +1166,7 @@
       "products": {}
     },
     {
-      "id": "armario-45",
+      "id": "cabinet-45",
       "type": "pequeno",
       "x": 172.81875610351562,
       "y": 853.8062591552734,
@@ -928,7 +1174,7 @@
       "products": {}
     },
     {
-      "id": "armario-46",
+      "id": "cabinet-46",
       "type": "pequeno",
       "x": 172.90625,
       "y": 812.9062805175781,
@@ -936,7 +1182,7 @@
       "products": {}
     },
     {
-      "id": "armario-47",
+      "id": "cabinet-47",
       "type": "pequeno",
       "x": 172.80625915527344,
       "y": 771.8125152587891,
@@ -944,7 +1190,7 @@
       "products": {}
     },
     {
-      "id": "armario-48",
+      "id": "cabinet-48",
       "type": "pequeno",
       "x": 173.00625610351562,
       "y": 731.0125122070312,
@@ -952,7 +1198,7 @@
       "products": {}
     },
     {
-      "id": "armario-49",
+      "id": "cabinet-49",
       "type": "grande",
       "x": 143.88394165039062,
       "y": 628.8928985595703,
@@ -960,7 +1206,7 @@
       "products": {}
     },
     {
-      "id": "armario-50",
+      "id": "cabinet-50",
       "type": "grande",
       "x": 143.34823608398438,
       "y": 527.3571624755859,
@@ -968,7 +1214,7 @@
       "products": {}
     },
     {
-      "id": "armario-51",
+      "id": "cabinet-51",
       "type": "grande",
       "x": 142.89288330078125,
       "y": 425.8839416503906,
@@ -976,7 +1222,7 @@
       "products": {}
     },
     {
-      "id": "armario-52",
+      "id": "cabinet-52",
       "type": "grande",
       "x": 142.77679443359375,
       "y": 323.7857208251953,
@@ -984,7 +1230,7 @@
       "products": {}
     },
     {
-      "id": "armario-53",
+      "id": "cabinet-53",
       "type": "grande",
       "x": 142.45538330078125,
       "y": 222.46429061889648,
@@ -992,7 +1238,7 @@
       "products": {}
     },
     {
-      "id": "armario-54",
+      "id": "cabinet-54",
       "type": "grande",
       "x": 142.11251831054688,
       "y": 121.11250305175781,
@@ -1000,7 +1246,7 @@
       "products": {}
     },
     {
-      "id": "armario-55",
+      "id": "cabinet-55",
       "type": "pequeno",
       "x": 231.90625,
       "y": 1550.9063415527344,
@@ -1008,7 +1254,7 @@
       "products": {}
     },
     {
-      "id": "armario-56",
+      "id": "cabinet-56",
       "type": "pequeno",
       "x": 232.11874389648438,
       "y": 1510.1250762939453,
@@ -1016,7 +1262,7 @@
       "products": {}
     },
     {
-      "id": "armario-57",
+      "id": "cabinet-57",
       "type": "pequeno",
       "x": 231.90625,
       "y": 1468.9063262939453,
@@ -1024,7 +1270,7 @@
       "products": {}
     },
     {
-      "id": "armario-58",
+      "id": "cabinet-58",
       "type": "pequeno",
       "x": 232.01876831054688,
       "y": 1428.0125732421875,
@@ -1032,7 +1278,7 @@
       "products": {}
     },
     {
-      "id": "armario-59",
+      "id": "cabinet-59",
       "type": "pequeno",
       "x": 232.00625610351562,
       "y": 1387.0125732421875,
@@ -1040,7 +1286,7 @@
       "products": {}
     },
     {
-      "id": "armario-60",
+      "id": "cabinet-60",
       "type": "pequeno",
       "x": 232.00625610351562,
       "y": 1346.0188293457031,
@@ -1048,7 +1294,7 @@
       "products": {}
     },
     {
-      "id": "armario-61",
+      "id": "cabinet-61",
       "type": "pequeno",
       "x": 232.01251220703125,
       "y": 1305.0188293457031,
@@ -1056,7 +1302,7 @@
       "products": {}
     },
     {
-      "id": "armario-62",
+      "id": "cabinet-62",
       "type": "pequeno",
       "x": 232.00625610351562,
       "y": 1264.0188293457031,
@@ -1064,7 +1310,7 @@
       "products": {}
     },
     {
-      "id": "armario-63",
+      "id": "cabinet-63",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1222.9063415527344,
@@ -1072,7 +1318,7 @@
       "products": {}
     },
     {
-      "id": "armario-64",
+      "id": "cabinet-64",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1181.9063262939453,
@@ -1080,7 +1326,7 @@
       "products": {}
     },
     {
-      "id": "armario-65",
+      "id": "cabinet-65",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1140.9063262939453,
@@ -1088,7 +1334,7 @@
       "products": {}
     },
     {
-      "id": "armario-66",
+      "id": "cabinet-66",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1099.906265258789,
@@ -1096,7 +1342,7 @@
       "products": {}
     },
     {
-      "id": "armario-67",
+      "id": "cabinet-67",
       "type": "pequeno",
       "x": 232.90625,
       "y": 1058.9062805175781,
@@ -1104,7 +1350,7 @@
       "products": {}
     },
     {
-      "id": "armario-68",
+      "id": "cabinet-68",
       "type": "pequeno",
       "x": 233.703125,
       "y": 1017.703125,
@@ -1112,7 +1358,7 @@
       "products": {}
     },
     {
-      "id": "armario-69",
+      "id": "cabinet-69",
       "type": "pequeno",
       "x": 232.90625,
       "y": 976.9062652587891,
@@ -1120,7 +1366,7 @@
       "products": {}
     },
     {
-      "id": "armario-70",
+      "id": "cabinet-70",
       "type": "pequeno",
       "x": 232.90625,
       "y": 935.9062652587891,
@@ -1128,7 +1374,7 @@
       "products": {}
     },
     {
-      "id": "armario-71",
+      "id": "cabinet-71",
       "type": "pequeno",
       "x": 234.5,
       "y": 894.5124969482422,
@@ -1136,7 +1382,7 @@
       "products": {}
     },
     {
-      "id": "armario-72",
+      "id": "cabinet-72",
       "type": "pequeno",
       "x": 234.39376831054688,
       "y": 853.4062347412109,
@@ -1144,7 +1390,7 @@
       "products": {}
     },
     {
-      "id": "armario-73",
+      "id": "cabinet-73",
       "type": "pequeno",
       "x": 234.30001831054688,
       "y": 812.2999877929688,
@@ -1152,7 +1398,7 @@
       "products": {}
     },
     {
-      "id": "armario-74",
+      "id": "cabinet-74",
       "type": "pequeno",
       "x": 234.5,
       "y": 771.4999847412109,
@@ -1160,7 +1406,7 @@
       "products": {}
     },
     {
-      "id": "armario-75",
+      "id": "cabinet-75",
       "type": "pequeno",
       "x": 233.80624389648438,
       "y": 730.8062591552734,
@@ -1168,7 +1414,7 @@
       "products": {}
     },
     {
-      "id": "armario-76",
+      "id": "cabinet-76",
       "type": "grande",
       "x": 204.7857666015625,
       "y": 628.7768249511719,
@@ -1176,7 +1422,7 @@
       "products": {}
     },
     {
-      "id": "armario-77",
+      "id": "cabinet-77",
       "type": "grande",
       "x": 204.982177734375,
       "y": 527.9910888671875,
@@ -1184,7 +1430,7 @@
       "products": {}
     },
     {
-      "id": "armario-78",
+      "id": "cabinet-78",
       "type": "grande",
       "x": 203.77679443359375,
       "y": 425.7857360839844,
@@ -1192,7 +1438,7 @@
       "products": {}
     },
     {
-      "id": "armario-79",
+      "id": "cabinet-79",
       "type": "grande",
       "x": 203.77679443359375,
       "y": 324.7857208251953,
@@ -1200,7 +1446,7 @@
       "products": {}
     },
     {
-      "id": "armario-80",
+      "id": "cabinet-80",
       "type": "grande",
       "x": 203.90179443359375,
       "y": 222.88393783569336,
@@ -1208,7 +1454,7 @@
       "products": {}
     },
     {
-      "id": "armario-81",
+      "id": "cabinet-81",
       "type": "grande",
       "x": 203.01251220703125,
       "y": 121.02500915527344,
@@ -1216,7 +1462,7 @@
       "products": {}
     },
     {
-      "id": "armario-82",
+      "id": "cabinet-82",
       "type": "grande",
       "x": 343.25,
       "y": 1086.25,
@@ -1224,7 +1470,7 @@
       "products": {}
     },
     {
-      "id": "armario-83",
+      "id": "cabinet-83",
       "type": "grande",
       "x": 343.25006103515625,
       "y": 984.2500457763672,
@@ -1232,7 +1478,7 @@
       "products": {}
     },
     {
-      "id": "armario-84",
+      "id": "cabinet-84",
       "type": "grande",
       "x": 342.6785888671875,
       "y": 882.6785888671875,
@@ -1240,7 +1486,7 @@
       "products": {}
     },
     {
-      "id": "armario-85",
+      "id": "cabinet-85",
       "type": "grande",
       "x": 342.6785888671875,
       "y": 781.6786193847656,
@@ -1248,7 +1494,7 @@
       "products": {}
     },
     {
-      "id": "armario-86",
+      "id": "cabinet-86",
       "type": "grande",
       "x": 342.7857666015625,
       "y": 626.7768249511719,
@@ -1256,7 +1502,7 @@
       "products": {}
     },
     {
-      "id": "armario-87",
+      "id": "cabinet-87",
       "type": "grande",
       "x": 342.89288330078125,
       "y": 524.8928680419922,
@@ -1264,7 +1510,7 @@
       "products": {}
     },
     {
-      "id": "armario-88",
+      "id": "cabinet-88",
       "type": "grande",
       "x": 342.77679443359375,
       "y": 423.77679443359375,
@@ -1272,7 +1518,7 @@
       "products": {}
     },
     {
-      "id": "armario-89",
+      "id": "cabinet-89",
       "type": "grande",
       "x": 341.88397216796875,
       "y": 322.90179443359375,
@@ -1280,7 +1526,7 @@
       "products": {}
     },
     {
-      "id": "armario-90",
+      "id": "cabinet-90",
       "type": "grande",
       "x": 341.77679443359375,
       "y": 221.78572845458984,
@@ -1288,7 +1534,7 @@
       "products": {}
     },
     {
-      "id": "armario-91",
+      "id": "cabinet-91",
       "type": "grande",
       "x": 340.57501220703125,
       "y": 120.57500457763672,
@@ -1296,7 +1542,7 @@
       "products": {}
     },
     {
-      "id": "armario-92",
+      "id": "cabinet-92",
       "type": "grande",
       "x": 405.671875,
       "y": 1085.671875,
@@ -1304,7 +1550,7 @@
       "products": {}
     },
     {
-      "id": "armario-93",
+      "id": "cabinet-93",
       "type": "grande",
       "x": 405.671875,
       "y": 983.671875,
@@ -1312,7 +1558,7 @@
       "products": {}
     },
     {
-      "id": "armario-94",
+      "id": "cabinet-94",
       "type": "grande",
       "x": 403.6785888671875,
       "y": 882.6785888671875,
@@ -1320,7 +1566,7 @@
       "products": {}
     },
     {
-      "id": "armario-95",
+      "id": "cabinet-95",
       "type": "grande",
       "x": 404.6785888671875,
       "y": 781.6786193847656,
@@ -1328,7 +1574,7 @@
       "products": {}
     },
     {
-      "id": "armario-96",
+      "id": "cabinet-96",
       "type": "grande",
       "x": 403.6785888671875,
       "y": 626.6786193847656,
@@ -1336,7 +1582,7 @@
       "products": {}
     },
     {
-      "id": "armario-97",
+      "id": "cabinet-97",
       "type": "grande",
       "x": 403.7857666015625,
       "y": 525.7857208251953,
@@ -1344,7 +1590,7 @@
       "products": {}
     },
     {
-      "id": "armario-98",
+      "id": "cabinet-98",
       "type": "grande",
       "x": 403.7857666015625,
       "y": 423.7857360839844,
@@ -1352,7 +1598,7 @@
       "products": {}
     },
     {
-      "id": "armario-99",
+      "id": "cabinet-99",
       "type": "grande",
       "x": 403.7857666015625,
       "y": 322.77679443359375,
@@ -1360,7 +1606,7 @@
       "products": {}
     },
     {
-      "id": "armario-100",
+      "id": "cabinet-100",
       "type": "grande",
       "x": 402.77679443359375,
       "y": 221.78572845458984,
@@ -1368,7 +1614,7 @@
       "products": {}
     },
     {
-      "id": "armario-101",
+      "id": "cabinet-101",
       "type": "grande",
       "x": 403.453125,
       "y": 121.453125,
@@ -1376,7 +1622,7 @@
       "products": {}
     },
     {
-      "id": "armario-102",
+      "id": "cabinet-102",
       "type": "grande",
       "x": 527,
       "y": 1073.765625,
@@ -1384,7 +1630,7 @@
       "products": {}
     },
     {
-      "id": "armario-103",
+      "id": "cabinet-103",
       "type": "grande",
       "x": 526,
       "y": 972.875,
@@ -1392,7 +1638,7 @@
       "products": {}
     },
     {
-      "id": "armario-104",
+      "id": "cabinet-104",
       "type": "grande",
       "x": 525,
       "y": 871.09375,
@@ -1400,7 +1646,7 @@
       "products": {}
     },
     {
-      "id": "armario-105",
+      "id": "cabinet-105",
       "type": "grande",
       "x": 525,
       "y": 769.4375,
@@ -1408,7 +1654,7 @@
       "products": {}
     },
     {
-      "id": "armario-106",
+      "id": "cabinet-106",
       "type": "grande",
       "x": 524,
       "y": 667.421875,
@@ -1416,7 +1662,7 @@
       "products": {}
     },
     {
-      "id": "armario-107",
+      "id": "cabinet-107",
       "type": "grande",
       "x": 89.3125,
       "y": 0,
@@ -1424,7 +1670,7 @@
       "products": {}
     },
     {
-      "id": "armario-108",
+      "id": "cabinet-108",
       "type": "grande",
       "x": 191.31594848632812,
       "y": 0,
@@ -1432,7 +1678,7 @@
       "products": {}
     },
     {
-      "id": "armario-109",
+      "id": "cabinet-109",
       "type": "grande",
       "x": 293.5243225097656,
       "y": 0,
@@ -1440,7 +1686,7 @@
       "products": {}
     },
     {
-      "id": "armario-110",
+      "id": "cabinet-110",
       "type": "grande",
       "x": 520.8839721679688,
       "y": 22.883926391601562,
@@ -1448,7 +1694,7 @@
       "products": {}
     },
     {
-      "id": "armario-111",
+      "id": "cabinet-111",
       "type": "grande",
       "x": 521.7857666015625,
       "y": 124.77677917480469,
@@ -1456,7 +1702,7 @@
       "products": {}
     },
     {
-      "id": "armario-112",
+      "id": "cabinet-112",
       "type": "grande",
       "x": 404.02679443359375,
       "y": 1188.0268249511719,
@@ -1468,312 +1714,698 @@
 
 // Para usar na página principal, cole este código
 
-        async function realizarBusca() {
-            const codigo = document.getElementById('codigo').value.trim();
-            const rct = document.getElementById('rct').value.trim().toUpperCase();
-            const loading = document.getElementById('loading');
-            const tableBody = document.getElementById('tableBody');
+        // Variáveis globais do sistema
+        let selectedCabinet = null;
+        let selectedShelf = null;
+        let scannedProducts = [];
+        let isScannerActive = false;
+        let isManualInputMode = false;
+        let cameraStream = null;
+        let isScanButtonPressed = false;
+        let audioContext = null;
+        let beepSound = null;
+        let isButtonDisabled = false;
 
-            // Validação de mínimo 4 caracteres
-            if ((codigo && codigo.length < 4) || (rct && rct.length < 4)) {
-                alert('Digite pelo menos 4 caracteres para realizar a busca!');
-                return;
-            }
+        // Elementos do DOM
+        const cabinetSelect = document.getElementById('cabinetSelect');
+        const shelfSelect = document.getElementById('shelfSelect');
+        const addBtn = document.getElementById('addBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const backBtn = document.getElementById('backBtn');
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraFeedback = document.getElementById('cameraFeedback');
+        const scannedProductsContainer = document.getElementById('scannedProducts');
+        const manualInputContainer = document.getElementById('manualInputContainer');
+        const manualBarcodeInput = document.getElementById('manualBarcodeInput');
+        const manualAddBtn = document.getElementById('manualAddBtn');
+        const toggleInputBtn = document.getElementById('toggleInputBtn');
+        const qualityIndicator = document.getElementById('qualityIndicator');
+        const scanButton = document.getElementById('scanButton');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const notification = document.getElementById('notification');
+        const productCount = document.getElementById('productCount');
+        const scannedCount = document.getElementById('scannedCount');
 
-            if (!codigo && !rct) {
-                alert('Preencha pelo menos um campo para buscar!');
-                return;
-            }
+        // ===== FUNÇÕES DE UTILIDADE =====
 
-            loading.style.display = 'block';
-            tableBody.innerHTML = '';
+        // Função para mostrar notificações
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
 
+        // Função para testar conexão com o servidor
+        async function testConnection() {
             try {
-                let response;
-                let url;
+                connectionStatus.className = 'connection-status testing';
+                connectionStatus.innerHTML = '<i class="fas fa-circle"></i> Testando conexão...';
                 
-                if (codigo && !rct) {
-                    // Busca APENAS por código (ignora RCT)
-                    url = `${API_BASE_URL}/api/produtos?codigo_like=${encodeURIComponent(codigo)}`;
-                } else if (rct && !codigo) {
-                    // Busca APENAS por RCT (ignora código)
-                    url = `${API_BASE_URL}/api/produtos?rct_like=${encodeURIComponent(rct)}`;
-                }
-
-                response = await fetch(url);
-
-                // Verifica se a resposta foi bem-sucedida
-                if (!response.ok) {
-                    throw new Error(`Erro na requisição: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                // Filtro adicional no cliente para garantir a correspondência exata do texto pesquisado
-                resultadosAtuais = Array.isArray(data) ? data.filter(item => {
-                    if (codigo) {
-                        // Para busca por código, verifica se o código contém a string pesquisada
-                        return item.codigo && item.codigo.toString().includes(codigo);
-                    } else if (rct) {
-                        // Para busca por RCT, verifica se o RCT contém a string pesquisada
-                        return item.rct && item.rct.toUpperCase().includes(rct);
+                const response = await fetch(`${API_BASE_URL}/api/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
                     }
-                    return false;
-                }) : [];
-
-                if (resultadosAtuais.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum produto encontrado</td></tr>';
-                    limparMarcadores();
+                });
+                
+                if (response.ok) {
+                    connectionStatus.className = 'connection-status online';
+                    connectionStatus.innerHTML = '<i class="fas fa-check-circle"></i> Conectado';
+                    return true;
                 } else {
-                    tableBody.innerHTML = '';
-                    
-                    resultadosAtuais.forEach((item, index) => {
-                        const tr = document.createElement('tr');
-                        tr.className = 'fade-in';
-                        tr.innerHTML = `
-                            <td>${item.codigo || 'N/A'}</td>
-                            <td>${item.rct || 'N/A'}</td>
-                            <td>R$ ${item.precoPromocao ? item.precoPromocao.toFixed(2) : '0.00'}</td>
-                            <td>R$ ${item.precoTabela ? item.precoTabela.toFixed(2) : '0.00'}</td>
-                            <td>${item.saldo !== null && item.saldo !== undefined ? item.saldo : 'N/A'}</td>
-                            <td>${item.localizacao || 'Não informada'}</td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
-
-                    // Marca localizações apenas para produtos que têm localização
-                    const produtosComLocalizacao = resultadosAtuais.filter(item => item.localizacao);
-                    if (produtosComLocalizacao.length > 0) {
-                        marcarLocalizacoes(produtosComLocalizacao);
-                    }
+                    throw new Error('Servidor não respondeu corretamente');
                 }
             } catch (error) {
-                console.error('Erro ao buscar produtos:', error);
-                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Erro ao conectar com o servidor</td></tr>';
-                limparMarcadores();
-            } finally {
-                loading.style.display = 'none';
+                console.error('Erro de conexão:', error);
+                connectionStatus.className = 'connection-status offline';
+                connectionStatus.innerHTML = '<i class="fas fa-times-circle"></i> Desconectado';
+                return false;
             }
         }
 
-        function limparBusca() {
-            document.getElementById('codigo').value = '';
-            document.getElementById('rct').value = '';
-            document.getElementById('tableBody').innerHTML = '';
-            document.getElementById('loading').style.display = 'none';
-            limparMarcadores();
-        }
-
-        function limparMarcadores() {
-            document.querySelectorAll('.location-marker').forEach(marker => marker.remove());
-            
-            const armarioView = document.getElementById('armarioView');
-            if (armarioView) {
-                armarioView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
+        // Função para buscar produto na API
+        async function findProductByCode(code) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/produto/${code}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (response.ok) {
+                    return await response.json();
+                }
+                return null;
+            } catch (error) {
+                console.error('Erro ao buscar produto:', error);
+                return null;
             }
         }
 
-        function marcarLocalizacoes(produtos) {
-            limparMarcadores();
-            
-            const armarioParaPrateleiras = new Map();
+        // Inicializar o contexto de áudio
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.error("Erro ao inicializar áudio:", e);
+            }
+        }
 
-            produtos.forEach(produto => {
-                if (produto.localizacao) {
-                    const [armarioId, shelfId] = produto.localizacao.split('-');
+        // Função para reproduzir som de bip
+        function playBeepSound() {
+            try {
+                if (!audioContext) {
+                    initAudio();
+                }
+                
+                if (audioContext) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
                     
-                    if (!armarioParaPrateleiras.has(armarioId)) {
-                        armarioParaPrateleiras.set(armarioId, []);
-                    }
-                    if (!armarioParaPrateleiras.get(armarioId).includes(shelfId)) {
-                        armarioParaPrateleiras.get(armarioId).push(shelfId);
-                    }
-
-                    const armarioElement = document.getElementById(armarioId);
-                    if (armarioElement && !armarioElement.querySelector('.armario-marker')) {
-                        const marker = document.createElement('div');
-                        marker.className = 'location-marker armario-marker';
-                        armarioElement.appendChild(marker);
-
-                        armarioElement.addEventListener('click', () => {
-                            setTimeout(() => {
-                                const prateleiras = armarioParaPrateleiras.get(armarioId) || [];
-                                marcarPrateleiras(prateleiras);
-                            }, 50);
-                        });
-                    }
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = 800;
+                    gainNode.gain.value = 0.1;
+                    
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.2);
                 }
-            });
+            } catch (e) {
+                console.error("Erro ao reproduzir som:", e);
+            }
         }
 
-        function marcarPrateleiras(shelfIds) {
-            const armarioView = document.getElementById('armarioView');
-            if (!armarioView) return;
+        // ===== FUNÇÕES DE INTERFACE =====
 
-            armarioView.querySelectorAll('.shelf-marker').forEach(marker => marker.remove());
-
-            shelfIds.forEach(shelfId => {
-                const shelfElement = armarioView.querySelector(`.shelf-${shelfId}`);
-                if (shelfElement) {
-                    const marker = document.createElement('div');
-                    marker.className = 'location-marker shelf-marker';
-                    shelfElement.appendChild(marker);
-                }
-            });
-        }
-
+        // Função para renderizar o estoque estático
         function renderStaticStock() {
             const container = document.getElementById('plantContainerStatic');
             
             container.style.width = `${estoque127.dimensions.width}px`;
             container.style.height = `${estoque127.dimensions.height}px`;
             
-            estoque127.armarios.forEach(cab => {
-                const armario = document.createElement('div');
-                armario.className = `armario-static ${cab.type}`;
-                armario.id = cab.id;
-                armario.style.left = `${cab.x}px`;
-                armario.style.top = `${cab.y}px`;
-                armario.style.transform = `rotate(${cab.rotation}deg)`;
-                armario.textContent = cab.id;
+            // Preencher o dropdown de armários
+            cabinetSelect.innerHTML = '<option value="">-- Selecione --</option>';
+            
+            estoque127.cabinets.forEach(cab => {
+                const cabinet = document.createElement('div');
+                cabinet.className = `cabinet-static ${cab.type}`;
+                cabinet.id = cab.id;
+                cabinet.style.left = `${cab.x}px`;
+                cabinet.style.top = `${cab.y}px`;
+                cabinet.style.transform = `rotate(${cab.rotation}deg)`;
+                cabinet.textContent = cab.id;
                 
-                armario.addEventListener('click', function() {
-                    showarmarioDetails(cab);
+                cabinet.addEventListener('click', function() {
+                    selectCabinet(cab);
                 });
                 
-                container.appendChild(armario);
+                container.appendChild(cabinet);
+                
+                // Adicionar ao dropdown
+                const option = document.createElement('option');
+                option.value = cab.id;
+                option.textContent = `Armário ${cab.id} (${cab.type === 'grande' ? 'Grande' : 'Pequeno'})`;
+                cabinetSelect.appendChild(option);
             });
         }
 
-        function showarmarioDetails(armario) {
-            const armarioInfo = document.getElementById('armarioDisplayInfo');
-            const armarioView = document.getElementById('armarioView');
+        // Função para selecionar um armário
+        function selectCabinet(cabinet) {
+            selectedCabinet = cabinet;
             
-            armarioView.innerHTML = '';
-            armarioView.className = 'armario-view ' + armario.type;
+            // Atualizar o dropdown
+            cabinetSelect.value = cabinet.id;
             
-            armarioInfo.innerHTML = `
-                <p><strong>ID:</strong> ${armario.id}</p>
-                <p><strong>Tipo:</strong> ${armario.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
+            // Habilitar seleção de prateleira
+            shelfSelect.disabled = false;
+            
+            // Mostrar detalhes do armário
+            showCabinetDetails(cabinet);
+            
+            // Verificar se pode habilitar o botão de adicionar
+            updateButtonStates();
+        }
+
+        // Função para mostrar detalhes do armário
+        function showCabinetDetails(cabinet) {
+            const cabinetInfo = document.getElementById('cabinetDisplayInfo');
+            const cabinetView = document.getElementById('cabinetView');
+            
+            cabinetView.innerHTML = '';
+            cabinetView.className = 'cabinet-view ' + cabinet.type;
+            
+            cabinetInfo.innerHTML = `
+                <p><strong>ID:</strong> ${cabinet.id}</p>
+                <p><strong>Tipo:</strong> ${cabinet.type === 'grande' ? 'Grande' : 'Pequeno'}</p>
+                <p><strong>Produtos:</strong> ${Object.keys(cabinet.products).reduce((acc, shelf) => acc + (cabinet.products[shelf] ? cabinet.products[shelf].length : 0), 0)}</p>
             `;
             
-            for (let i = 1; i <= 6; i++) {
+            // Criar prateleiras com numeração atualizada (7, 6, 5, 4, 3, 2, 1)
+            for (let i = 7; i >= 1; i--) {
                 const shelf = document.createElement('div');
-                shelf.className = `shelf ${armario.type} shelf-${i}${armario.type === 'pequeno' ? ' pequeno' : ''}`;
+                shelf.className = `shelf ${cabinet.type} shelf-${i}${cabinet.type === 'pequeno' ? ' pequeno' : ''}`;
                 shelf.innerHTML = `<span class="shelf-label">Prateleira ${i}</span>`;
                 
-                if (armario.products && armario.products[`shelf-${i}`]) {
-                    armario.products[`shelf-${i}`].forEach(product => {
+                if (cabinet.products && cabinet.products[`shelf-${i}`]) {
+                    cabinet.products[`shelf-${i}`].forEach(product => {
                         const productElement = document.createElement('div');
                         productElement.className = 'product-display';
-                        productElement.textContent = product.name;
+                        productElement.textContent = product.code;
                         shelf.appendChild(productElement);
                     });
                 }
                 
-                armarioView.appendChild(shelf);
-            }
-            
-            const produtosNoArmario = resultadosAtuais.filter(produto => {
-                if (produto.localizacao) {
-                    const [cabId, _] = produto.localizacao.split('-');
-                    return cabId === armario.id;
-                }
-                return false;
-            });
-            
-            if (produtosNoArmario.length > 0) {
-                produtosNoArmario.forEach(produto => {
-                    const [_, shelfId] = produto.localizacao.split('-');
-                    marcarPrateleiras([shelfId]);
-                });
+                cabinetView.appendChild(shelf);
             }
         }
 
-        window.onload = function() {
-            renderStaticStock();
+        // Função para atualizar estados dos botões
+        function updateButtonStates() {
+            addBtn.disabled = !(selectedCabinet && selectedShelf);
+            saveBtn.disabled = scannedProducts.length === 0;
+            productCount.textContent = scannedProducts.length;
+            scannedCount.textContent = scannedProducts.length;
+        }
+
+        // ===== FUNÇÕES DE SCANNER =====
+
+        // Função para alternar entre modo câmera e entrada manual
+        function toggleInputMode() {
+            isManualInputMode = !isManualInputMode;
             
-            if (estoque127.armarios.length > 0) {
-                showarmarioDetails(estoque127.armarios[0]);
+            if (isManualInputMode) {
+                // Parar o scanner
+                if (isScannerActive) {
+                    Quagga.stop();
+                    isScannerActive = false;
+                }
+                
+                // Mostrar entrada manual
+                manualInputContainer.style.display = 'flex';
+                cameraVideo.style.display = 'none';
+                toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
+                
+                // Focar no input
+                manualBarcodeInput.focus();
+            } else {
+                // Esconder entrada manual
+                manualInputContainer.style.display = 'none';
+                cameraVideo.style.display = 'block';
+                toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
+                
+                // Reiniciar o scanner
+                startScanner();
+            }
+        }
+
+        // Funções para controle do botão de bipagem
+        function handleScanStart(e) {
+            e.preventDefault();
+            if (isButtonDisabled) return;
+            scanButton.classList.add('active');
+        }
+
+        function handleScanEnd(e) {
+            e.preventDefault();
+            if (isButtonDisabled) return;
+            
+            scanButton.classList.remove('active');
+            isScanButtonPressed = true;
+        }
+
+        // Função para iniciar o scanner
+        async function startScanner() {
+            try {
+                // Solicitar permissão de câmera primeiro
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+
+                cameraVideo.srcObject = cameraStream;
+                await cameraVideo.play();
+
+                // Configurar eventos do botão de bipagem
+                scanButton.addEventListener('mousedown', handleScanStart);
+                scanButton.addEventListener('touchstart', handleScanStart);
+                scanButton.addEventListener('mouseup', handleScanEnd);
+                scanButton.addEventListener('touchend', handleScanEnd);
+                scanButton.addEventListener('mouseleave', handleScanEnd);
+
+                Quagga.init({
+                    inputStream: {
+                        name: "Live",
+                        type: "LiveStream",
+                        target: cameraVideo,
+                        constraints: {
+                            width: { min: 640 },
+                            height: { min: 480 },
+                            aspectRatio: { ideal: 1.333333 }
+                        }
+                    },
+                    decoder: {
+                        readers: [
+                            "code_128_reader",
+                            "ean_reader",
+                            "ean_8_reader", 
+                            "code_39_reader",
+                            "upc_reader"
+                        ],
+                        multiple: false
+                    },
+                    locator: {
+                        halfSample: true,
+                        patchSize: "large",
+                        debug: {
+                            showCanvas: true,
+                            showPatches: true,
+                            showFoundPatches: true,
+                            showSkeleton: true,
+                            showLabels: true,
+                            showPatchLabels: true,
+                            showRemainingPatchLabels: true,
+                            boxFromPatches: {
+                                showTransformed: true,
+                                showTransformedBox: true,
+                                showBB: true
+                            }
+                        }
+                    },
+                    numOfWorkers: 4,
+                    frequency: 10,
+                    debug: false
+                }, function(err) {
+                    if (err) {
+                        console.error("Erro de inicialização:", err);
+                        showNotification("Erro ao iniciar scanner: " + err.message, 'error');
+                        return;
+                    }
+                    Quagga.start();
+                    isScannerActive = true;
+                });
+
+                Quagga.onDetected(async function(result) {
+                    // Só processa se o botão foi pressionado e solto
+                    if (!isScanButtonPressed || isButtonDisabled) return;
+                    
+                    const code = result.codeResult.code;
+                    
+                    // Validação do código - mínimo 12 caracteres, máximo 13
+                    if (!code || code.length < 12 || code.length > 13) {
+                        console.log("Código inválido - tamanho incorreto:", code);
+                        updateQualityIndicator(0, "Código inválido (deve ter 12-13 caracteres)");
+                        return;
+                    }
+                    
+                    // Verifica se contém apenas números
+                    if (!/^\d+$/.test(code)) {
+                        console.log("Código inválido - contém caracteres não numéricos:", code);
+                        updateQualityIndicator(0, "Código deve conter apenas números");
+                        return;
+                    }
+                    
+                    // Desativar temporariamente o botão
+                    isButtonDisabled = true;
+                    scanButton.classList.add('hidden');
+                    isScanButtonPressed = false;
+                    
+                    // Adicionar o produto
+                    await addScannedProduct(code);
+                    
+                    // Reativar o botão após 500ms
+                    setTimeout(() => {
+                        isButtonDisabled = false;
+                        scanButton.classList.remove('hidden');
+                    }, 500);
+                });
+
+            } catch (err) {
+                console.error("Erro de acesso à câmera:", err);
+                showNotification("Não foi possível acessar a câmera. Verifique as permissões!", 'error');
+                manualInputFallback();
+            }
+        }
+
+        // Função para atualizar o indicador de qualidade
+        function updateQualityIndicator(count, errorMessage = null) {
+            let qualityText, qualityColor;
+            
+            if (errorMessage) {
+                qualityText = errorMessage;
+                qualityColor = "red";
+            } else if (count === 0) {
+                qualityText = "Aguardando leitura...";
+                qualityColor = "gray";
+            } else {
+                qualityText = "Leitura confirmada!";
+                qualityColor = "green";
+            }
+            
+            qualityIndicator.textContent = `Qualidade: ${qualityText}`;
+            qualityIndicator.style.color = qualityColor;
+        }
+
+        // Função de fallback para entrada manual
+        function manualInputFallback() {
+            isManualInputMode = true;
+            manualInputContainer.style.display = 'flex';
+            cameraVideo.style.display = 'none';
+            toggleInputBtn.innerHTML = '<i class="fas fa-camera"></i> Usar câmera';
+            manualBarcodeInput.focus();
+        }
+
+        // ===== FUNÇÕES DE PRODUTOS =====
+
+        // Função para adicionar um produto escaneado/digitado - REFATORADA
+        // Função para adicionar um produto escaneado/digitado - SEM VERIFICAÇÃO DE REPETIÇÃO
+async function addScannedProduct(code) {
+    try {
+        // Verificação do comprimento do código
+        if (code.length < 12) {
+            showNotification(`Código inválido: ${code} (${code.length} dígitos). O código deve ter no mínimo 12 caracteres.`, 'error');
+            return false;
+        }
+        
+        // Verificar se o produto existe na API (opcional, pode remover se quiser)
+        const produtoEncontrado = await findProductByCode(code);
+        if (!produtoEncontrado) {
+            showNotification(`Produto com código ${code} não encontrado no catálogo.`, 'error');
+            return false;
+        }
+        
+        // REMOVIDA A VERIFICAÇÃO DE PRODUTO JÁ ESCANEADO
+        
+        // Garantir que o som seja reproduzido
+        playBeepSound();
+        
+        // Feedback visual
+        cameraFeedback.style.opacity = '1';
+        cameraFeedback.classList.add('checkmark-animation');
+        
+        // Adicionar o produto à lista
+        scannedProducts.push({
+            code: code,
+            rct: produtoEncontrado.rct,
+            timestamp: new Date().toLocaleTimeString()
+        });
+        
+        updateScannedProductsList();
+        updateButtonStates();
+        
+        showNotification(`Produto ${code} adicionado com sucesso!`, 'success');
+        
+        // Resetar feedback
+        setTimeout(() => {
+            cameraFeedback.style.opacity = '0';
+            cameraFeedback.classList.remove('checkmark-animation');
+        }, 1000);
+        
+        // Limpar o input manual se estiver nesse modo
+        if (isManualInputMode) {
+            manualBarcodeInput.value = '';
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('Erro ao adicionar produto:', error);
+        showNotification('Erro ao adicionar produto: ' + error.message, 'error');
+        return false;
+    }
+}
+
+        // Função para atualizar a lista de produtos escaneados
+        function updateScannedProductsList() {
+            scannedProductsContainer.innerHTML = `<h3 style="color: white; text-align: center; margin-bottom: 10px;">Produtos Escaneados (${scannedProducts.length})</h3>`;
+            
+            if (scannedProducts.length === 0) {
+                const emptyMsg = document.createElement('p');
+                emptyMsg.style.color = 'white';
+                emptyMsg.style.textAlign = 'center';
+                emptyMsg.textContent = 'Nenhum produto escaneado ainda. Aponte para um código de barras.';
+                scannedProductsContainer.appendChild(emptyMsg);
+                return;
+            }
+            
+            scannedProducts.forEach((product, index) => {
+                const productElement = document.createElement('div');
+                productElement.className = 'scanned-product';
+                productElement.innerHTML = `
+                    <div>
+                        <div><strong>${product.code}</strong></div>
+                        <div style="font-size: 12px; opacity: 0.8;">${product.rct} - ${product.timestamp}</div>
+                    </div>
+                    <button class="remove-btn" data-index="${index}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                scannedProductsContainer.appendChild(productElement);
+            });
+
+            // Adicionar event listeners para os botões de remoção
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const removedProduct = scannedProducts.splice(index, 1)[0];
+                    updateScannedProductsList();
+                    updateButtonStates();
+                    showNotification(`Produto ${removedProduct.code} removido da lista.`, 'warning');
+                });
+            });
+        }
+
+        // Função para parar o scanner
+        function stopBarcodeScanner() {
+            if (isScannerActive) {
+                Quagga.stop();
+                isScannerActive = false;
+            }
+            
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            
+            cameraModal.style.display = 'none';
+            isManualInputMode = false;
+            manualInputContainer.style.display = 'none';
+            cameraVideo.style.display = 'block';
+            toggleInputBtn.innerHTML = '<i class="fas fa-keyboard"></i> Inserir manualmente';
+            
+            // Resetar estados do botão
+            isButtonDisabled = false;
+            isScanButtonPressed = false;
+            scanButton.classList.remove('hidden');
+        }
+
+        // Função para salvar produtos no armário - REFATORADA COMPLETAMENTE
+        async function saveProductsToCabinet() {
+    if (!selectedCabinet || !selectedShelf) {
+        showNotification('Selecione um armário e uma prateleira', 'error');
+        return;
+    }
+    
+    try {
+        const shelfNumber = selectedShelf.split('-')[1];
+        const localizacao = `${selectedCabinet.id}-${shelfNumber}`;
+        const codigosProdutos = scannedProducts.map(product => product.code);
+        
+        console.log('Salvando produtos:', {
+            produtos: codigosProdutos,
+            localizacao: localizacao,
+            quantidade: codigosProdutos.length
+        });
+        
+        // Mostrar loading
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        
+        const response = await fetch(`${API_BASE_URL}/api/substituir-produtos-prateleira`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                produtos: codigosProdutos,
+                localizacao: localizacao
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Erro ao salvar produtos');
+        }
+        
+        const result = await response.json();
+        console.log('Resposta do servidor:', result);
+        
+        // Atualizar interface
+        const cabinet = estoque127.cabinets.find(cab => cab.id === selectedCabinet.id);
+        if (cabinet) {
+            if (!cabinet.products) cabinet.products = {};
+            cabinet.products[selectedShelf] = scannedProducts.map(product => ({
+                code: product.code,
+                name: `Produto ${product.code.substring(0, 4)}`,
+                addedAt: new Date().toISOString()
+            }));
+            
+            showCabinetDetails(cabinet);
+        }
+        
+        // Limpar a lista de produtos escaneados após salvar com sucesso
+        scannedProducts = [];
+        updateScannedProductsList();
+        updateButtonStates();
+        
+        // Fechar o modal da câmera
+        stopBarcodeScanner();
+        
+        showNotification(result.message || `${result.produtosAdicionados} produtos salvos com sucesso na localização ${localizacao}!`, 'success');
+        
+    } catch (error) {
+        console.error('Erro ao salvar produtos:', error);
+        showNotification('Erro ao salvar produtos: ' + error.message, 'error');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Salvar (<span id="productCount">0</span>)';
+        updateButtonStates();
+    }
+}
+
+        // ===== EVENT LISTENERS =====
+
+        cabinetSelect.addEventListener('change', function() {
+            const cabinetId = this.value;
+            if (!cabinetId) {
+                selectedCabinet = null;
+                shelfSelect.disabled = true;
+                shelfSelect.value = '';
+                updateButtonStates();
+                return;
+            }
+            
+            const cabinet = estoque127.cabinets.find(cab => cab.id === cabinetId);
+            if (cabinet) {
+                selectCabinet(cabinet);
+            }
+        });
+
+        shelfSelect.addEventListener('change', function() {
+            selectedShelf = this.value;
+            updateButtonStates();
+        });
+
+        addBtn.addEventListener('click', async function() {
+            try {
+                // Verificar se o dispositivo suporta acesso à câmera
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error("Navegador não suporta acesso à câmera");
+                }
+                
+                cameraModal.style.display = 'flex';
+                updateScannedProductsList();
+                await startScanner();
+            } catch (err) {
+                console.error("Erro ao iniciar câmera:", err);
+                showNotification("Erro ao acessar câmera: " + err.message, 'error');
+                manualInputFallback();
+            }
+        });
+
+        backBtn.addEventListener('click', stopBarcodeScanner);
+
+        saveBtn.addEventListener('click', saveProductsToCabinet);
+
+        toggleInputBtn.addEventListener('click', toggleInputMode);
+
+        manualAddBtn.addEventListener('click', async function() {
+            const code = manualBarcodeInput.value.trim();
+            if (code) {
+                await addScannedProduct(code);
+            }
+        });
+
+        manualBarcodeInput.addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                const code = manualBarcodeInput.value.trim();
+                if (code) {
+                    await addScannedProduct(code);
+                }
+            }
+        });
+
+        // Fechar o modal ao pressionar Esc
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && cameraModal.style.display === 'flex') {
+                stopBarcodeScanner();
+            }
+        });
+
+        // ===== INICIALIZAÇÃO =====
+        window.onload = function() {
+            initAudio();
+            renderStaticStock();
+            testConnection();
+            
+            // Testar conexão a cada 30 segundos
+            setInterval(testConnection, 30000);
+            
+            if (estoque127.cabinets.length > 0) {
+                // Mostrar o primeiro armário por padrão
+                showCabinetDetails(estoque127.cabinets[0]);
             }
         };
     </script>
 </body>
 </html>
-
-
-
-    <!-- Modal de Segurança -->
-    <div id="securityModal" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    ">
-        <div style="
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        ">
-            <h2 style="color: var(--primary-color); margin-bottom: 20px;">Aviso de Segurança</h2>
-            <p style="margin-bottom: 20px; line-height: 1.5;">Os dados contidos neste site são confidenciais. Por este motivo, é exigida uma senha para acesso.</p>
-            <input type="password" id="passwordInput" placeholder="Digite a senha" style="
-                width: calc(100% - 20px);
-                padding: 10px;
-                margin-bottom: 15px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                font-size: 16px;
-            ">
-            <button id="accessButton" style="
-                background-color: var(--secondary-color);
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-                transition: background-color 0.3s ease;
-            ">Acessar</button>
-            <p id="errorMessage" style="color: var(--accent-color); margin-top: 10px; display: none;">Senha incorreta. Tente novamente.</p>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const securityModal = document.getElementById("securityModal");
-            const passwordInput = document.getElementById("passwordInput");
-            const accessButton = document.getElementById("accessButton");
-            const errorMessage = document.getElementById("errorMessage");
-            const correctPassword = "852-127";
-
-            accessButton.addEventListener("click", function() {
-                if (passwordInput.value === correctPassword) {
-                    securityModal.style.display = "none";
-                } else {
-                    errorMessage.style.display = "block";
-                    passwordInput.value = "";
-                }
-            });
-
-            passwordInput.addEventListener("keypress", function(event) {
-                if (event.key === "Enter") {
-                    accessButton.click();
-                }
-            });
-        });
-    </script>
-</body>
-</html>
-
-

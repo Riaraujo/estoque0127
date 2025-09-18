@@ -2129,6 +2129,7 @@
 
         // Função para adicionar um produto escaneado/digitado - REFATORADA
         // Função para adicionar um produto escaneado/digitado - SEM VERIFICAÇÃO DE REPETIÇÃO
+// Função para adicionar um produto escaneado/digitado - SEM VERIFICAÇÃO DE REPETIÇÃO
 async function addScannedProduct(code) {
     try {
         // Verificação do comprimento do código
@@ -2137,14 +2138,27 @@ async function addScannedProduct(code) {
             return false;
         }
         
-        // Verificar se o produto existe na API (opcional, pode remover se quiser)
-        const produtoEncontrado = await findProductByCode(code);
+        // Primeiro tenta com o código original
+        let produtoEncontrado = await findProductByCode(code);
+        let codigoUsado = code;
+        
+        // Se não encontrou com o código original E o código começa com zero, tenta sem o zero
+        if (!produtoEncontrado && code.startsWith('0')) {
+            const codigoSemZero = code.substring(1);
+            console.log(`Produto não encontrado com código ${code}, tentando com código sem zero: ${codigoSemZero}`);
+            
+            produtoEncontrado = await findProductByCode(codigoSemZero);
+            if (produtoEncontrado) {
+                codigoUsado = codigoSemZero;
+                showNotification(`Produto encontrado removendo zero inicial: ${codigoSemZero}`, 'success');
+            }
+        }
+        
+        // Se ainda não encontrou após tentar sem o zero, mostra erro
         if (!produtoEncontrado) {
             showNotification(`Produto com código ${code} não encontrado no catálogo.`, 'error');
             return false;
         }
-        
-        // REMOVIDA A VERIFICAÇÃO DE PRODUTO JÁ ESCANEADO
         
         // Garantir que o som seja reproduzido
         playBeepSound();
@@ -2155,7 +2169,7 @@ async function addScannedProduct(code) {
         
         // Adicionar o produto à lista
         scannedProducts.push({
-            code: code,
+            code: codigoUsado,
             rct: produtoEncontrado.rct,
             timestamp: new Date().toLocaleTimeString()
         });
@@ -2163,7 +2177,7 @@ async function addScannedProduct(code) {
         updateScannedProductsList();
         updateButtonStates();
         
-        showNotification(`Produto ${code} adicionado com sucesso!`, 'success');
+        showNotification(`Produto ${codigoUsado} adicionado com sucesso!`, 'success');
         
         // Resetar feedback
         setTimeout(() => {
@@ -2409,3 +2423,4 @@ async function addScannedProduct(code) {
     </script>
 </body>
 </html>
+
